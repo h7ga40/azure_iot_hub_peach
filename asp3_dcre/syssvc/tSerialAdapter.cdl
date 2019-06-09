@@ -1,0 +1,10 @@
+/*
+ *		C言語で記述されたアプリケーションから，TECSベースのシリアルイン
+ *		タフェースドライバを呼び出すためのアダプタ用セルタイプの定義
+ * 
+ *  $Id$
+ */
+[singleton, active]
+celltype tSerialAdapter {
+	call	sSerialPort		cSerialPort[];
+};

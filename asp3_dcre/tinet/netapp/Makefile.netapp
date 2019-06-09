@@ -1,0 +1,399 @@
+#
+#   TINET (TCP/IP Protocol Stack)
+#  
+#   Copyright (C) 2001-2017 by Dep. of Computer Science and Engineering
+#                    Tomakomai National College of Technology, JAPAN
+# 
+#   上記著作権者は，以下の (1)～(4) の条件か，Free Software Foundation 
+#   によって公表されている GNU General Public License の Version 2 に記
+#   述されている条件を満たす場合に限り，本ソフトウェア（本ソフトウェア
+#   を改変したものを含む．以下同じ）を使用・複製・改変・再配布（以下，
+#   利用と呼ぶ）することを無償で許諾する．
+#   (1) 本ソフトウェアをソースコードの形で利用する場合には，上記の著作
+#       権表示，この利用条件および下記の無保証規定が，そのままの形でソー
+#       スコード中に含まれていること．
+#   (2) 本ソフトウェアを，ライブラリ形式など，他のソフトウェア開発に使
+#       用できる形で再配布する場合には，再配布に伴うドキュメント（利用
+#       者マニュアルなど）に，上記の著作権表示，この利用条件および下記
+#       の無保証規定を掲載すること．
+#   (3) 本ソフトウェアを，機器に組み込むなど，他のソフトウェア開発に使
+#       用できない形で再配布する場合には，次の条件を満たすこと．
+#     (a) 再配布に伴うドキュメント（利用者マニュアルなど）に，上記の著
+#         作権表示，この利用条件および下記の無保証規定を掲載すること．
+#   (4) 本ソフトウェアの利用により直接的または間接的に生じるいかなる損
+#       害からも，上記著作権者およびTOPPERSプロジェクトを免責すること．
+# 
+#   本ソフトウェアは，無保証で提供されているものである．上記著作権者お
+#   よびTOPPERSプロジェクトは，本ソフトウェアに関して，その適用可能性も
+#   含めて，いかなる保証も行わない．また，本ソフトウェアの利用により直
+#   接的または間接的に生じたいかなる損害に関しても，その責任を負わない．
+#  
+#   @(#) $Id$
+# 
+
+#
+#  サンプルのネットワーク応用プログラムに関する定義
+#
+
+#
+#  カーネルの識別
+#
+ifdef SRCLANG
+	TARGET_KERNEL = ASP
+	TINET_CDEFS := $(TINET_CDEFS) -DTARGET_KERNEL_ASP
+else
+	TARGET_KERNEL = JSP
+	TINET_CDEFS := $(TINET_CDEFS) -DTARGET_KERNEL_JSP
+endif
+
+#  応用プログラム
+
+TINET_ROOT = $(SRCDIR)/tinet
+NETAPP_DIRS = $(TINET_ROOT)/netapp
+NETAPP_COBJS := $(NETAPP_COBJS) netapp_subr.o
+
+ifeq ($(USE_LCD),true)
+
+	NETAPP_COBJS := $(NETAPP_COBJS) lcd.o
+
+ifeq ($(TARGET_KERNEL),ASP)
+	NETAPP_COBJS := $(NETAPP_COBJS) target_lcd.o sc1602.o
+endif
+
+ifeq ($(TARGET_KERNEL),JSP)
+	NETAPP_COBJS := $(NETAPP_COBJS) hw_lcd.o sc1602.o
+endif
+
+endif
+
+#  トランスポート層の選択
+
+#SUPPORT_TCP = false
+#SUPPORT_UDP = false
+
+# 
+#  共通クライアント・サーバプログラムの設定
+# 
+
+ifeq ($(USE_WWW4_SRV),true)
+	USE_WWW_SRV = true
+	CDEFS := $(CDEFS) -DUSE_WWW4_SRV
+endif
+
+ifeq ($(USE_WWW_SRV),true)
+
+	SUPPORT_TCP = true
+	USE_NETAPP_SUBR = true
+	CDEFS := $(CDEFS) -DUSE_WWW_SRV
+	NETAPP_COBJS := $(NETAPP_COBJS) wwws.o
+	NETAPP_KERNEL_CFG := $(NETAPP_KERNEL_CFG) $(NETAPP_DIRS)/wwws.cfg
+
+endif
+
+ifeq ($(USE_TCP4_ECHO_SRV),true)
+	TCP_ECHO_SRV = tcp_echo_srv1
+	CDEFS := $(CDEFS) -DUSE_TCP4_ECHO_SRV
+endif
+
+ifeq ($(TCP_ECHO_SRV),tcp_echo_srv1)		# 送受信タスク同一型
+
+	SUPPORT_TCP = true
+	USE_NETAPP_SUBR = true
+	CDEFS := $(CDEFS) -DUSE_TCP_ECHO_SRV1
+	NETAPP_COBJS := $(NETAPP_COBJS) tcp_echo_srv1.o
+	NETAPP_KERNEL_CFG := $(NETAPP_KERNEL_CFG) $(NETAPP_DIRS)/tcp_echo_srv1.cfg
+
+	ifeq ($(USE_TCP_NON_BLOCKING),true)
+		NETAPP_COBJS := $(NETAPP_COBJS) tcp_echo_srv1_nblk.o
+	endif
+
+	ifeq ($(USE_TCP_EXTENTIONS),true)
+		NETAPP_COBJS := $(NETAPP_COBJS) tcp_echo_srv1_ext.o
+	endif
+
+endif
+
+ifeq ($(TCP_ECHO_SRV),tcp_echo_srv2)		# 送受信タスク分離型
+	SUPPORT_TCP = true
+	USE_NETAPP_SUBR = true
+	CDEFS := $(CDEFS) -DUSE_TCP_ECHO_SRV2
+	NETAPP_COBJS := $(NETAPP_COBJS) tcp_echo_srv2.o
+	NETAPP_KERNEL_CFG := $(NETAPP_KERNEL_CFG) $(NETAPP_DIRS)/tcp_echo_srv2.cfg
+endif
+
+ifeq ($(USE_UDP4_ECHO_SRV),true)
+	USE_UDP_ECHO_SRV = true
+endif
+
+ifeq ($(USE_UDP_ECHO_SRV),true)
+
+	CDEFS := $(CDEFS) -DUSE_UDP_ECHO_SRV
+
+	ifeq ($(SUPPORT_INET6),true)
+		SUPPORT_UDP = true
+		USE_NETAPP_SUBR = true
+		CDEFS := $(CDEFS) -DUSE_UDP6_ECHO_SRV_TSK
+		NETAPP_COBJS := $(NETAPP_COBJS) udp6_echo_srv.o
+		NETAPP_KERNEL_CFG := $(NETAPP_KERNEL_CFG) $(NETAPP_DIRS)/udp6_echo_srv.cfg
+
+		ifeq ($(SUPPORT_INET4),true)
+			ifeq ($(USE_UDP4_ECHO_SRV),true)
+				CDEFS := $(CDEFS) -DUSE_UDP4_ECHO_SRV_TSK
+				NETAPP_COBJS := $(NETAPP_COBJS) udp4_echo_srv.o
+				NETAPP_KERNEL_CFG := $(NETAPP_KERNEL_CFG) $(NETAPP_DIRS)/udp4_echo_srv.cfg
+			endif
+		endif
+	else
+		ifeq ($(SUPPORT_INET4),true)
+			SUPPORT_UDP = true
+			USE_NETAPP_SUBR = true
+			CDEFS := $(CDEFS) -DUSE_UDP4_ECHO_SRV_TSK
+			NETAPP_COBJS := $(NETAPP_COBJS) udp4_echo_srv.o
+			NETAPP_KERNEL_CFG := $(NETAPP_KERNEL_CFG) $(NETAPP_DIRS)/udp4_echo_srv.cfg
+		endif
+	endif
+endif
+
+
+ifeq ($(USE_TCP4_ECHO_CLI),true)
+	USE_TCP_ECHO_CLI = true
+	CDEFS := $(CDEFS) -DUSE_TCP4_ECHO_CLI
+endif
+
+ifeq ($(USE_TCP_ECHO_CLI),true)
+	SUPPORT_TCP = true
+	USE_NETAPP_SUBR = true
+	CDEFS := $(CDEFS) -DUSE_TCP_ECHO_CLI
+	NETAPP_COBJS := $(NETAPP_COBJS) tcp_echo_cli.o tcp_echo_cli_snd.o tcp_echo_cli_rcv.o
+	NETAPP_KERNEL_CFG := $(NETAPP_KERNEL_CFG) $(NETAPP_DIRS)/tcp_echo_cli.cfg
+endif
+
+ifeq ($(USE_UDP4_ECHO_CLI),true)
+	USE_UDP_ECHO_CLI = true
+endif
+
+ifeq ($(USE_UDP_ECHO_CLI),true)
+
+	CDEFS := $(CDEFS) -DUSE_UDP_ECHO_CLI
+
+	ifeq ($(SUPPORT_INET6),true)
+		SUPPORT_UDP = true
+		USE_NETAPP_SUBR = true
+		CDEFS := $(CDEFS) -DUSE_UDP6_ECHO_CLI_TSK
+		NETAPP_COBJS := $(NETAPP_COBJS) udp6_echo_cli.o
+		NETAPP_KERNEL_CFG := $(NETAPP_KERNEL_CFG) $(NETAPP_DIRS)/udp6_echo_cli.cfg
+
+		ifeq ($(SUPPORT_INET4),true)
+			ifeq ($(USE_UDP4_ECHO_CLI),true)
+				CDEFS := $(CDEFS) -DUSE_UDP4_ECHO_CLI_TSK
+				NETAPP_COBJS := $(NETAPP_COBJS) udp4_echo_cli.o
+				NETAPP_KERNEL_CFG := $(NETAPP_KERNEL_CFG) $(NETAPP_DIRS)/udp4_echo_cli.cfg
+			endif
+		endif
+		else
+		ifeq ($(SUPPORT_INET4),true)
+			SUPPORT_UDP = true
+			USE_NETAPP_SUBR = true
+			CDEFS := $(CDEFS) -DUSE_UDP4_ECHO_CLI_TSK
+			NETAPP_COBJS := $(NETAPP_COBJS) udp4_echo_cli.o
+			NETAPP_KERNEL_CFG := $(NETAPP_KERNEL_CFG) $(NETAPP_DIRS)/udp4_echo_cli.cfg
+		endif
+
+	endif
+endif
+
+ifeq ($(USE_TCP_DISCARD_SRV),true)
+	SUPPORT_TCP = true
+	USE_NETAPP_SUBR = true
+	CDEFS := $(CDEFS) -DUSE_TCP_DISCARD_SRV
+	NETAPP_COBJS := $(NETAPP_COBJS) tcp_discard_srv.o
+	NETAPP_KERNEL_CFG := $(NETAPP_KERNEL_CFG) $(NETAPP_DIRS)/tcp_discard_srv.cfg
+endif
+
+ifeq ($(USE_TCP_DISCARD_CLI),true)
+	SUPPORT_TCP = true
+	USE_NETAPP_SUBR = true
+	CDEFS := $(CDEFS) -DUSE_TCP_DISCARD_CLI
+	NETAPP_COBJS := $(NETAPP_COBJS) tcp_discard_cli.o
+	NETAPP_KERNEL_CFG := $(NETAPP_KERNEL_CFG) $(NETAPP_DIRS)/tcp_discard_cli.cfg
+endif
+
+ifeq ($(USE_UDP_DISCARD_CLI),true)
+	SUPPORT_UDP = true
+	USE_NETAPP_SUBR = true
+	CDEFS := $(CDEFS) -DUSE_UDP_DISCARD_CLI
+	NETAPP_COBJS := $(NETAPP_COBJS) udp_discard_cli.o
+	NETAPP_KERNEL_CFG := $(NETAPP_KERNEL_CFG) $(NETAPP_DIRS)/udp_discard_cli.cfg
+endif
+
+ifeq ($(USE_NET_CONS),true)
+	ifeq ($(TCP_CFG_NON_BLOCKING),true)
+		SUPPORT_TCP = true
+		USE_DBG_CONS = true
+		USE_NETAPP_SUBR = true
+		CDEFS := $(CDEFS) -DUSE_NET_CONS
+		NETAPP_COBJS := $(NETAPP_COBJS) net_cons.o
+		NETAPP_KERNEL_CFG := $(NETAPP_KERNEL_CFG) $(NETAPP_DIRS)/net_cons.cfg
+	endif
+endif
+
+ifeq ($(USE_DBG_CONS),true)
+	USE_NETAPP_SUBR = true
+	CDEFS := $(CDEFS) -DUSE_DBG_CONS
+	NETAPP_COBJS := $(NETAPP_COBJS) dbg_cons.o 
+	NETAPP_KERNEL_CFG := $(NETAPP_KERNEL_CFG) $(NETAPP_DIRS)/dbg_cons.cfg
+	ifeq ($(USE_DBG_CONS_PARSER),true)
+		CDEFS := $(CDEFS) -DUSE_DBG_CONS_PARSER
+	endif
+	ifeq ($(USE_DBG_CONS_EXTRA_PARSE),true)
+		CDEFS := $(CDEFS) -DUSE_DBG_CONS_EXTRA_PARSE
+	endif
+endif
+
+ifeq ($(USE_PING),true)
+	USE_NETAPP_SUBR = true
+	CDEFS := $(CDEFS) -DUSE_PING
+	ifeq ($(SUPPORT_INET4),true)
+		NETAPP_COBJS := $(NETAPP_COBJS) ping.o
+	endif
+	ifeq ($(SUPPORT_INET6),true)
+		NETAPP_COBJS := $(NETAPP_COBJS) ping6.o
+	endif
+endif
+
+ifeq ($(USE_RESOLVER),true)
+	SUPPORT_UDP = true
+	CDEFS := $(CDEFS) -DUSE_RESOLVER
+	NETAPP_COBJS := $(NETAPP_COBJS) resolver.o 
+
+endif
+
+ifeq ($(USE_DHCP6_CLI),true)
+	ifeq ($(SUPPORT_INET6),true)
+		SUPPORT_UDP = true
+		UDP_CFG_NON_BLOCKING = true
+		USE_UDP_NON_BLOCKING = true
+		CDEFS := $(CDEFS) -DDHCP6_CLI_CFG
+		NETAPP_COBJS := $(NETAPP_COBJS) dhcp6_cli.o 
+	endif
+endif
+
+ifeq ($(USE_DHCP4_CLI),true)
+	ifeq ($(SUPPORT_INET4),true)
+		SUPPORT_UDP = true
+		UDP_CFG_NON_BLOCKING = true
+		USE_UDP_NON_BLOCKING = true
+		CDEFS := $(CDEFS) -DDHCP4_CLI_CFG
+		NETAPP_COBJS := $(NETAPP_COBJS) dhcp4_cli.o 
+	endif
+endif
+
+ifeq ($(USE_NETAPP_SUBR),true)
+	CDEFS := $(CDEFS) -DUSE_NETAPP_SUBR
+endif
+
+ifeq ($(API_CFG_IP4MAPPED_ADDR),true)
+	CDEFS := $(CDEFS) -DAPI_CFG_IP4MAPPED_ADDR
+endif
+
+ifeq ($(USE_COPYSAVE_API),true)
+	CDEFS := $(CDEFS) -DUSE_COPYSAVE_API
+endif
+
+ifeq ($(TCP_CFG_RWBUF_CSAVE_ONLY),true)
+	CDEFS := $(CDEFS) -DTCP_CFG_RWBUF_CSAVE_ONLY -DTCP_CFG_RWBUF_CSAVE
+endif
+
+ifeq ($(TCP_CFG_RWBUF_CSAVE),true)
+	CDEFS := $(CDEFS) -DTCP_CFG_RWBUF_CSAVE
+endif
+
+ifeq ($(TCP_CFG_SWBUF_CSAVE_ONLY),true)
+	CDEFS := $(CDEFS) -DTCP_CFG_SWBUF_CSAVE_ONLY -DTCP_CFG_SWBUF_CSAVE
+endif
+
+ifeq ($(TCP_CFG_SWBUF_CSAVE),true)
+	CDEFS := $(CDEFS) -DTCP_CFG_SWBUF_CSAVE
+endif
+
+ifeq ($(TCP_CFG_NON_BLOCKING),true)
+	ifeq ($(USE_TCP_NON_BLOCKING),true)
+		CDEFS := $(CDEFS) -DUSE_TCP_NON_BLOCKING
+	endif
+else
+	CDEFS := $(CDEFS) -DUNDEF_TCP_CFG_NON_BLOCKING
+endif
+
+ifeq ($(TCP_CFG_EXTENTIONS),true)
+	CDEFS := $(CDEFS) -DTCP_CFG_EXTENTIONS
+	ifeq ($(USE_TCP_EXTENTIONS),true)
+		CDEFS := $(CDEFS) -DUSE_TCP_EXTENTIONS
+	endif
+endif
+
+ifeq ($(UDP_CFG_NON_BLOCKING),true)
+	ifeq ($(USE_UDP_NON_BLOCKING),true)
+		CDEFS := $(CDEFS) -DUSE_UDP_NON_BLOCKING
+	else
+		ifeq ($(USE_UDP_CALL_BACK),true)
+			CDEFS := $(CDEFS) -DUSE_UDP_CALL_BACK
+		endif
+	endif
+else
+	CDEFS := $(CDEFS) -DUNDEF_UDP_CFG_NON_BLOCKING
+	ifeq ($(USE_UDP_CALL_BACK),true)
+		CDEFS := $(CDEFS) -DUSE_UDP_CALL_BACK
+	endif
+endif
+
+ifeq ($(UDP_CFG_EXTENTIONS),true)
+	CDEFS := $(CDEFS) -DUDP_CFG_EXTENTIONS
+	ifeq ($(USE_UDP_EXTENTIONS),true)
+		CDEFS := $(CDEFS) -DUSE_UDP_EXTENTIONS
+	endif
+endif
+
+ifeq ($(USE_LCD),true)
+	CDEFS := $(CDEFS) -DUSE_LCD
+endif
+
+#
+#  アプリケーションプログラムに関する定義への追加
+#
+
+ifeq ($(TARGET_KERNEL),ASP)
+
+	APPLDIR := $(APPLDIR) $(NETAPP_DIRS)
+	APPL_COBJS := $(APPL_COBJS) $(NETAPP_COBJS)
+	APPL_CFLAGS := $(APPL_CFLAGS) -fno-strict-aliasing
+
+endif
+
+ifeq ($(TARGET_KERNEL),JSP)
+
+	UTASK_DIRS := $(UTASK_DIRS):$(NETAPP_DIRS)
+	UTASK_COBJS := $(UTASK_COBJS) $(NETAPP_COBJS)
+	UTASK_CFLAGS := $(UTASK_CFLAGS) -fno-strict-aliasing
+
+endif
+
+ifeq ($(USE_LCD),true)
+
+ifeq ($(TARGET_KERNEL),ASP)
+
+	APPLDIR := $(APPLDIR) $(SRCDIR)/pdic/sc1602
+
+endif
+
+ifeq ($(TARGET_KERNEL),JSP)
+
+	UTASK_DIRS := $(UTASK_DIRS):$(SRCDIR)/pdic/sc1602
+
+endif
+
+endif
+
+#
+#  TINET コンフィギュレーションファイルの定義への追加
+#
+TINET_KERNEL_CFG := $(TINET_KERNEL_CFG) $(NETAPP_KERNEL_CFG)

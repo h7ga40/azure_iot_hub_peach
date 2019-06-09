@@ -1,0 +1,130 @@
+#
+#		Makefile のmbed（RZ/A1用）
+#
+#  $Id$
+# 
+
+#
+#  mbedディレクトリ名の定義
+#
+MBEDDIR = $(SRCDIR)/mbed
+
+#
+#  コンパイルオプション
+#
+INCLUDES := $(INCLUDES)\
+	-I$(MBEDDIR)\
+	-I$(MBEDDIR)/cmsis\
+	-I$(MBEDDIR)/cmsis/TARGET_CORTEX_A\
+	-I$(MBEDDIR)/hal\
+	-I$(MBEDDIR)/platform\
+	-I$(MBEDDIR)/targets/TARGET_RENESAS\
+	-I$(MBEDDIR)/targets/TARGET_RENESAS/TARGET_RZA1XX\
+	-I$(MBEDDIR)/targets/TARGET_RENESAS/TARGET_RZA1XX/TARGET_RZ_A1H\
+	-I$(MBEDDIR)/targets/TARGET_RENESAS/TARGET_RZA1XX/TARGET_RZ_A1H/TARGET_MBED_MBRZA1H\
+	-I$(MBEDDIR)/targets/TARGET_RENESAS/TARGET_RZA1XX/TARGET_RZ_A1H/device\
+	-I$(MBEDDIR)/targets/TARGET_RENESAS/TARGET_RZA1XX/TARGET_RZ_A1H/device/inc\
+	-I$(MBEDDIR)/targets/TARGET_RENESAS/TARGET_RZA1XX/TARGET_RZ_A1H/device/inc/iobitmasks\
+	-I$(MBEDDIR)/targets/TARGET_RENESAS/TARGET_RZA1XX/TARGET_RZ_A1H/device/inc/iodefines\
+	-I$(MBEDDIR)/targets/TARGET_RENESAS/TARGET_RZA1XX/common\
+	-I$(MBEDDIR)/rtos/TARGET_CORTEX
+COPTS := $(COPTS)\
+  -mthumb\
+  -mthumb-interwork\
+  -marm\
+  -march=armv7-a\
+  -mfpu=vfpv3\
+  -mfloat-abi=hard\
+  -mno-unaligned-access
+LDFLAGS := $(LDFLAGS)\
+  -mthumb\
+  -mthumb-interwork\
+  -marm\
+  -march=armv7-a\
+  -mfpu=vfpv3\
+  -mfloat-abi=hard\
+  -mno-unaligned-access
+CDEFS := $(CDEFS)\
+	-DARM_MATH_CA9 \
+	-DDEVICE_ANALOGIN=1 \
+	-DDEVICE_CAN=1 \
+	-DDEVICE_EMAC=1 \
+	-DDEVICE_ETHERNET=1 \
+	-DDEVICE_FLASH=1 \
+	-DDEVICE_I2C=1 \
+	-DDEVICE_I2CSLAVE=1 \
+	-DDEVICE_I2C_ASYNCH=1 \
+	-DDEVICE_INTERRUPTIN=1 \
+	-DDEVICE_LPTICKER=1 \
+	-DDEVICE_PORTIN=1 \
+	-DDEVICE_PORTINOUT=1 \
+	-DDEVICE_PORTOUT=1 \
+	-DDEVICE_PWMOUT=1 \
+	-DDEVICE_RTC=1 \
+	-DDEVICE_SEMIHOST=1 \
+	-DDEVICE_SERIAL=1 \
+	-DDEVICE_SERIAL_ASYNCH=1 \
+	-DDEVICE_SERIAL_FC=1 \
+	-DDEVICE_SLEEP=1 \
+	-DDEVICE_SPI=1 \
+	-DDEVICE_SPISLAVE=1 \
+	-DDEVICE_SPI_ASYNCH=1 \
+	-DDEVICE_STDIO_MESSAGES=1 \
+	-DDEVICE_USTICKER=1 \
+	-DMBED_BUILD_TIMESTAMP=1550103323.92 \
+	-DTARGET_A9 \
+	-DTARGET_CORTEX \
+	-DTARGET_CORTEX_A \
+	-DTARGET_FF_ARDUINO \
+	-DTARGET_LIKE_CORTEX_A9 \
+	-DTARGET_LIKE_MBED \
+	-DTARGET_MBRZA1H \
+	-DTARGET_RELEASE \
+	-DTARGET_RENESAS \
+	-DTARGET_RZA1H \
+	-DTARGET_RZ_A1H \
+	-DTARGET_RZ_A1XX \
+	-DTARGET_RZ_A1_EMAC \
+	-DTOOLCHAIN_GCC \
+	-DTOOLCHAIN_GCC_ARM \
+	-DTOOLCHAIN_object \
+	-D__CMSIS_RTOS \
+	-D__CORTEX_A9 \
+	-D__EVAL \
+	-D__FPU_PRESENT=1 \
+	-D__MBED_CMSIS_RTOS_CA9 \
+	-D__MBED__=1 \
+	-DIRQ_GIC_LINE_COUNT=587 \
+	#-DDEVICE_STDIO_MESSAGES=1
+
+#
+#  システムサービスに関する定義
+#
+SYSSVC_DIRS := $(SYSSVC_DIRS)\
+	$(MBEDDIR)\
+	$(MBEDDIR)/hal\
+	$(MBEDDIR)/platform\
+	$(MBEDDIR)/cmsis/TARGET_CORTEX_A\
+	$(MBEDDIR)/targets/TARGET_RENESAS\
+	$(MBEDDIR)/targets/TARGET_RENESAS/TARGET_RZA1XX\
+	$(MBEDDIR)/targets/TARGET_RENESAS/TARGET_RZA1XX/TARGET_RZ_A1H\
+	$(MBEDDIR)/targets/TARGET_RENESAS/TARGET_RZA1XX/TARGET_RZ_A1H/TARGET_MBED_MBRZA1H\
+	$(MBEDDIR)/targets/TARGET_RENESAS/TARGET_RZA1XX/TARGET_RZ_A1H/device\
+	$(MBEDDIR)/targets/TARGET_RENESAS/TARGET_RZA1XX/TARGET_RZ_A1H/device/TOOLCHAIN_GCC_ARM\
+	$(MBEDDIR)/targets/TARGET_RENESAS/TARGET_RZA1XX/common
+SYSSVC_ASMOBJS := $(SYSSVC_ASMOBJS)
+START_OBJS = startup_RZ1AH.o
+SYSSVC_COBJS := $(SYSSVC_COBJS)\
+	mbed_critical_section_api.o mbed_flash_api.o mbed_gpio.o mbed_lp_ticker_api.o\
+	mbed_lp_ticker_wrapper.o mbed_pinmap_common.o mbed_sleep_manager.o mbed_mktime.o\
+	mbed_ticker_api.o mbed_us_ticker_api.o mbed_assert.o mbed_board.o\
+	mbed_critical.o mbed_error.o mbed_error_hist.o mbed_interface.o\
+	mbed_rtc_time.o mbed_semihost_api.o mbed_stats.o\
+	PeripheralPins.o RZ_A1_Init.o mbed_sf_boot.o mmu_RZ_A1H.o\
+	system_RZ_A1H.o trng_api_esp32.o analogin_api.o can_api.o cmsis_nvic.o\
+	irq_ctrl_gic.o nvic_wrapper.o rza_io_regrw.o ethernet_api.o flash_api.o\
+	gpio_api.o gpio_irq_api.o i2c_api.o lp_ticker.o mtu2.o pinmap.o port_api.o\
+	pwmout_api.o rtc_api.o serial_api.o sleep.o spi_api.o trng_api.o us_ticker.o
+	#mbed_wait_api_no_rtos.o
+CFG_DMY := cfg_dmy.o mmu_RZ_A1H.o mbed_sf_boot.o RZ_A1_Init.o system_RZ_A1H.o irq_ctrl_gic.o
+

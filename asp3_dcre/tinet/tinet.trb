@@ -1,0 +1,595 @@
+# ======================================================================
+# 
+#   TINET (TCP/IP Protocol Stack)
+# 
+#   Copyright (C) 2001-2007 by Dep. of Computer Science and Engineering
+#                    Tomakomai National College of Technology, JAPAN
+#  
+#   上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
+#   ア（本ソフトウェアを改変したものを含む．以下同じ）を使用・複製・改
+#   変・再配布（以下，利用と呼ぶ）することを無償で許諾する．
+#   (1) 本ソフトウェアをソースコードの形で利用する場合には，上記の著作
+#       権表示，この利用条件および下記の無保証規定が，そのままの形でソー
+#       スコード中に含まれていること．
+#   (2) 本ソフトウェアを，ライブラリ形式など，他のソフトウェア開発に使
+#       用できる形で再配布する場合には，再配布に伴うドキュメント（利用
+#       者マニュアルなど）に，上記の著作権表示，この利用条件および下記
+#       の無保証規定を掲載すること．
+#   (3) 本ソフトウェアを，機器に組み込むなど，他のソフトウェア開発に使
+#       用できない形で再配布する場合には，次のいずれかの条件を満たすこ
+#       と．
+#     (a) 再配布に伴うドキュメント（利用者マニュアルなど）に，上記の著
+#         作権表示，この利用条件および下記の無保証規定を掲載すること．
+#   (4) 本ソフトウェアの利用により直接的または間接的に生じるいかなる損
+#       害からも，上記著作権者およびTOPPERSプロジェクトを免責すること．
+#       また，本ソフトウェアのユーザまたはエンドユーザからのいかなる理
+#       由に基づく請求からも，上記著作権者およびTOPPERSプロジェクトを
+#       免責すること．
+#  
+#   本ソフトウェアは，無保証で提供されているものである．上記著作権者お
+#   よびTOPPERSプロジェクトは，本ソフトウェアに関して，特定の使用目的
+#   に対する適合性も含めて，いかなる保証も行わない．また，本ソフトウェ
+#   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
+#   の責任を負わない．
+# 
+#   @(#) $Id$
+#  
+# =====================================================================
+
+# =====================================================================
+# tinet_cfg.h の生成
+# =====================================================================
+
+$tinetCfgH = GenFile.new("tinet_cfg.h")
+$tinetCfgH.add("/* tinet_cfg.h */")
+$tinetCfgH.add("#ifndef _TINET_CFG_H_")
+$tinetCfgH.add("#define _TINET_CFG_H_")
+$tinetCfgH.add()
+
+$tinetCfgH.add("#define TNUM_TCP6_REPID	#{$cfgData[:TCP6_CRE_REP].size + $cfgData[:VRID_TCP6_REP].size}")
+$tinetCfgH.add("#define TNUM_TCP4_REPID	#{$cfgData[:TCP_CRE_REP].size + $cfgData[:VRID_TCP_REP].size}")
+$tinetCfgH.add("#define TNUM_TCP_REPID	#{$cfgData[:TCP6_CRE_REP].size + $cfgData[:VRID_TCP6_REP].size + $cfgData[:TCP_CRE_REP].size + $cfgData[:VRID_TCP_REP].size}")
+$tinetCfgH.add()
+
+$tinetCfgH.add("#define TNUM_TCP6_CEPID	#{$cfgData[:TCP6_CRE_CEP].size + $cfgData[:VRID_TCP6_CEP].size}")
+$tinetCfgH.add("#define TNUM_TCP4_CEPID	#{$cfgData[:TCP_CRE_CEP].size + $cfgData[:VRID_TCP_CEP].size}")
+$tinetCfgH.add("#define TNUM_TCP_CEPID	#{$cfgData[:TCP6_CRE_CEP].size + $cfgData[:VRID_TCP6_CEP].size + $cfgData[:TCP_CRE_CEP].size + $cfgData[:VRID_TCP_CEP].size}")
+$tinetCfgH.add()
+
+$tinetCfgH.add("#define TNUM_UDP6_CEPID	#{$cfgData[:UDP6_CRE_CEP].size + $cfgData[:VRID_UDP6_CEP].size}")
+$tinetCfgH.add("#define TNUM_UDP4_CEPID	#{$cfgData[:UDP_CRE_CEP].size + $cfgData[:VRID_UDP_CEP].size}")
+$tinetCfgH.add("#define TNUM_UDP_CEPID	#{$cfgData[:UDP6_CRE_CEP].size + $cfgData[:VRID_UDP6_CEP].size + $cfgData[:UDP_CRE_CEP].size + $cfgData[:VRID_UDP_CEP].size}")
+$tinetCfgH.add()
+
+$cfgData[:TCP6_CRE_REP].each do |key, params|
+	$tinetCfgH.add("#define #{params[:tcp6_repid]}	#{params[:tcp6_repid].val}")
+end
+$cfgData[:VRID_TCP6_REP].each do |key, params|
+	$tinetCfgH.add("#define #{params[:vrid_tcp6_repid]}	#{params[:vrid_tcp6_repid].val + $cfgData[:TCP6_CRE_REP].size}")
+end
+$cfgData[:TCP_CRE_REP].each do |key, params|
+	$tinetCfgH.add("#define #{params[:tcp4_repid]}	#{params[:tcp4_repid].val + $cfgData[:TCP6_CRE_REP].size + $cfgData[:VRID_TCP6_REP].size}")
+end
+$cfgData[:VRID_TCP_REP].each do |key, params|
+	$tinetCfgH.add("#define #{params[:vrid_tcp4_repid]}	#{params[:vrid_tcp4_repid].val + $cfgData[:TCP_CRE_REP].size + $cfgData[:TCP6_CRE_REP].size + $cfgData[:VRID_TCP6_REP].size}")
+end
+$tinetCfgH.add()
+
+$cfgData[:TCP6_CRE_CEP].each do |key, params|
+	$tinetCfgH.add("#define #{params[:tcp6_cepid]}	#{params[:tcp6_cepid].val}")
+end
+$cfgData[:VRID_TCP6_CEP].each do |key, params|
+	$tinetCfgH.add("#define #{params[:vrid_tcp6_cepid]}	#{params[:vrid_tcp6_cepid].val + $cfgData[:TCP6_CRE_CEP].size}")
+end
+$cfgData[:TCP_CRE_CEP].each do |key, params|
+	$tinetCfgH.add("#define #{params[:tcp4_cepid]}	#{params[:tcp4_cepid].val + $cfgData[:TCP6_CRE_CEP].size + $cfgData[:VRID_TCP6_CEP].size}")
+end
+$cfgData[:VRID_TCP_CEP].each do |key, params|
+	$tinetCfgH.add("#define #{params[:vrid_tcp4_cepid]}	#{params[:vrid_tcp4_cepid].val + $cfgData[:TCP_CRE_CEP].size + $cfgData[:TCP6_CRE_CEP].size + $cfgData[:VRID_TCP6_CEP].size}")
+end
+$tinetCfgH.add()
+
+$cfgData[:UDP6_CRE_CEP].each do |key, params|
+	$tinetCfgH.add("#define #{params[:udp6_cepid]}	#{params[:udp6_cepid].val}")
+end
+$cfgData[:VRID_UDP6_CEP].each do |key, params|
+	$tinetCfgH.add("#define #{params[:vrid_udp6_cepid]}	#{params[:vrid_udp6_cepid].val + $cfgData[:UDP6_CRE_CEP].size}")
+end
+$cfgData[:UDP_CRE_CEP].each do |key, params|
+	$tinetCfgH.add("#define #{params[:udp4_cepid]}	#{params[:udp4_cepid].val + $cfgData[:UDP6_CRE_CEP].size + $cfgData[:VRID_UDP6_CEP].size}")
+end
+$cfgData[:VRID_UDP_CEP].each do |key, params|
+	$tinetCfgH.add("#define #{params[:vrid_udp4_cepid]}	#{params[:vrid_udp4_cepid].val + $cfgData[:UDP_CRE_CEP].size + $cfgData[:UDP6_CRE_CEP].size + $cfgData[:VRID_UDP6_CEP].size}")
+end
+$tinetCfgH.add()
+$tinetCfgH.add("#endif /* _TINET_CFG_H_ */")
+
+# =====================================================================
+# tinet_cfg.c の生成
+# =====================================================================
+
+$tinetCfgC = GenFile.new("tinet_cfg.c")
+$tinetCfgC.add(<<EOS)
+/* tinet_cfg.c */
+
+#include <kernel.h>
+#include <sil.h>
+#include "kernel_cfg.h"
+#include "tinet_cfg.h"
+#include <tinet_defs.h>
+#include <tinet_config.h>
+#include <net/if.h>
+#include <net/if_ppp.h>
+#include <net/if_loop.h>
+#include <net/ethernet.h>
+#include <net/net.h>
+#include <net/net_endian.h>
+#include <net/net_buf.h>
+#include <netinet/in.h>
+#include <netinet/in_var.h>
+#include <netinet/in_itron.h>
+#include <netinet/ip.h>
+#include <netinet/tcp.h>
+#include <netinet/tcp_var.h>
+#include <netinet/udp_var.h>
+
+EOS
+# 
+#  インクルードディレクティブ（#include）
+# 
+$tinetCfgC.add()
+$tinetCfgC.add("/*")
+$tinetCfgC.add(" *  Include Directives (#include)")
+$tinetCfgC.add(" */")
+$tinetCfgC.add()
+$includeFiles.each do |file|
+  $tinetCfgC.add("#include #{file}")
+end
+
+$tinetCfgC.add()
+$tinetCfgC.add("const ID tmax_tcp_repid = (TMIN_TCP_REPID + TNUM_TCP6_REPID + TNUM_TCP4_REPID - 1);")
+
+$tinetCfgC.add()
+$tinetCfgC.add("#if defined(SUPPORT_INET6) && defined(SUPPORT_INET4)")
+$tinetCfgC.add("const ID tmax_tcp6_repid = (TMIN_TCP6_REPID + TNUM_TCP6_REPID - 1);")
+$tinetCfgC.add("const ID tmax_tcp4_repid = (TMIN_TCP4_REPID + TNUM_TCP4_REPID - 1);")
+$tinetCfgC.add("#endif")
+
+$tinetCfgC.add()
+$tinetCfgC.add("const ID tmax_tcp_cepid = (TMIN_TCP_CEPID + TNUM_TCP6_CEPID + TNUM_TCP4_CEPID - 1);")
+
+$tinetCfgC.add()
+$tinetCfgC.add("#if defined(SUPPORT_INET6) && defined(SUPPORT_INET4)")
+$tinetCfgC.add("const ID tmax_tcp6_cepid = (TMIN_TCP_CEPID + TNUM_TCP6_CEPID - 1);")
+$tinetCfgC.add("const ID tmax_tcp4_cepid = (TMIN_TCP_CEPID + TNUM_TCP4_CEPID - 1);")
+$tinetCfgC.add("#endif")
+
+$tinetCfgC.add()
+$tinetCfgC.add("const ID tmax_udp_cepid = (TMIN_UDP_CEPID + TNUM_UDP6_CEPID + TNUM_UDP4_CEPID - 1);")
+
+$tinetCfgC.add()
+$tinetCfgC.add("#if defined(SUPPORT_INET6) && defined(SUPPORT_INET4)")
+$tinetCfgC.add("const ID tmax_udp6_cepid = (TMIN_UDP6_CEPID + TNUM_UDP6_CEPID - 1);")
+$tinetCfgC.add("const ID tmax_udp4_cepid = (TMIN_UDP4_CEPID + TNUM_UDP4_CEPID - 1);")
+$tinetCfgC.add("#endif")
+
+#	// TCP (IPv6) 受付口
+$sem_tcp_rep_lock_id = 0
+if $cfgData[:TCP6_CRE_REP].size > 0 || $cfgData[:VRID_TCP6_REP].size > 0
+	$tinetCfgC.add()
+	$tinetCfgC.add("T_TCP6_REP tcp6_rep[TNUM_TCP6_REPID] = {")
+	$cfgData[:TCP6_CRE_REP].each do |key, params|
+		$tinetCfgC.add("\t{")
+			$tinetCfgC.add("\t\t#{params[:tcp6_repatr]},")
+			$tinetCfgC.add("\t\t{ #{params[:ipv6addr]}, #{params[:portno]} },")
+		$tinetCfgC.add("#if defined(TCP_CFG_EXTENTIONS)")
+			$tinetCfgC.add("\t\tTCP_REP_FLG_VALID,")
+			$tinetCfgC.add("\t\tSEM_TCP_REP_LOCK#{$sem_tcp_rep_lock_id},")
+		$tinetCfgC.add("#endif")
+			$tinetCfgC.add("\t\t},")
+		$sem_tcp_rep_lock_id = $sem_tcp_rep_lock_id + 1
+	end
+	$cfgData[:VRID_TCP6_REP].each do |key, params|
+		$tinetCfgC.add("\t{")
+			$tinetCfgC.add("\t\t0,")
+			$tinetCfgC.add("\t\t{ IPV6_ADDRANY, TCP_PORTANY },")
+	$tinetCfgC.add("#if defined(TCP_CFG_EXTENTIONS)")
+			$tinetCfgC.add("\t\tTCP_REP_FLG_DYNAMIC,")
+			$tinetCfgC.add("\t\tSEM_TCP_REP_LOCK#{$sem_tcp_rep_lock_id},")
+	$tinetCfgC.add("#endif")
+			$tinetCfgC.add("\t\t},")
+		$sem_tcp_rep_lock_id = $sem_tcp_rep_lock_id + 1
+	end
+	$tinetCfgC.add("\t};")
+end
+
+#	// TCP (IPv4) 受付口
+if $cfgData[:TCP_CRE_REP].size > 0 || $cfgData[:VRID_TCP_REP].size > 0
+	$tinetCfgC.add()
+	$tinetCfgC.add("T_TCP4_REP tcp4_rep[TNUM_TCP4_REPID] = {")
+	$cfgData[:TCP_CRE_REP].each do |key, params|
+		$tinetCfgC.add("\t{")
+			$tinetCfgC.add("\t\t#{params[:tcp4_repatr]},")
+			$tinetCfgC.add("\t\t{ #{params[:ipv4addr]}, #{params[:portno]} },")
+	$tinetCfgC.add("#if defined(TCP_CFG_EXTENTIONS)")
+			$tinetCfgC.add("\t\tTCP_REP_FLG_VALID,")
+			$tinetCfgC.add("\t\tSEM_TCP_REP_LOCK#{$sem_tcp_rep_lock_id},")
+	$tinetCfgC.add("#endif")
+			$tinetCfgC.add("\t\t},")
+		$sem_tcp_rep_lock_id = $sem_tcp_rep_lock_id + 1
+	end
+	$cfgData[:VRID_TCP_REP].each do |key, params|
+		$tinetCfgC.add("\t{")
+			$tinetCfgC.add("\t\t0,")
+			$tinetCfgC.add("\t\t{ IPV4_ADDRANY, TCP_PORTANY },")
+	$tinetCfgC.add("#if defined(TCP_CFG_EXTENTIONS)")
+			$tinetCfgC.add("\t\tTCP_REP_FLG_DYNAMIC,")
+			$tinetCfgC.add("\t\tSEM_TCP_REP_LOCK#{$sem_tcp_rep_lock_id},")
+	$tinetCfgC.add("#endif")
+			$tinetCfgC.add("\t\t},")
+		$sem_tcp_rep_lock_id = $sem_tcp_rep_lock_id + 1
+	end
+	$tinetCfgC.add("\t};")
+end
+
+#	// TCP 通信端点
+if $cfgData[:TCP6_CRE_CEP].size > 0 || $cfgData[:VRID_TCP6_CEP].size > 0 || $cfgData[:TCP_CRE_CEP].size > 0 || $cfgData[:VRID_TCP_CEP].size > 0
+	$tinetCfgC.add()
+	$tinetCfgC.add("T_TCP_CEP tcp_cep[TNUM_TCP6_CEPID + TNUM_TCP4_CEPID] = {")
+	$cfgData[:TCP6_CRE_CEP].each do |key, params|
+		$tinetCfgC.add("\t{")
+			$tinetCfgC.add("\t\t#{params[:tcp6_cepatr]},")
+			$tinetCfgC.add("\t\t(void*)#{params[:sbuf]},")
+			$tinetCfgC.add("\t\t#{params[:sbufsz]},")
+			$tinetCfgC.add("\t\t(void*)#{params[:rbuf]},")
+			$tinetCfgC.add("\t\t#{params[:rbufsz]},")
+			$tinetCfgC.add("\t\t(t_tcp_callback)(FP)#{params[:callback]},")
+			$tinetCfgC.add("\t\tTCP_CEP_FLG_VALID,")
+			$tinetCfgC.add("\t\tSEM_TCP_CEP_LOCK#{params[:tcp6_cepid].val},")
+			$tinetCfgC.add("\t\tFLG_TCP_CEP_EST#{params[:tcp6_cepid].val},")
+			$tinetCfgC.add("\t\tFLG_TCP_CEP_SND#{params[:tcp6_cepid].val},")
+			$tinetCfgC.add("\t\tFLG_TCP_CEP_RCV#{params[:tcp6_cepid].val},")
+			$tinetCfgC.add("\t\t},")
+	end
+	$cfgData[:VRID_TCP6_CEP].each do |key, params|
+		$tinetCfgC.add("\t{")
+			$tinetCfgC.add("\t\t0,")
+			$tinetCfgC.add("\t\t(void*)NULL,")
+			$tinetCfgC.add("\t\t0,")
+			$tinetCfgC.add("\t\t(void*)NULL,")
+			$tinetCfgC.add("\t\t0,")
+			$tinetCfgC.add("\t\t(t_tcp_callback)(FP)NULL,")
+			$tinetCfgC.add("\t\tTCP_CEP_FLG_DYNAMIC,")
+			$tinetCfgC.add("\t\tSEM_TCP_CEP_LOCK#{params[:vrid_tcp6_cepid].val + $cfgData[:TCP6_CRE_CEP].size},")
+			$tinetCfgC.add("\t\tFLG_TCP_CEP_EST#{params[:vrid_tcp6_cepid].val + $cfgData[:TCP6_CRE_CEP].size},")
+			$tinetCfgC.add("\t\tFLG_TCP_CEP_SND#{params[:vrid_tcp6_cepid].val + $cfgData[:TCP6_CRE_CEP].size},")
+			$tinetCfgC.add("\t\tFLG_TCP_CEP_RCV#{params[:vrid_tcp6_cepid].val + $cfgData[:TCP6_CRE_CEP].size},")
+			$tinetCfgC.add("\t\t},")
+	end
+	$cfgData[:TCP_CRE_CEP].each do |key, params|
+		$tinetCfgC.add("\t{")
+			$tinetCfgC.add("\t\t#{params[:tcp4_cepatr]},")
+			$tinetCfgC.add("\t\t(void*)#{params[:sbuf]},")
+			$tinetCfgC.add("\t\t#{params[:sbufsz]},")
+			$tinetCfgC.add("\t\t(void*)#{params[:rbuf]},")
+			$tinetCfgC.add("\t\t#{params[:rbufsz]},")
+			$tinetCfgC.add("\t\t(t_tcp_callback)(FP)#{params[:callback]},")
+			$tinetCfgC.add("\t\tTCP_CEP_FLG_VALID|TCP_CEP_FLG_IPV4,")
+			$tinetCfgC.add("\t\tSEM_TCP_CEP_LOCK#{params[:tcp4_cepid].val + $cfgData[:TCP6_CRE_CEP].size + $cfgData[:VRID_TCP6_CEP].size},")
+			$tinetCfgC.add("\t\tFLG_TCP_CEP_EST#{params[:tcp4_cepid].val + $cfgData[:TCP6_CRE_CEP].size + $cfgData[:VRID_TCP6_CEP].size},")
+			$tinetCfgC.add("\t\tFLG_TCP_CEP_SND#{params[:tcp4_cepid].val + $cfgData[:TCP6_CRE_CEP].size + $cfgData[:VRID_TCP6_CEP].size},")
+			$tinetCfgC.add("\t\tFLG_TCP_CEP_RCV#{params[:tcp4_cepid].val + $cfgData[:TCP6_CRE_CEP].size + $cfgData[:VRID_TCP6_CEP].size},")
+			$tinetCfgC.add("\t\t},")
+	end
+	$cfgData[:VRID_TCP_CEP].each do |key, params|
+		$tinetCfgC.add("\t{")
+			$tinetCfgC.add("\t\t0,")
+			$tinetCfgC.add("\t\t(void*)NULL,")
+			$tinetCfgC.add("\t\t0,")
+			$tinetCfgC.add("\t\t(void*)NULL,")
+			$tinetCfgC.add("\t\t0,")
+			$tinetCfgC.add("\t\t(t_tcp_callback)(FP)NULL,")
+			$tinetCfgC.add("\t\tTCP_CEP_FLG_DYNAMIC|TCP_CEP_FLG_IPV4,")
+			$tinetCfgC.add("\t\tSEM_TCP_CEP_LOCK#{params[:vrid_tcp4_cepid].val + $cfgData[:TCP_CRE_CEP].size + $cfgData[:TCP6_CRE_CEP].size + $cfgData[:VRID_TCP6_CEP].size},")
+			$tinetCfgC.add("\t\tFLG_TCP_CEP_EST#{params[:vrid_tcp4_cepid].val + $cfgData[:TCP_CRE_CEP].size + $cfgData[:TCP6_CRE_CEP].size + $cfgData[:VRID_TCP6_CEP].size},")
+			$tinetCfgC.add("\t\tFLG_TCP_CEP_SND#{params[:vrid_tcp4_cepid].val + $cfgData[:TCP_CRE_CEP].size + $cfgData[:TCP6_CRE_CEP].size + $cfgData[:VRID_TCP6_CEP].size},")
+			$tinetCfgC.add("\t\tFLG_TCP_CEP_RCV#{params[:vrid_tcp4_cepid].val + $cfgData[:TCP_CRE_CEP].size + $cfgData[:TCP6_CRE_CEP].size + $cfgData[:VRID_TCP6_CEP].size},")
+			$tinetCfgC.add("\t\t},")
+	end
+		$tinetCfgC.add("\t};")
+end
+
+#	// UDP (IPv6) 通信端点
+if $cfgData[:UDP6_CRE_CEP].size > 0 || $cfgData[:VRID_UDP6_CEP].size > 0
+	$tinetCfgC.add()
+	$tinetCfgC.add("T_UDP6_CEP udp6_cep[TNUM_UDP6_CEPID] = {")
+	$cfgData[:UDP6_CRE_CEP].each do |key, params|
+		$tinetCfgC.add("\t{")
+			$tinetCfgC.add("\t\t#{params[:udp6_cepatr]},")
+			$tinetCfgC.add("\t\t{ #{params[:ipv6addr]}, #{params[:portno]} },")
+			$tinetCfgC.add("\t\t(t_udp_callback)(FP)#{params[:callback]},")
+			$tinetCfgC.add("\t\tUDP_CEP_FLG_VALID,")
+			$tinetCfgC.add("\t\tSEM_UDP6_CEP_LOCK#{params[:udp6_cepid].val},")
+			$tinetCfgC.add("\t\tTA_NULL,")
+			$tinetCfgC.add("\t\tTA_NULL,")
+			$tinetCfgC.add("\t\tDTQ_UDP6_RCVQ#{params[:udp6_cepid].val},")
+			$tinetCfgC.add("\t\t},")
+	end
+	$cfgData[:VRID_UDP6_CEP].each do |key, params|
+		$tinetCfgC.add("\t{")
+			$tinetCfgC.add("\t\t0,")
+			$tinetCfgC.add("\t\t{ IPV6_ADDRANY, UDP_PORTANY },")
+			$tinetCfgC.add("\t\t(t_udp_callback)(FP)NULL,")
+			$tinetCfgC.add("\t\tUDP_CEP_FLG_DYNAMIC,")
+			$tinetCfgC.add("\t\tSEM_UDP6_CEP_LOCK#{params[:vrid_udp6_cepid].val + $cfgData[:UDP6_CRE_CEP].size},")
+			$tinetCfgC.add("\t\tTA_NULL,")
+			$tinetCfgC.add("\t\tTA_NULL,")
+			$tinetCfgC.add("\t\tDTQ_UDP6_RCVQ#{params[:vrid_udp6_cepid].val + $cfgData[:UDP6_CRE_CEP].size},")
+			$tinetCfgC.add("\t\t},")
+	end
+		$tinetCfgC.add("\t};")
+end
+
+#	// UDP (IPv4) 通信端点
+if $cfgData[:UDP_CRE_CEP].size > 0 || $cfgData[:VRID_UDP_CEP].size > 0
+	$tinetCfgC.add()
+	$tinetCfgC.add("T_UDP4_CEP udp4_cep[TNUM_UDP4_CEPID] = {")
+	$cfgData[:UDP_CRE_CEP].each do |key, params|
+		$tinetCfgC.add("\t{")
+			$tinetCfgC.add("\t\t#{params[:udp4_cepatr]},")
+			$tinetCfgC.add("\t\t{ #{params[:ipv4addr]}, #{params[:portno]} },")
+			$tinetCfgC.add("\t\t(t_udp_callback)(FP)#{params[:callback]},")
+			$tinetCfgC.add("\t\tUDP_CEP_FLG_VALID,")
+			$tinetCfgC.add("\t\tSEM_UDP4_CEP_LOCK#{params[:udp4_cepid].val},")
+			$tinetCfgC.add("\t\tTA_NULL,")
+			$tinetCfgC.add("\t\tTA_NULL,")
+			$tinetCfgC.add("\t\tDTQ_UDP4_RCVQ#{params[:udp4_cepid].val},")
+			$tinetCfgC.add("\t\t},")
+	end
+	$cfgData[:VRID_UDP_CEP].each do |key, params|
+		$tinetCfgC.add("\t{")
+			$tinetCfgC.add("\t\t0,")
+			$tinetCfgC.add("\t\t{ IPV4_ADDRANY, UDP_PORTANY },")
+			$tinetCfgC.add("\t\t(t_udp_callback)(FP)NULL,")
+			$tinetCfgC.add("\t\tUDP_CEP_FLG_DYNAMIC,")
+			$tinetCfgC.add("\t\tSEM_UDP4_CEP_LOCK#{params[:vrid_udp4_cepid].val + $cfgData[:UDP_CRE_CEP].size},")
+			$tinetCfgC.add("\t\tTA_NULL,")
+			$tinetCfgC.add("\t\tTA_NULL,")
+			$tinetCfgC.add("\t\tDTQ_UDP4_RCVQ#{params[:vrid_udp4_cepid].val + $cfgData[:UDP_CRE_CEP].size},")
+			$tinetCfgC.add("\t\t},")
+	end
+		$tinetCfgC.add("\t};")
+end
+
+# =====================================================================
+# tinet_kern.cfg の生成
+# =====================================================================
+
+#	// TCP (IPv6) 受付口
+$sem_tcp_rep_lock_id = 0
+if $cfgData[:TCP6_CRE_REP].size > 0 || $cfgData[:VRID_TCP6_REP].size > 0
+	$cfgData[:TCP6_CRE_REP].each do |key, params|
+		cfgInfo = { APINAME: "CRE_SEM" }
+		cfgInfo["semid"] = "SEM_TCP_REP_LOCK#{$sem_tcp_rep_lock_id}"
+		cfgInfo["sematr"] = NumStr.new($TA_TPRI, "TA_TPRI")
+		cfgInfo["isemcnt"] = 1
+		cfgInfo["maxsem"] = 1
+		$cfgFileInfo.push(cfgInfo)
+
+		$sem_tcp_rep_lock_id = $sem_tcp_rep_lock_id + 1
+	end
+	$cfgData[:VRID_TCP6_REP].each do |key, params|
+		cfgInfo = { APINAME: "CRE_SEM" }
+		cfgInfo["semid"] = "SEM_TCP_REP_LOCK#{$sem_tcp_rep_lock_id}"
+		cfgInfo["sematr"] = NumStr.new($TA_TPRI, "TA_TPRI")
+		cfgInfo["isemcnt"] = 1
+		cfgInfo["maxsem"] = 1
+		$cfgFileInfo.push(cfgInfo)
+
+		$sem_tcp_rep_lock_id = $sem_tcp_rep_lock_id + 1
+	end
+end
+
+#	// TCP (IPv4) 受付口
+if $cfgData[:TCP_CRE_REP].size > 0 || $cfgData[:VRID_TCP_REP].size > 0
+	$cfgData[:TCP_CRE_REP].each do |key, params|
+		cfgInfo = { APINAME: "CRE_SEM" }
+		cfgInfo["semid"] = "SEM_TCP_REP_LOCK#{$sem_tcp_rep_lock_id}"
+		cfgInfo["sematr"] = NumStr.new($TA_TPRI, "TA_TPRI")
+		cfgInfo["isemcnt"] = 1
+		cfgInfo["maxsem"] = 1
+		$cfgFileInfo.push(cfgInfo)
+
+		$sem_tcp_rep_lock_id = $sem_tcp_rep_lock_id + 1
+	end
+	$cfgData[:VRID_TCP_REP].each do |key, params|
+		cfgInfo = { APINAME: "CRE_SEM" }
+		cfgInfo["semid"] = "SEM_TCP_REP_LOCK#{$sem_tcp_rep_lock_id}"
+		cfgInfo["sematr"] = NumStr.new($TA_TPRI, "TA_TPRI")
+		cfgInfo["isemcnt"] = 1
+		cfgInfo["maxsem"] = 1
+		$cfgFileInfo.push(cfgInfo)
+
+		$sem_tcp_rep_lock_id = $sem_tcp_rep_lock_id + 1
+	end
+end
+
+#	// TCP (IPv6) 通信端点
+if $cfgData[:TCP6_CRE_CEP].size > 0 || $cfgData[:VRID_TCP6_CEP].size > 0
+	$cfgData[:TCP6_CRE_CEP].each do |key, params|
+		cfgInfo = { APINAME: "CRE_SEM" }
+		cfgInfo["semid"] = "SEM_TCP_CEP_LOCK#{params[:tcp6_cepid].val}"
+		cfgInfo["sematr"] = NumStr.new($TA_TPRI, "TA_TPRI")
+		cfgInfo["isemcnt"] = 1
+		cfgInfo["maxsem"] = 1
+		$cfgFileInfo.push(cfgInfo)
+
+		cfgInfo = { APINAME: "CRE_FLG" }
+		cfgInfo["flgid"] = "FLG_TCP_CEP_EST#{params[:tcp6_cepid].val}"
+		cfgInfo["flgatr"] = NumStr.new($TA_TFIFO | $TA_WSGL, "TA_TFIFO|TA_WSGL")
+		cfgInfo["iflgptn"] = NumStr.new($TCP_CEP_EVT_CLOSED, "TCP_CEP_EVT_CLOSED")
+		$cfgFileInfo.push(cfgInfo)
+
+		cfgInfo = { APINAME: "CRE_FLG" }
+		cfgInfo["flgid"] = "FLG_TCP_CEP_SND#{params[:tcp6_cepid].val}"
+		cfgInfo["flgatr"] = NumStr.new($TA_TFIFO | $TA_WSGL, "TA_TFIFO|TA_WSGL")
+		cfgInfo["iflgptn"] = NumStr.new($TCP_CEP_EVT_SWBUF_READY, "TCP_CEP_EVT_SWBUF_READY")
+		$cfgFileInfo.push(cfgInfo)
+
+		cfgInfo = { APINAME: "CRE_FLG" }
+		cfgInfo["flgid"] = "FLG_TCP_CEP_RCV#{params[:tcp6_cepid].val}"
+		cfgInfo["flgatr"] = NumStr.new($TA_TFIFO | $TA_WSGL, "TA_TFIFO|TA_WSGL")
+		cfgInfo["iflgptn"] = 0
+		$cfgFileInfo.push(cfgInfo)
+	end
+	$cfgData[:VRID_TCP6_CEP].each do |key, params|
+		cfgInfo = { APINAME: "CRE_SEM" }
+		cfgInfo["semid"] = "SEM_TCP_CEP_LOCK#{params[:vrid_tcp6_cepid].val + $cfgData[:TCP6_CRE_CEP].size}"
+		cfgInfo["sematr"] = NumStr.new($TA_TPRI, "TA_TPRI")
+		cfgInfo["isemcnt"] = 1
+		cfgInfo["maxsem"] = 1
+		$cfgFileInfo.push(cfgInfo)
+
+		cfgInfo = { APINAME: "CRE_FLG" }
+		cfgInfo["flgid"] = "FLG_TCP_CEP_EST#{params[:vrid_tcp6_cepid].val + $cfgData[:TCP6_CRE_CEP].size}"
+		cfgInfo["flgatr"] = NumStr.new($TA_TFIFO | $TA_WSGL, "TA_TFIFO|TA_WSGL")
+		cfgInfo["iflgptn"] = NumStr.new($TCP_CEP_EVT_CLOSED, "TCP_CEP_EVT_CLOSED")
+		$cfgFileInfo.push(cfgInfo)
+
+		cfgInfo = { APINAME: "CRE_FLG" }
+		cfgInfo["flgid"] = "FLG_TCP_CEP_SND#{params[:vrid_tcp6_cepid].val + $cfgData[:TCP6_CRE_CEP].size}"
+		cfgInfo["flgatr"] = NumStr.new($TA_TFIFO | $TA_WSGL, "TA_TFIFO|TA_WSGL")
+		cfgInfo["iflgptn"] = NumStr.new($TCP_CEP_EVT_SWBUF_READY, "TCP_CEP_EVT_SWBUF_READY")
+		$cfgFileInfo.push(cfgInfo)
+
+		cfgInfo = { APINAME: "CRE_FLG" }
+		cfgInfo["flgid"] = "FLG_TCP_CEP_RCV#{params[:vrid_tcp6_cepid].val + $cfgData[:TCP6_CRE_CEP].size}"
+		cfgInfo["flgatr"] = NumStr.new($TA_TFIFO | $TA_WSGL, "TA_TFIFO|TA_WSGL")
+		cfgInfo["iflgptn"] = 0
+		$cfgFileInfo.push(cfgInfo)
+	end
+end
+
+#	// TCP (IPv4) 通信端点
+if $cfgData[:TCP_CRE_CEP].size > 0 || $cfgData[:VRID_TCP_CEP].size > 0
+	$cfgData[:TCP_CRE_CEP].each do |key, params|
+		cfgInfo = { APINAME: "CRE_SEM" }
+		cfgInfo["semid"] = "SEM_TCP_CEP_LOCK#{params[:tcp4_cepid].val + $cfgData[:TCP6_CRE_CEP].size + $cfgData[:VRID_TCP6_CEP].size}"
+		cfgInfo["sematr"] = NumStr.new($TA_TPRI, "TA_TPRI")
+		cfgInfo["isemcnt"] = 1
+		cfgInfo["maxsem"] = 1
+		$cfgFileInfo.push(cfgInfo)
+
+		cfgInfo = { APINAME: "CRE_FLG" }
+		cfgInfo["flgid"] = "FLG_TCP_CEP_EST#{params[:tcp4_cepid].val + $cfgData[:TCP6_CRE_CEP].size + $cfgData[:VRID_TCP6_CEP].size}"
+		cfgInfo["flgatr"] = NumStr.new($TA_TFIFO | $TA_WSGL, "TA_TFIFO|TA_WSGL")
+		cfgInfo["iflgptn"] = NumStr.new($TCP_CEP_EVT_CLOSED, "TCP_CEP_EVT_CLOSED")
+		$cfgFileInfo.push(cfgInfo)
+
+		cfgInfo = { APINAME: "CRE_FLG" }
+		cfgInfo["flgid"] = "FLG_TCP_CEP_SND#{params[:tcp4_cepid].val + $cfgData[:TCP6_CRE_CEP].size + $cfgData[:VRID_TCP6_CEP].size}"
+		cfgInfo["flgatr"] = NumStr.new($TA_TFIFO | $TA_WSGL, "TA_TFIFO|TA_WSGL")
+		cfgInfo["iflgptn"] = NumStr.new($TCP_CEP_EVT_SWBUF_READY, "TCP_CEP_EVT_SWBUF_READY")
+		$cfgFileInfo.push(cfgInfo)
+
+		cfgInfo = { APINAME: "CRE_FLG" }
+		cfgInfo["flgid"] = "FLG_TCP_CEP_RCV#{params[:tcp4_cepid].val + $cfgData[:TCP6_CRE_CEP].size + $cfgData[:VRID_TCP6_CEP].size}"
+		cfgInfo["flgatr"] = NumStr.new($TA_TFIFO | $TA_WSGL, "TA_TFIFO|TA_WSGL")
+		cfgInfo["iflgptn"] = 0
+		$cfgFileInfo.push(cfgInfo)
+	end
+	$cfgData[:VRID_TCP_CEP].each do |key, params|
+		cfgInfo = { APINAME: "CRE_SEM" }
+		cfgInfo["semid"] = "SEM_TCP_CEP_LOCK#{params[:vrid_tcp4_cepid].val + $cfgData[:TCP_CRE_CEP].size + $cfgData[:TCP6_CRE_CEP].size + $cfgData[:VRID_TCP6_CEP].size}"
+		cfgInfo["sematr"] = NumStr.new($TA_TPRI, "TA_TPRI")
+		cfgInfo["isemcnt"] = 1
+		cfgInfo["maxsem"] = 1
+		$cfgFileInfo.push(cfgInfo)
+
+		cfgInfo = { APINAME: "CRE_FLG" }
+		cfgInfo["flgid"] = "FLG_TCP_CEP_EST#{params[:vrid_tcp4_cepid].val + $cfgData[:TCP_CRE_CEP].size + $cfgData[:TCP6_CRE_CEP].size + $cfgData[:VRID_TCP6_CEP].size}"
+		cfgInfo["flgatr"] = NumStr.new($TA_TFIFO | $TA_WSGL, "TA_TFIFO|TA_WSGL")
+		cfgInfo["iflgptn"] = NumStr.new($TCP_CEP_EVT_CLOSED, "TCP_CEP_EVT_CLOSED")
+		$cfgFileInfo.push(cfgInfo)
+
+		cfgInfo = { APINAME: "CRE_FLG" }
+		cfgInfo["flgid"] = "FLG_TCP_CEP_SND#{params[:vrid_tcp4_cepid].val + $cfgData[:TCP_CRE_CEP].size + $cfgData[:TCP6_CRE_CEP].size + $cfgData[:VRID_TCP6_CEP].size}"
+		cfgInfo["flgatr"] = NumStr.new($TA_TFIFO | $TA_WSGL, "TA_TFIFO|TA_WSGL")
+		cfgInfo["iflgptn"] = NumStr.new($TCP_CEP_EVT_SWBUF_READY, "TCP_CEP_EVT_SWBUF_READY")
+		$cfgFileInfo.push(cfgInfo)
+
+		cfgInfo = { APINAME: "CRE_FLG" }
+		cfgInfo["flgid"] = "FLG_TCP_CEP_RCV#{params[:vrid_tcp4_cepid].val + $cfgData[:TCP_CRE_CEP].size + $cfgData[:TCP6_CRE_CEP].size + $cfgData[:VRID_TCP6_CEP].size}"
+		cfgInfo["flgatr"] = NumStr.new($TA_TFIFO | $TA_WSGL, "TA_TFIFO|TA_WSGL")
+		cfgInfo["iflgptn"] = 0
+		$cfgFileInfo.push(cfgInfo)
+	end
+end
+
+#	// UDP (IPv6) 通信端点
+if $cfgData[:UDP6_CRE_CEP].size > 0 || $cfgData[:VRID_UDP6_CEP].size > 0
+	$cfgData[:UDP6_CRE_CEP].each do |key, params|
+		cfgInfo = { APINAME: "CRE_SEM" }
+		cfgInfo["semid"] = "SEM_UDP6_CEP_LOCK#{params[:udp6_cepid].val}"
+		cfgInfo["sematr"] = NumStr.new($TA_TPRI, "TA_TPRI")
+		cfgInfo["isemcnt"] = 1
+		cfgInfo["maxsem"] = 1
+		$cfgFileInfo.push(cfgInfo)
+
+		cfgInfo = { APINAME: "CRE_DTQ" }
+		cfgInfo["dtqid"] = "DTQ_UDP6_RCVQ#{params[:udp6_cepid].val}"
+		cfgInfo["dtqatr"] = NumStr.new($TA_TFIFO, "TA_TFIFO")
+		cfgInfo["dtqcnt"] = NumStr.new($NUM_DTQ_UDP_RCVQ, "NUM_DTQ_UDP_RCVQ")
+		#cfgInfo["dtqmb"] = NumStr.new($NULL, "NULL")
+		$cfgFileInfo.push(cfgInfo)
+	end
+	$cfgData[:VRID_UDP6_CEP].each do |key, params|
+		cfgInfo = { APINAME: "CRE_SEM" }
+		cfgInfo["semid"] = "SEM_UDP6_CEP_LOCK#{params[:vrid_udp6_cepid].val + $cfgData[:UDP6_CRE_CEP].size}"
+		cfgInfo["sematr"] = NumStr.new($TA_TPRI, "TA_TPRI")
+		cfgInfo["isemcnt"] = 1
+		cfgInfo["maxsem"] = 1
+		$cfgFileInfo.push(cfgInfo)
+
+		cfgInfo = { APINAME: "CRE_DTQ" }
+		cfgInfo["dtqid"] = "DTQ_UDP6_RCVQ#{params[:vrid_udp6_cepid].val + $cfgData[:UDP6_CRE_CEP].size}"
+		cfgInfo["dtqatr"] = NumStr.new($TA_TFIFO, "TA_TFIFO")
+		cfgInfo["dtqcnt"] = NumStr.new($NUM_DTQ_UDP_RCVQ, "NUM_DTQ_UDP_RCVQ")
+		#cfgInfo["dtqmb"] = NumStr.new($NULL, "NULL")
+		$cfgFileInfo.push(cfgInfo)
+	end
+end
+
+#	// UDP (IPv4) 通信端点
+if $cfgData[:UDP_CRE_CEP].size > 0 || $cfgData[:VRID_UDP_CEP].size > 0
+	$cfgData[:UDP_CRE_CEP].each do |key, params|
+		cfgInfo = { APINAME: "CRE_SEM" }
+		cfgInfo["semid"] = "SEM_UDP4_CEP_LOCK#{params[:udp4_cepid].val}"
+		cfgInfo["sematr"] = NumStr.new($TA_TPRI, "TA_TPRI")
+		cfgInfo["isemcnt"] = 1
+		cfgInfo["maxsem"] = 1
+		$cfgFileInfo.push(cfgInfo)
+
+		cfgInfo = { APINAME: "CRE_DTQ" }
+		cfgInfo["dtqid"] = "DTQ_UDP4_RCVQ#{params[:udp4_cepid].val}"
+		cfgInfo["dtqatr"] = NumStr.new($TA_TFIFO, "TA_TFIFO")
+		cfgInfo["dtqcnt"] = NumStr.new($NUM_DTQ_UDP_RCVQ, "NUM_DTQ_UDP_RCVQ")
+		#cfgInfo["dtqmb"] = NumStr.new($NULL, "NULL")
+		$cfgFileInfo.push(cfgInfo)
+	end
+	$cfgData[:VRID_UDP_CEP].each do |key, params|
+		cfgInfo = { APINAME: "CRE_SEM" }
+		cfgInfo["semid"] = "SEM_UDP4_CEP_LOCK#{params[:vrid_udp4_cepid].val + $cfgData[:UDP_CRE_CEP].size}"
+		cfgInfo["sematr"] = NumStr.new($TA_TPRI, "TA_TPRI")
+		cfgInfo["isemcnt"] = 1
+		cfgInfo["maxsem"] = 1
+		$cfgFileInfo.push(cfgInfo)
+
+		cfgInfo = { APINAME: "CRE_DTQ" }
+		cfgInfo["dtqid"] = "DTQ_UDP4_RCVQ#{params[:vrid_udp4_cepid].val + $cfgData[:UDP_CRE_CEP].size}"
+		cfgInfo["dtqatr"] = NumStr.new($TA_TFIFO, "TA_TFIFO")
+		cfgInfo["dtqcnt"] = NumStr.new($NUM_DTQ_UDP_RCVQ, "NUM_DTQ_UDP_RCVQ")
+		#cfgInfo["dtqmb"] = NumStr.new($NULL, "NULL")
+		$cfgFileInfo.push(cfgInfo)
+	end
+end

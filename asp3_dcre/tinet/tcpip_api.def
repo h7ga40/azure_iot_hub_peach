@@ -1,0 +1,12 @@
+TCP_CRE_REP  #tcp4_repid* { .tcp4_repatr { &ipv4addr &portno } }  
+TCP6_CRE_REP #tcp6_repid* { .tcp6_repatr { &ipv6addr &portno } }  
+TCP_CRE_CEP  #tcp4_cepid* { .tcp4_cepatr &sbuf &sbufsz &rbuf &rbufsz &callback }  
+TCP6_CRE_CEP #tcp6_cepid* { .tcp6_cepatr &sbuf &sbufsz &rbuf &rbufsz &callback }  
+UDP_CRE_CEP  #udp4_cepid* { .udp4_cepatr { &ipv4addr &portno } &callback }  
+UDP6_CRE_CEP #udp6_cepid* { .udp6_cepatr { &ipv6addr &portno } &callback }  
+VRID_TCP_REP  #vrid_tcp4_repid*  
+VRID_TCP_CEP  #vrid_tcp4_cepid*  
+VRID_TCP6_REP #vrid_tcp6_repid*  
+VRID_TCP6_CEP #vrid_tcp6_cepid*  
+VRID_UDP_CEP  #vrid_udp4_cepid*  
+VRID_UDP6_CEP #vrid_udp6_cepid*  

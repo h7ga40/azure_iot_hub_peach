@@ -1,0 +1,389 @@
+#
+#   TINET (TCP/IP Protocol Stack)
+#  
+#   Copyright (C) 2001-2017 by Dep. of Computer Science and Engineering
+#                    Tomakomai National College of Technology, JAPAN
+#   Copyright (C) 2008-2009 by Hokkaido Industrial Research Institute, JAPAN
+# 
+#   上記著作権者は，以下の (1)～(4) の条件か，Free Software Foundation 
+#   によって公表されている GNU General Public License の Version 2 に記
+#   述されている条件を満たす場合に限り，本ソフトウェア（本ソフトウェア
+#   を改変したものを含む．以下同じ）を使用・複製・改変・再配布（以下，
+#   利用と呼ぶ）することを無償で許諾する．
+#   (1) 本ソフトウェアをソースコードの形で利用する場合には，上記の著作
+#       権表示，この利用条件および下記の無保証規定が，そのままの形でソー
+#       スコード中に含まれていること．
+#   (2) 本ソフトウェアを，ライブラリ形式など，他のソフトウェア開発に使
+#       用できる形で再配布する場合には，再配布に伴うドキュメント（利用
+#       者マニュアルなど）に，上記の著作権表示，この利用条件および下記
+#       の無保証規定を掲載すること．
+#   (3) 本ソフトウェアを，機器に組み込むなど，他のソフトウェア開発に使
+#       用できない形で再配布する場合には，次の条件を満たすこと．
+#     (a) 再配布に伴うドキュメント（利用者マニュアルなど）に，上記の著
+#         作権表示，この利用条件および下記の無保証規定を掲載すること．
+#   (4) 本ソフトウェアの利用により直接的または間接的に生じるいかなる損
+#       害からも，上記著作権者およびTOPPERSプロジェクトを免責すること．
+# 
+#   本ソフトウェアは，無保証で提供されているものである．上記著作権者お
+#   よびTOPPERSプロジェクトは，本ソフトウェアに関して，その適用可能性も
+#   含めて，いかなる保証も行わない．また，本ソフトウェアの利用により直
+#   接的または間接的に生じたいかなる損害に関しても，その責任を負わない．
+#  
+#   @(#) $Id$
+#
+
+#
+#  「ミドルウェアの Makefile のインクルード」に追加する。
+#
+
+#
+#  カーネルの識別
+#
+ifdef SRCLANG
+	TARGET_KERNEL = ASP
+	TINET_CDEFS := $(TINET_CDEFS) -DTARGET_KERNEL_ASP
+else
+	TARGET_KERNEL = JSP
+	TINET_CDEFS := $(TINET_CDEFS) -DTARGET_KERNEL_JSP
+endif
+
+#
+#  TINET ソースファイルのディレクトリの定義
+#
+TINET_ROOT = $(SRCDIR)/tinet
+
+#
+#  TINET 1.1 との互換性のための定義
+#
+ifndef SUPPORT_INET4
+	ifndef SUPPORT_INET6
+		SUPPORT_INET4 = true
+	endif
+endif
+
+#
+#  TINET 1.7 以降は、ネットワーク層の指定を変更した。
+#
+
+ifeq ($(SUPPORT_INET6),true)
+	TINET_CDEFS := $(TINET_CDEFS) -DSUPPORT_INET6
+endif
+
+ifeq ($(SUPPORT_INET4),true)
+	TINET_CDEFS := $(TINET_CDEFS) -DSUPPORT_INET4
+endif
+
+ifeq ($API_CFG_IP4MAPPED_ADDR,true)
+	TINET_CDEFS := $(TINET_CDEFS) -DAPI_CFG_IP4MAPPED_ADDR
+endif
+
+ifeq ($(SUPPORT_IGMP),true)
+	TINET_CDEFS := $(TINET_CDEFS) -DSUPPORT_IGMP
+endif
+
+#
+#  ネットワークサービスに関する定義
+#
+
+#  汎用通信機能
+
+TINET_DIRS = $(TINET_ROOT)/net:$(TINET_ROOT)/netinet:$(TINET_ROOT)/netinet6
+TINET_COBJS := $(TINET_COBJS) \
+               net_buf.o net_count.o net_subr.o net_timer.o if.o \
+               in_subr.o route_cfg.o
+TINET_CFG_COBJS := $(TINET_CFG_COBJS) tinet_cfg.o
+TINET_CFG2_OUT_SRCS := $(TINET_CFG2_OUT_SRCS) tinet_cfg.h tinet_cfg.c
+
+#  IPv6
+
+TINET_COBJS := $(TINET_COBJS) \
+               in6.o in6_ifattach.o nd6_rtr.o \
+               in6_subr.o ip6_input.o icmp6.o \
+               dest6.o route6.o frag6.o \
+               ah_input.o esp_input.o \
+               nd6.o nd6_nbr.o ip6_output.o scope6.o
+TINET_KERNEL_CFG := $(TINET_KERNEL_CFG) $(TINET_ROOT)/netinet6/ip6.cfg
+
+#  IPv4
+
+TINET_COBJS := $(TINET_COBJS) \
+               ip_input.o ip_output.o ip_icmp.o ip_igmp.o in4_subr.o
+TINET_KERNEL_CFG := $(TINET_KERNEL_CFG) $(TINET_ROOT)/netinet/ip.cfg
+
+#  loop back
+
+ifeq ($(NET_IF),loop)
+
+	TINET_COBJS := $(TINET_COBJS) if_loop.o
+	TINET_KERNEL_CFG := $(TINET_KERNEL_CFG) $(TINET_ROOT)/net/if_loop.cfg
+	TINET_CDEFS := $(TINET_CDEFS) -DSUPPORT_LOOP
+
+endif
+
+#  ppp
+
+ifeq ($(NET_IF),ppp)
+
+	TINET_COBJS := $(TINET_COBJS) \
+	               ppp.o ppp_hdlc.o ppp_lcp.o ppp_fsm.o \
+	               ppp_auth.o ppp_upap.o
+	TINET_KERNEL_CFG := $(TINET_KERNEL_CFG) $(TINET_ROOT)/net/ppp.cfg
+	TINET_CDEFS := $(TINET_CDEFS) -DSUPPORT_PPP
+
+#  IPv6用 cp
+	TINET_COBJS := $(TINET_COBJS) ppp_ipv6cp.o
+
+#  IPv4用 cp
+	TINET_COBJS := $(TINET_COBJS) ppp_ipcp.o
+
+ifeq ($(PPP_CFG_MODEM),true)
+
+	TINET_COBJS := $(TINET_COBJS) ppp_modem.o 
+	TINET_CDEFS := $(TINET_CDEFS) -DPPP_CFG_MODEM
+
+endif
+
+endif
+
+#  ターゲット依存の定義のインクルード
+
+ifeq ($(TARGET_KERNEL),ASP)
+
+	-include $(TARGETDIR)/Makefile.tinet
+
+endif
+
+ifeq ($(TARGET_KERNEL),JSP)
+
+	ifdef TOOL
+		ifdef SYS
+			-include $(SRCDIR)/config/$(CPU)-$(TOOL)/$(SYS)/Makefile.tinet
+		endif
+		-include $(SRCDIR)/config/$(CPU)-$(TOOL)/Makefile.tinet
+	else
+		ifdef SYS
+			-include $(SRCDIR)/config/$(CPU)/$(SYS)/Makefile.tinet
+		endif
+		-include $(SRCDIR)/config/$(CPU)/Makefile.tinet
+	endif
+
+endif
+
+#  ethernet
+
+ifeq ($(NET_IF),ether)
+
+	TINET_COBJS := $(TINET_COBJS) ethernet.o if6_ether.o if_ether.o
+	TINET_KERNEL_CFG := $(TINET_KERNEL_CFG) \
+	                    $(TINET_ROOT)/net/ethernet.cfg \
+	                    $(TINET_ROOT)/netinet/if_ether.cfg
+	TINET_CDEFS := $(TINET_CDEFS) -DSUPPORT_ETHER
+	include $(TINET_ROOT)/netdev/$(NET_DEV)/Makefile.tinet
+
+endif
+
+#  TCP
+
+ifeq ($(SUPPORT_TCP),true)
+
+	TINET_COBJS := $(TINET_COBJS) \
+	               tcp_input.o tcp_output.o tcp_timer.o \
+	               tcp_subr.o tcp_subr_cs.o tcp_subr_ncs.o 
+	TINET_KERNEL_CFG := $(TINET_KERNEL_CFG) $(TINET_ROOT)/netinet/tcp.cfg
+	TINET_CDEFS := $(TINET_CDEFS) -DSUPPORT_TCP
+
+endif
+
+#  UDP
+
+ifeq ($(SUPPORT_UDP),true)
+
+	TINET_COBJS := $(TINET_COBJS) \
+	               udp_input.o udp_output.o udp_subr.o
+	TINET_KERNEL_CFG := $(TINET_KERNEL_CFG) $(TINET_ROOT)/netinet/udp.cfg
+	TINET_CDEFS := $(TINET_CDEFS) -DSUPPORT_UDP
+
+endif
+
+#
+#  TINET ライブラリの定義
+#
+
+ifeq ($(NO_USE_TINET_LIBRARY),true)
+
+	ifeq ($(SUPPORT_TCP),true)
+		TINET_COBJS := $(TINET_COBJS) tcp_usrreq.o 
+	endif
+
+	ifeq ($(SUPPORT_UDP),true)
+		TINET_COBJS := $(TINET_COBJS) udp_usrreq.o udp_usrreq_nblk.o
+	endif
+
+else
+
+	ifeq ($(SUPPORT_TCP),true)
+		TINET_LCSRCS := $(TINET_LCSRCS) tcp_usrreq.c 
+	endif
+
+	ifeq ($(SUPPORT_UDP),true)
+		TINET_LCSRCS := $(TINET_LCSRCS) udp_usrreq.c udp_usrreq_nblk.c
+	endif
+
+	TINET_CDEFS := $(TINET_CDEFS) -DTCP_CFG_LIBRARY -DUDP_CFG_LIBRARY
+
+	ifdef TINET_LIB
+		MAKE_TINET_LIB :=
+		LIBTINET := $(TINET_LIB)/libtinet.a
+	else
+		MAKE_TINET_LIB := libtinet.a
+		LIBTINET := $(MAKE_TINET_LIB)
+	endif
+
+	MAKE_MTASK := $(MAKE_MTASK) $(LIBTINET)
+
+endif
+
+#
+#  ライブラリ化するソースファイルから生成される
+#  オブジェクトファイルの定義
+#
+TINET_LCOBJS = $(foreach file,$(TINET_LCSRCS),$($(file:.c=)))
+
+tcp_usrreq = 	tcp_cre_rep.o tcp_del_rep.o \
+		tcp_cre_cep.o tcp_del_cep.o \
+		tcp_acp_cep.o tcp_con_cep.o tcp_sht_cep.o \
+		tcp_cls_cep.o tcp_can_cep.o \
+		tcp_snd_dat.o tcp_rcv_dat.o \
+		tcp_snd_oob.o tcp_rcv_oob.o \
+		tcp_get_buf.o tcp_snd_buf.o \
+		tcp_rcv_buf.o tcp_rel_buf.o \
+		tcp_set_opt.o tcp_get_opt.o
+
+udp_usrreq = 	udp_can_cep.o udp_send_data.o \
+		udp_can_snd.o udp_can_rcv.o \
+		udp_snd_dat.o udp_rcv_dat.o \
+		udp_set_opt.o udp_get_opt.o \
+		udp_cre_cep.o udp_del_cep.o
+
+udp_usrreq_nblk = \
+		udp_can_snd_nblk.o udp_can_rcv_nblk.o \
+		udp_snd_dat_nblk.o udp_rcv_dat_nblk.o
+
+#
+#  ライブラリ化するソースファイルから生成される
+#  オブジェクトファイルの依存関係の定義
+#
+$(tcp_usrreq) $(tcp_usrreq:.o=.s) $(tcp_usrreq:.o=.d): tcp_usrreq.c tcpn_usrreq.c
+$(udp_usrreq) $(udp_usrreq:.o=.s) $(udp_usrreq:.o=.d): udp_usrreq.c udpn_usrreq.c
+$(udp_usrreq_nblk) $(udp_usrreq_nblk:.o=.s) $(udp_usrreq_nblk:.o=.d): udp_usrreq_nblk.c
+
+#
+#  TINET ライブラリの定義
+#
+TINET_LIB_OBJS = $(TINET_LCOBJS)
+
+#
+#  TINET コンフィギュレーションファイルの定義
+#
+
+ifeq ($(TARGET_KERNEL),ASP)
+
+TINET_CFG_OUT = tinet_cfg.c tinet_cfg.h tinet_kern.cfg
+TINET_KERNEL_CFG :=	$(TINET_KERNEL_CFG) \
+			$(TINET_ROOT)/tinet_asp.cfg $(TINET_ROOT)/net/net_asp.cfg 
+
+endif
+
+ifeq ($(TARGET_KERNEL),JSP)
+
+TINET_CFG = tinet_$(UNAME).cfg
+TINET_CFG_OUT = tinet_cfg.c tinet_id.h tinet_kern.cfg
+TINET_KERNEL_CFG :=	$(TINET_KERNEL_CFG) tinet_kern.cfg \
+			$(TINET_ROOT)/tinet.cfg $(TINET_ROOT)/net/net_jsp.cfg 
+TINET_CFG_OUT := $(TINET_CFG_OUT) $(IPSEC_CFG_OUT)
+
+endif
+
+#
+#  共通コンパイルオプションの定義への追加
+#
+CDEFS := $(CDEFS) $(TINET_CDEFS)
+INCLUDES := $(INCLUDES) -I$(TINET_ROOT)
+
+#
+#  TINET コンパイルオプションの定義への追加
+#
+TINET_CFLAGS := $(TINET_CFLAGS) -fno-strict-aliasing
+
+#
+#  システムサービス、ミドルウェアに関する定義
+#
+
+ifeq ($(TARGET_KERNEL),ASP)
+
+	SYSSVC_DIRS := $(SYSSVC_DIRS):$(TINET_DIRS)
+	SYSSVC_ASMOBJS := $(SYSSVC_ASMOBJS)
+	SYSSVC_COBJS := $(SYSSVC_COBJS) $(TINET_COBJS)
+	SYSSVC_CFLAGS := $(SYSSVC_CFLAGS) $(TINET_CFLAGS)
+	SYSSVC_LIBS := $(SYSSVC_LIBS) $(LIBTINET) -lc
+
+	CFG_COBJS := $(CFG_COBJS) $(TINET_CFG_COBJS)
+	CFG2_OUT_SRCS := $(CFG2_OUT_SRCS) $(TINET_CFG2_OUT_SRCS)
+
+	CLEAN_FILES := $(CLEAN_FILES) $(TINET_CFG_OUT) $(MAKE_TINET_LIB)
+
+endif
+
+ifeq ($(TARGET_KERNEL),JSP)
+
+	MTASK_CFG := $(MTASK_CFG) $(TINET_CFG)
+	MTASK_KERNEL_CFG := $(MTASK_KERNEL_CFG) $(TINET_KERNEL_CFG)
+	MTASK_DIR := $(MTASK_DIRS):$(TINET_DIRS)
+	MTASK_LCSRCS := $(MTASK_LCSRCS) $(TINET_LCSRCS)
+	MTASK_ASMOBJS := $(MTASK_ASMOBJS)
+	ifdef USE_CXX
+		MTASK_CXXOBJS := $(MTASK_CXXOBJS)
+		MTASK_COBJS := $(MTASK_COBJS) $(TINET_COBJS)
+	else
+		MTASK_COBJS := $(MTASK_COBJS) $(TINET_COBJS)
+	endif
+	MTASK_CFLAGS := $(MTASK_CFLAGS) $(TINET_CFLAGS)
+	MTASK_LIBS := $(MTASK_LIBS) $(LIBTINET) -lc
+	MTASK_CLEAN_FILES := $(MTASK_CLEAN_FILES) $(TINET_CFG_OUT) $(MAKE_TINET_LIB)
+
+endif
+
+#
+#  TINET ライブラリファイルの生成
+#
+libtinet.a: $(TINET_LIB_OBJS)
+	rm -f libtinet.a
+	$(AR) -rcs libtinet.a $(TINET_LIB_OBJS)
+	$(RANLIB) libtinet.a
+
+#
+#  コンパイルルールの定義
+#
+
+ifeq ($(TARGET_KERNEL),ASP)
+
+$(TINET_LCOBJS): %.o:
+	$(CC) -D__$(*F) -o $@ -c $(CFLAGS) $(SYSSVC_CFLAGS) $<
+
+tinet_cfg1_out.o: %.o: %.c
+	$(CC) -c $(CFLAGS) $(KERNEL_CFG_CFLAGS) $<
+
+endif
+
+ifeq ($(TARGET_KERNEL),JSP)
+
+$(TINET_LCOBJS): %.o:
+	$(CC) -D__$(*F) -o $@ -c $(CFLAGS) $(MTASK_CFLAGS) $<
+
+endif
+
+#
+#  コンパイル結果の消去
+#
+cleantinet:
+	rm -f $(TINET_CFG_OUT) $(MAKE_TINET_LIB)
