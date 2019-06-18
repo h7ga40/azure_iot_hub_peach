@@ -311,6 +311,24 @@ void iothub_client_run(int proto)
 
 int iothub_client_main(int argc, char **argv)
 {
+	if (argc < 2) {
+		iothub_client_run(0);
+		return 0;
+	}
+
+	if (strcmp(argv[1], "http") == 0) {
+		iothub_client_run(0);
+		return 0;
+	}
+	else if (strcmp(argv[1], "mqtt") == 0) {
+		iothub_client_run(1);
+		return 0;
+	}
+	else if (strcmp(argv[1], "mqttows") == 0) {
 	iothub_client_run(2);
+		return 0;
+	}
+
+	printf("%s [http|mqtt|mqttows] \n");
 	return 0;
 }

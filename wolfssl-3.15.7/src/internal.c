@@ -12561,7 +12561,7 @@ int DoApplicationData(WOLFSSL* ssl, byte* input, word32* inOutIdx)
     int    ivExtra = 0;
     byte*  rawData = input + idx;  /* keep current  for hmac */
 #ifdef HAVE_LIBZ
-    byte   decomp[MAX_RECORD_SIZE + MAX_COMP_EXTRA];
+    byte   *decomp = NULL;
 #endif
 
 #ifdef WOLFSSL_EARLY_DATA
@@ -12608,7 +12608,11 @@ int DoApplicationData(WOLFSSL* ssl, byte* input, word32* inOutIdx)
 
 #ifdef HAVE_LIBZ
         if (ssl->options.usingCompression) {
-            dataSz = myDeCompress(ssl, rawData, dataSz, decomp, sizeof(decomp));
+            int dcomp_size = MAX_RECORD_SIZE + MAX_COMP_EXTRA;
+            decomp = XMALLOC(dcomp_size, ssl->heap, DYNAMIC_TYPE_NONE);
+            if (decomp == NULL)
+                return WOLFSSL_FATAL_ERROR;
+            dataSz = myDeCompress(ssl, rawData, dataSz, decomp, dcomp_size);
             if (dataSz < 0) return dataSz;
         }
 #endif
@@ -12624,6 +12628,7 @@ int DoApplicationData(WOLFSSL* ssl, byte* input, word32* inOutIdx)
     /* decompress could be bigger, overwrite after verify */
     if (ssl->options.usingCompression)
         XMEMMOVE(rawData, decomp, dataSz);
+    XFREE(decomp, ssl->heap, DYNAMIC_TYPE_NONE);
 #endif
 
     *inOutIdx = idx;
@@ -15131,7 +15136,7 @@ int SendData(WOLFSSL* ssl, const void* data, int sz)
         int   buffSz;                           /* may switch on comp */
         int   outputSz;
 #ifdef HAVE_LIBZ
-        byte  comp[MAX_RECORD_SIZE + MAX_COMP_EXTRA];
+        byte  *comp = NULL;
 #endif
 
         if (sent == sz) break;
@@ -15156,7 +15161,11 @@ int SendData(WOLFSSL* ssl, const void* data, int sz)
 
 #ifdef HAVE_LIBZ
         if (ssl->options.usingCompression) {
-            buffSz = myCompress(ssl, sendBuffer, buffSz, comp, sizeof(comp));
+            int comp_size = MAX_RECORD_SIZE + MAX_COMP_EXTRA;
+            comp = XMALLOC(comp_size, ssl->heap, DYNAMIC_TYPE_NONE);
+            if (comp == NULL)
+                return BUFFER_ERROR;
+            buffSz = myCompress(ssl, sendBuffer, buffSz, comp, comp_size);
             if (buffSz < 0) {
                 return buffSz;
             }
@@ -15175,6 +15184,9 @@ int SendData(WOLFSSL* ssl, const void* data, int sz)
             sendSz = BUFFER_ERROR;
 #endif
         }
+#ifdef HAVE_LIBZ
+        XFREE(comp, ssl->heap, DYNAMIC_TYPE_NONE);
+#endif
         if (sendSz < 0) {
         #ifdef WOLFSSL_ASYNC_CRYPT
             if (sendSz == WC_PENDING_E)

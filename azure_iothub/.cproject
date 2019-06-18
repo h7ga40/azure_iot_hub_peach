@@ -77,9 +77,14 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/iothub_client/inc/internal}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/deps/parson}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/umqtt/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/wolfssl-3.15.7/wolfssl}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/wolfssl-3.15.7/wolfssl/wolfcrypt}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/wolfssl-3.15.7}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mbedtls-2.16.1/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mbed-os/features/mbedtls}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mbed-os/features/mbedtls/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/curl-7.57.0/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/zlib-1.2.11/src}&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.nostdinc.1014264285" name="Do not search system directories (-nostdinc)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.nostdinc" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.1580805691" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
@@ -114,7 +119,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="c-utility/adapters/httpapi_curl.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="c-utility/adapters/tlsio_wolfssl.c|c-utility/adapters/httpapi_curl.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -213,7 +218,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="c-utility/adapters/httpapi_curl.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="c-utility/adapters/tlsio_wolfssl.c|c-utility/adapters/httpapi_curl.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

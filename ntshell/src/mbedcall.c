@@ -359,7 +359,7 @@ static long __mbedcall(struct regs_t *r)
 		ret = 0;
 		break;
 	default:
-		asm("bkpt #0");
+		DebugBreak();
 		break;
 	}
 
