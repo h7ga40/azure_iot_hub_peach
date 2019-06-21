@@ -81,8 +81,6 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/wolfssl-3.15.7/wolfssl/wolfcrypt}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/wolfssl-3.15.7}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mbedtls-2.16.1/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mbed-os/features/mbedtls}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mbed-os/features/mbedtls/inc}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/curl-7.57.0/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/zlib-1.2.11/src}&quot;"/>
 								</option>

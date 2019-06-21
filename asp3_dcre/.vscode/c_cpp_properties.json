@@ -1,0 +1,49 @@
+{
+    "configurations": [
+        {
+            "name": "GR-PEACH",
+            "includePath": [
+                "${workspaceFolder}/../musl-1.1.18/include",
+                "${workspaceFolder}/../asp3_dcre",
+                "${workspaceFolder}/../asp3_dcre/arch/arm_gcc/common",
+                "${workspaceFolder}/../asp3_dcre/arch/arm_gcc/rza1",
+                "${workspaceFolder}/../asp3_dcre/arch/gcc",
+                "${workspaceFolder}/../asp3_dcre/include",
+                "${workspaceFolder}/../asp3_dcre/mbed",
+                "${workspaceFolder}/../asp3_dcre/mbed/cmsis",
+                "${workspaceFolder}/../asp3_dcre/mbed/cmsis/TARGET_CORTEX_A",
+                "${workspaceFolder}/../asp3_dcre/mbed/hal",
+                "${workspaceFolder}/../asp3_dcre/mbed/platform",
+                "${workspaceFolder}/../asp3_dcre/mbed/rtos/TARGET_CORTEX",
+                "${workspaceFolder}/../asp3_dcre/mbed/targets/TARGET_RENESAS",
+                "${workspaceFolder}/../asp3_dcre/mbed/targets/TARGET_RENESAS/TARGET_RZA1XX",
+                "${workspaceFolder}/../asp3_dcre/mbed/targets/TARGET_RENESAS/TARGET_RZA1XX/TARGET_RZ_A1H",
+                "${workspaceFolder}/../asp3_dcre/mbed/targets/TARGET_RENESAS/TARGET_RZA1XX/TARGET_RZ_A1H/TARGET_MBED_MBRZA1H",
+                "${workspaceFolder}/../asp3_dcre/mbed/targets/TARGET_RENESAS/TARGET_RZA1XX/TARGET_RZ_A1H/device",
+                "${workspaceFolder}/../asp3_dcre/mbed/targets/TARGET_RENESAS/TARGET_RZA1XX/TARGET_RZ_A1H/device/inc",
+                "${workspaceFolder}/../asp3_dcre/mbed/targets/TARGET_RENESAS/TARGET_RZA1XX/TARGET_RZ_A1H/device/inc/iobitmasks",
+                "${workspaceFolder}/../asp3_dcre/mbed/targets/TARGET_RENESAS/TARGET_RZA1XX/TARGET_RZ_A1H/device/inc/iodefines",
+                "${workspaceFolder}/../asp3_dcre/mbed/targets/TARGET_RENESAS/TARGET_RZA1XX/common",
+                "${workspaceFolder}/../asp3_dcre/target/gr_peach_gcc",
+                "${workspaceFolder}/../asp3_dcre/tecs_kernel",
+                "${workspaceFolder}/../asp3_dcre/tinet",
+                "${workspaceFolder}/../asp3_dcre/tinet/netapp",
+                "${workspaceFolder}/../asp3_dcre/tinet/netdev/if_mbed",
+                "${workspaceFolder}/../asp3_dcre/sample"
+            ],
+            "defines": [
+                "USE_ARM_FPU",
+                "TOPPERS_EXECUTE_ON_ROM",
+                "TARGET_KERNEL_ASP",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "windowsSdkVersion": "10.0.17763.0",
+            "compilerPath": "C:\\Program Files (x86)\\GNU Tools ARM Embedded\\6 2017-q2-update\\bin\\arm-none-eabi-gcc.exe",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "gcc-x64"
+        }
+    ],
+    "version": 4
+}
