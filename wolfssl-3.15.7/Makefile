@@ -46,66 +46,50 @@ PROJECT := wolfssl
 ###############################################################################
 # Objects and Paths
 
+OBJECTS += src/crl.o
 OBJECTS += src/internal.o
-OBJECTS += wolfcrypt/src/wolfmath.o
-OBJECTS += wolfcrypt/src/sha512.o
-OBJECTS += wolfcrypt/src/wc_encrypt.o
-OBJECTS += wolfcrypt/src/wc_port.o
-OBJECTS += wolfcrypt/src/sha256.o
-OBJECTS += wolfcrypt/src/random.o
-OBJECTS += wolfcrypt/src/ripemd.o
-OBJECTS += wolfcrypt/src/rsa.o
-OBJECTS += wolfcrypt/src/sha.o
-OBJECTS += wolfcrypt/src/memory.o
-OBJECTS += wolfcrypt/src/misc.o
-OBJECTS += wolfcrypt/src/pwdbased.o
-OBJECTS += wolfcrypt/src/rabbit.o
-OBJECTS += wolfcrypt/src/integer.o
-OBJECTS += wolfcrypt/src/logging.o
-OBJECTS += wolfcrypt/src/md4.o
-OBJECTS += wolfcrypt/src/md5.o
-OBJECTS += wolfcrypt/src/error.o
-OBJECTS += wolfcrypt/src/hash.o
-OBJECTS += wolfcrypt/src/hc128.o
-OBJECTS += wolfcrypt/src/hmac.o
-OBJECTS += wolfcrypt/src/ecc.o
-OBJECTS += wolfcrypt/src/dh.o
-OBJECTS += wolfcrypt/src/dsa.o
-OBJECTS += wolfcrypt/src/des3.o
-OBJECTS += wolfcrypt/src/coding.o
-OBJECTS += wolfcrypt/src/asn.o
-OBJECTS += wolfcrypt/src/blake2b.o
-OBJECTS += wolfcrypt/src/camellia.o
-OBJECTS += wolfcrypt/src/aes.o
-OBJECTS += wolfcrypt/src/arc4.o
-OBJECTS += src/wolfio.o
-OBJECTS += src/tls.o
-OBJECTS += src/tls13.o
 OBJECTS += src/keys.o
 OBJECTS += src/ocsp.o
 OBJECTS += src/sniffer.o
 OBJECTS += src/ssl.o
-OBJECTS += src/crl.o
+OBJECTS += src/tls.o
+OBJECTS += src/tls13.o
+OBJECTS += src/wolfio.o
+OBJECTS += wolfcrypt/src/aes.o
+OBJECTS += wolfcrypt/src/arc4.o
+OBJECTS += wolfcrypt/src/asn.o
+OBJECTS += wolfcrypt/src/blake2b.o
+OBJECTS += wolfcrypt/src/camellia.o
+OBJECTS += wolfcrypt/src/coding.o
+OBJECTS += wolfcrypt/src/des3.o
+OBJECTS += wolfcrypt/src/dh.o
+OBJECTS += wolfcrypt/src/dsa.o
+OBJECTS += wolfcrypt/src/ecc.o
+OBJECTS += wolfcrypt/src/error.o
+OBJECTS += wolfcrypt/src/hash.o
+OBJECTS += wolfcrypt/src/hc128.o
+OBJECTS += wolfcrypt/src/hmac.o
+OBJECTS += wolfcrypt/src/integer.o
+OBJECTS += wolfcrypt/src/logging.o
+OBJECTS += wolfcrypt/src/md4.o
+OBJECTS += wolfcrypt/src/md5.o
+OBJECTS += wolfcrypt/src/memory.o
+OBJECTS += wolfcrypt/src/misc.o
+OBJECTS += wolfcrypt/src/pwdbased.o
+OBJECTS += wolfcrypt/src/rabbit.o
+OBJECTS += wolfcrypt/src/random.o
+OBJECTS += wolfcrypt/src/ripemd.o
+OBJECTS += wolfcrypt/src/rsa.o
+OBJECTS += wolfcrypt/src/sha.o
+OBJECTS += wolfcrypt/src/sha256.o
+OBJECTS += wolfcrypt/src/sha512.o
+OBJECTS += wolfcrypt/src/wc_encrypt.o
+OBJECTS += wolfcrypt/src/wc_port.o
+OBJECTS += wolfcrypt/src/wolfmath.o
 
 INCLUDE_PATHS += -I../../musl-1.1.18/include
-INCLUDE_PATHS += -I../../asp3_dcre/include
-INCLUDE_PATHS += -I../../asp3_dcre/mbed
-INCLUDE_PATHS += -I../../asp3_dcre/arch/gcc
-INCLUDE_PATHS += -I../../asp3_dcre/arch/arm_gcc/common
-INCLUDE_PATHS += -I../../asp3_dcre/arch/arm_gcc/rza1
-INCLUDE_PATHS += -I../../asp3_dcre/target/gr_peach_gcc
-INCLUDE_PATHS += -I../../azure_iothub/c-utility/inc
-INCLUDE_PATHS += -I../../azure_iothub/c-utility/pal/toppers
-INCLUDE_PATHS += -I../../azure_iothub/iothub_client/inc
-INCLUDE_PATHS += -I../../azure_iothub/iothub_client/inc/internal
-INCLUDE_PATHS += -I../../azure_iothub/deps/parson
-INCLUDE_PATHS += -I../../azure_iothub/umqtt/inc
-INCLUDE_PATHS += -I../../wolfssl-3.15.7/wolfssl
-INCLUDE_PATHS += -I../../wolfssl-3.15.7/wolfssl/wolfcrypt
-INCLUDE_PATHS += -I../../wolfssl-3.15.7
-INCLUDE_PATHS += -I../../mbedtls-2.16.1/include
 INCLUDE_PATHS += -I../../zlib-1.2.11/src
-INCLUDE_PATHS += -I../../curl-7.57.0/include
+INCLUDE_PATHS += -I../../wolfssl-3.15.7
 
 # Objects and Paths
 ###############################################################################
@@ -119,91 +103,79 @@ RANLIB  = arm-none-eabi-ranlib
 
 
 C_FLAGS += -std=gnu11
-C_FLAGS += -c
-C_FLAGS += -nostdinc
+C_FLAGS += -mcpu=cortex-a9
+C_FLAGS += -march=armv7-a
+C_FLAGS += -marm
+C_FLAGS += -mthumb-interwork
+C_FLAGS += -mlittle-endian
+C_FLAGS += -mfloat-abi=hard
+C_FLAGS += -mfpu=vfpv3-d16
+C_FLAGS += -Og
+C_FLAGS += -fmessage-length=0
+C_FLAGS += -fsigned-char
+C_FLAGS += -ffunction-sections
+C_FLAGS += -fdata-sections
 C_FLAGS += -Wall
 C_FLAGS += -Wextra
 C_FLAGS += -Wno-unused-parameter
 C_FLAGS += -Wno-missing-field-initializers
-C_FLAGS += -fmessage-length=0
-C_FLAGS += -fno-exceptions
-C_FLAGS += -fno-builtin
-C_FLAGS += -ffunction-sections
-C_FLAGS += -fdata-sections
-C_FLAGS += -funsigned-char
-C_FLAGS += -MMD
-C_FLAGS += -fno-delete-null-pointer-checks
-C_FLAGS += -fomit-frame-pointer
-C_FLAGS += -Og
-C_FLAGS += -g3
-C_FLAGS += -mcpu=cortex-a9
-C_FLAGS += -mthumb-interwork
-C_FLAGS += -marm
-C_FLAGS += -march=armv7-a
-C_FLAGS += -mfpu=neon-fp16
-C_FLAGS += -mfloat-abi=hard
-C_FLAGS += -mno-unaligned-access
+C_FLAGS += -Wnull-dereference
 
-C_FLAGS += -DUSE_WOLFSSL=1
-C_FLAGS += -Dget_time=azure_get_time
+C_FLAGS += -g3
+C_FLAGS += -Wstack-usage=100
+C_FLAGS += -nostdinc
+
+C_FLAGS += -DHAVE_CONFIG_H
+C_FLAGS += -DWOLFSSL_USER_SETTINGS
 
 CXX_FLAGS += -std=gnu++11
-CXX_FLAGS += -nostdinc
-CXX_FLAGS += -fno-rtti
-CXX_FLAGS += -Wvla
-CXX_FLAGS += -c
+CXX_FLAGS += -mcpu=cortex-a9
+CXX_FLAGS += -march=armv7-a
+CXX_FLAGS += -marm
+CXX_FLAGS += -mthumb-interwork
+CXX_FLAGS += -mlittle-endian
+CXX_FLAGS += -mfloat-abi=hard
+CXX_FLAGS += -mfpu=vfpv3-d16
+CXX_FLAGS += -Og
+CXX_FLAGS += -fmessage-length=0
+CXX_FLAGS += -fsigned-char
+CXX_FLAGS += -ffunction-sections
+CXX_FLAGS += -fdata-sections
 CXX_FLAGS += -Wall
 CXX_FLAGS += -Wextra
 CXX_FLAGS += -Wno-unused-parameter
 CXX_FLAGS += -Wno-missing-field-initializers
-CXX_FLAGS += -fmessage-length=0
-CXX_FLAGS += -fno-exceptions
-CXX_FLAGS += -fno-builtin
-CXX_FLAGS += -ffunction-sections
-CXX_FLAGS += -fdata-sections
-CXX_FLAGS += -funsigned-char
-CXX_FLAGS += -MMD
-CXX_FLAGS += -fno-delete-null-pointer-checks
-CXX_FLAGS += -fomit-frame-pointer
-CXX_FLAGS += -Og
-CXX_FLAGS += -g3
-CXX_FLAGS += -mcpu=cortex-a9
-CXX_FLAGS += -mthumb-interwork
-CXX_FLAGS += -marm
-CXX_FLAGS += -march=armv7-a
-CXX_FLAGS += -mfpu=neon-fp16
-CXX_FLAGS += -mfloat-abi=hard
-CXX_FLAGS += -mno-unaligned-access
+CXX_FLAGS += -Wnull-dereference
 
-CXX_FLAGS += -DUSE_WOLFSSL=1
-CXX_FLAGS += -Dget_time=azure_get_time
+CXX_FLAGS += -g3
+CXX_FLAGS += -Wstack-usage=100
+CXX_FLAGS += -nostdinc
+
+CXX_FLAGS += -DHAVE_CONFIG_H
+CXX_FLAGS += -DWOLFSSL_USER_SETTINGS
 
 ASM_FLAGS += -x
 ASM_FLAGS += assembler-with-cpp
-ASM_FLAGS += -nostdinc
-ASM_FLAGS += -c
+ASM_FLAGS += -mcpu=cortex-a9
+ASM_FLAGS += -march=armv7-a
+ASM_FLAGS += -marm
+ASM_FLAGS += -mthumb-interwork
+ASM_FLAGS += -mlittle-endian
+ASM_FLAGS += -mfloat-abi=hard
+ASM_FLAGS += -mfpu=vfpv3-d16
+ASM_FLAGS += -Og
+ASM_FLAGS += -fmessage-length=0
+ASM_FLAGS += -fsigned-char
+ASM_FLAGS += -ffunction-sections
+ASM_FLAGS += -fdata-sections
 ASM_FLAGS += -Wall
 ASM_FLAGS += -Wextra
 ASM_FLAGS += -Wno-unused-parameter
 ASM_FLAGS += -Wno-missing-field-initializers
-ASM_FLAGS += -fmessage-length=0
-ASM_FLAGS += -fno-exceptions
-ASM_FLAGS += -fno-builtin
-ASM_FLAGS += -ffunction-sections
-ASM_FLAGS += -fdata-sections
-ASM_FLAGS += -funsigned-char
-ASM_FLAGS += -MMD
-ASM_FLAGS += -fno-delete-null-pointer-checks
-ASM_FLAGS += -fomit-frame-pointer
-ASM_FLAGS += -Og
+ASM_FLAGS += -Wnull-dereference
 ASM_FLAGS += -g3
-ASM_FLAGS += -mcpu=cortex-a9
-ASM_FLAGS += -mthumb-interwork
-ASM_FLAGS += -marm
-ASM_FLAGS += -march=armv7-a
-ASM_FLAGS += -mfpu=neon-fp16
-ASM_FLAGS += -mfloat-abi=hard
-ASM_FLAGS += -mno-unaligned-access
+ASM_FLAGS += -Wstack-usage=100
+ASM_FLAGS += -nostdinc
 
 
 # Tools and Flags
@@ -234,12 +206,12 @@ all: lib$(PROJECT).a
 .c.o:
 	+@$(call MAKEDIR,$(dir $@))
 	+@echo "Compile: $(notdir $<)"
-	@$(CC) $(C_FLAGS) $(INCLUDE_PATHS) -o $@ $<
+	@$(CC) $(C_FLAGS) $(INCLUDE_PATHS) -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@)" -c -o "$@" "$<"
 
 .cpp.o:
 	+@$(call MAKEDIR,$(dir $@))
 	+@echo "Compile: $(notdir $<)"
-	@$(CPP) $(CXX_FLAGS) $(INCLUDE_PATHS) -o $@ $<
+	@$(CPP) $(CXX_FLAGS) $(INCLUDE_PATHS) -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@)" -c -o "$@" "$<"
 
 lib$(PROJECT).a: $(OBJECTS)
 	rm -f lib$(PROJECT).a

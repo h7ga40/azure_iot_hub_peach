@@ -46,40 +46,25 @@ PROJECT := azure_iothub
 ###############################################################################
 # Objects and Paths
 
-OBJECTS += umqtt/src/mqtt_client.o
-OBJECTS += umqtt/src/mqtt_codec.o
-OBJECTS += umqtt/src/mqtt_message.o
-OBJECTS += iothub_client/src/iothub_message.o
-OBJECTS += iothub_client/src/iothub_transport_ll_private.o
-OBJECTS += iothub_client/src/iothubtransport.o
-OBJECTS += iothub_client/src/iothubtransport_mqtt_common.o
-OBJECTS += iothub_client/src/iothubtransporthttp.o
-OBJECTS += iothub_client/src/iothubtransportmqtt.o
-OBJECTS += iothub_client/src/iothubtransportmqtt_websockets.o
-OBJECTS += iothub_client/src/version.o
-OBJECTS += iothub_client/src/blob.o
-OBJECTS += iothub_client/src/iothub_client.o
-OBJECTS += iothub_client/src/iothub_client_authorization.o
-OBJECTS += iothub_client/src/iothub_client_core_ll.o
-OBJECTS += iothub_client/src/iothub_client_diagnostic.o
-OBJECTS += iothub_client/src/iothub_client_ll.o
-OBJECTS += iothub_client/src/iothub_client_ll_uploadtoblob.o
-OBJECTS += iothub_client/src/iothub_client_retry_control.o
-OBJECTS += certs/certs.o
-OBJECTS += deps/parson/parson.o
-OBJECTS += c-utility/src/string_token.o
-OBJECTS += c-utility/src/string_tokenizer.o
-OBJECTS += c-utility/src/strings.o
-OBJECTS += c-utility/src/urlencode.o
-OBJECTS += c-utility/src/usha.o
-OBJECTS += c-utility/src/utf8_checker.o
-OBJECTS += c-utility/src/uuid.o
-OBJECTS += c-utility/src/uws_client.o
-OBJECTS += c-utility/src/uws_frame_encoder.o
-OBJECTS += c-utility/src/vector.o
-OBJECTS += c-utility/src/wsio.o
-OBJECTS += c-utility/src/xio.o
-OBJECTS += c-utility/src/xlogging.o
+OBJECTS += c-utility/adapters/agenttime_mbed.o
+OBJECTS += c-utility/adapters/httpapi_compact.o
+OBJECTS += c-utility/adapters/platform_toppers.o
+OBJECTS += c-utility/adapters/socketio_berkeley.o
+OBJECTS += c-utility/adapters/threadapi_toppers.o
+OBJECTS += c-utility/adapters/tickcounter_toppers.o
+OBJECTS += c-utility/adapters/tlsio_mbedtls.o
+OBJECTS += c-utility/adapters/tlsio_wolfssl.o
+OBJECTS += c-utility/adapters/uniqueid_stub.o
+OBJECTS += c-utility/src/azure_base64.o
+OBJECTS += c-utility/src/buffer.o
+OBJECTS += c-utility/src/connection_string_parser.o
+OBJECTS += c-utility/src/consolelogger.o
+OBJECTS += c-utility/src/constbuffer.o
+OBJECTS += c-utility/src/constmap.o
+OBJECTS += c-utility/src/crt_abstractions.o
+OBJECTS += c-utility/src/doublylinkedlist.o
+OBJECTS += c-utility/src/gb_rand.o
+OBJECTS += c-utility/src/gb_stdio.o
 OBJECTS += c-utility/src/gb_time.o
 OBJECTS += c-utility/src/gballoc.o
 OBJECTS += c-utility/src/hmac.o
@@ -95,25 +80,40 @@ OBJECTS += c-utility/src/sha1.o
 OBJECTS += c-utility/src/sha224.o
 OBJECTS += c-utility/src/sha384-512.o
 OBJECTS += c-utility/src/singlylinkedlist.o
-OBJECTS += c-utility/src/azure_base64.o
-OBJECTS += c-utility/src/buffer.o
-OBJECTS += c-utility/src/connection_string_parser.o
-OBJECTS += c-utility/src/consolelogger.o
-OBJECTS += c-utility/src/constbuffer.o
-OBJECTS += c-utility/src/constmap.o
-OBJECTS += c-utility/src/crt_abstractions.o
-OBJECTS += c-utility/src/doublylinkedlist.o
-OBJECTS += c-utility/src/gb_rand.o
-OBJECTS += c-utility/src/gb_stdio.o
-OBJECTS += c-utility/adapters/httpapi_compact.o
-OBJECTS += c-utility/adapters/platform_toppers.o
-OBJECTS += c-utility/adapters/socketio_berkeley.o
-OBJECTS += c-utility/adapters/threadapi_toppers.o
-OBJECTS += c-utility/adapters/tickcounter_toppers.o
-OBJECTS += c-utility/adapters/tlsio_mbedtls.o
-OBJECTS += c-utility/adapters/uniqueid_stub.o
-OBJECTS += c-utility/adapters/agenttime_mbed.o
-OBJECTS += c-utility/adapters/tlsio_wolfssl.o
+OBJECTS += c-utility/src/string_token.o
+OBJECTS += c-utility/src/string_tokenizer.o
+OBJECTS += c-utility/src/strings.o
+OBJECTS += c-utility/src/urlencode.o
+OBJECTS += c-utility/src/usha.o
+OBJECTS += c-utility/src/utf8_checker.o
+OBJECTS += c-utility/src/uuid.o
+OBJECTS += c-utility/src/uws_client.o
+OBJECTS += c-utility/src/uws_frame_encoder.o
+OBJECTS += c-utility/src/vector.o
+OBJECTS += c-utility/src/wsio.o
+OBJECTS += c-utility/src/xio.o
+OBJECTS += c-utility/src/xlogging.o
+OBJECTS += certs/certs.o
+OBJECTS += deps/parson/parson.o
+OBJECTS += iothub_client/src/blob.o
+OBJECTS += iothub_client/src/iothub_client.o
+OBJECTS += iothub_client/src/iothub_client_authorization.o
+OBJECTS += iothub_client/src/iothub_client_core_ll.o
+OBJECTS += iothub_client/src/iothub_client_diagnostic.o
+OBJECTS += iothub_client/src/iothub_client_ll.o
+OBJECTS += iothub_client/src/iothub_client_ll_uploadtoblob.o
+OBJECTS += iothub_client/src/iothub_client_retry_control.o
+OBJECTS += iothub_client/src/iothub_message.o
+OBJECTS += iothub_client/src/iothub_transport_ll_private.o
+OBJECTS += iothub_client/src/iothubtransport.o
+OBJECTS += iothub_client/src/iothubtransport_mqtt_common.o
+OBJECTS += iothub_client/src/iothubtransporthttp.o
+OBJECTS += iothub_client/src/iothubtransportmqtt.o
+OBJECTS += iothub_client/src/iothubtransportmqtt_websockets.o
+OBJECTS += iothub_client/src/version.o
+OBJECTS += umqtt/src/mqtt_client.o
+OBJECTS += umqtt/src/mqtt_codec.o
+OBJECTS += umqtt/src/mqtt_message.o
 
 INCLUDE_PATHS += -I../../musl-1.1.18/include
 INCLUDE_PATHS += -I../../asp3_dcre/include
@@ -147,91 +147,79 @@ RANLIB  = arm-none-eabi-ranlib
 
 
 C_FLAGS += -std=gnu11
-C_FLAGS += -c
-C_FLAGS += -nostdinc
+C_FLAGS += -mcpu=cortex-a9
+C_FLAGS += -march=armv7-a
+C_FLAGS += -marm
+C_FLAGS += -mthumb-interwork
+C_FLAGS += -mlittle-endian
+C_FLAGS += -mfloat-abi=hard
+C_FLAGS += -mfpu=vfpv3-d16
+C_FLAGS += -Og
+C_FLAGS += -fmessage-length=0
+C_FLAGS += -fsigned-char
+C_FLAGS += -ffunction-sections
+C_FLAGS += -fdata-sections
 C_FLAGS += -Wall
 C_FLAGS += -Wextra
 C_FLAGS += -Wno-unused-parameter
 C_FLAGS += -Wno-missing-field-initializers
-C_FLAGS += -fmessage-length=0
-C_FLAGS += -fno-exceptions
-C_FLAGS += -fno-builtin
-C_FLAGS += -ffunction-sections
-C_FLAGS += -fdata-sections
-C_FLAGS += -funsigned-char
-C_FLAGS += -MMD
-C_FLAGS += -fno-delete-null-pointer-checks
-C_FLAGS += -fomit-frame-pointer
-C_FLAGS += -Og
+C_FLAGS += -Wnull-dereference
+
 C_FLAGS += -g3
-C_FLAGS += -mcpu=cortex-a9
-C_FLAGS += -mthumb-interwork
-C_FLAGS += -marm
-C_FLAGS += -march=armv7-a
-C_FLAGS += -mfpu=neon-fp16
-C_FLAGS += -mfloat-abi=hard
-C_FLAGS += -mno-unaligned-access
+C_FLAGS += -Wstack-usage=100
+C_FLAGS += -nostdinc
 
 C_FLAGS += -DUSE_WOLFSSL=1
 C_FLAGS += -Dget_time=azure_get_time
 
-CXX_FLAGS += -std=gnu++11
-CXX_FLAGS += -nostdinc
-CXX_FLAGS += -fno-rtti
-CXX_FLAGS += -Wvla
-CXX_FLAGS += -c
+CXX_FLAGS += -mcpu=cortex-a9
+CXX_FLAGS += -march=armv7-a
+CXX_FLAGS += -marm
+CXX_FLAGS += -mthumb-interwork
+CXX_FLAGS += -mlittle-endian
+CXX_FLAGS += -mfloat-abi=hard
+CXX_FLAGS += -mfpu=vfpv3-d16
+CXX_FLAGS += -Og
+CXX_FLAGS += -fmessage-length=0
+CXX_FLAGS += -fsigned-char
+CXX_FLAGS += -ffunction-sections
+CXX_FLAGS += -fdata-sections
 CXX_FLAGS += -Wall
 CXX_FLAGS += -Wextra
 CXX_FLAGS += -Wno-unused-parameter
 CXX_FLAGS += -Wno-missing-field-initializers
-CXX_FLAGS += -fmessage-length=0
-CXX_FLAGS += -fno-exceptions
-CXX_FLAGS += -fno-builtin
-CXX_FLAGS += -ffunction-sections
-CXX_FLAGS += -fdata-sections
-CXX_FLAGS += -funsigned-char
-CXX_FLAGS += -MMD
-CXX_FLAGS += -fno-delete-null-pointer-checks
-CXX_FLAGS += -fomit-frame-pointer
-CXX_FLAGS += -Og
+CXX_FLAGS += -Wnull-dereference
+
 CXX_FLAGS += -g3
-CXX_FLAGS += -mcpu=cortex-a9
-CXX_FLAGS += -mthumb-interwork
-CXX_FLAGS += -marm
-CXX_FLAGS += -march=armv7-a
-CXX_FLAGS += -mfpu=neon-fp16
-CXX_FLAGS += -mfloat-abi=hard
-CXX_FLAGS += -mno-unaligned-access
+CXX_FLAGS += -Wstack-usage=100
+CXX_FLAGS += -nostdinc
+CXX_FLAGS += -std=gnu++11
 
 CXX_FLAGS += -DUSE_WOLFSSL=1
 CXX_FLAGS += -Dget_time=azure_get_time
 
 ASM_FLAGS += -x
 ASM_FLAGS += assembler-with-cpp
-ASM_FLAGS += -nostdinc
-ASM_FLAGS += -c
+ASM_FLAGS += -mcpu=cortex-a9
+ASM_FLAGS += -march=armv7-a
+ASM_FLAGS += -marm
+ASM_FLAGS += -mthumb-interwork
+ASM_FLAGS += -mlittle-endian
+ASM_FLAGS += -mfloat-abi=hard
+ASM_FLAGS += -mfpu=vfpv3-d16
+ASM_FLAGS += -Og
+ASM_FLAGS += -fmessage-length=0
+ASM_FLAGS += -fsigned-char
+ASM_FLAGS += -ffunction-sections
+ASM_FLAGS += -fdata-sections
 ASM_FLAGS += -Wall
 ASM_FLAGS += -Wextra
 ASM_FLAGS += -Wno-unused-parameter
 ASM_FLAGS += -Wno-missing-field-initializers
-ASM_FLAGS += -fmessage-length=0
-ASM_FLAGS += -fno-exceptions
-ASM_FLAGS += -fno-builtin
-ASM_FLAGS += -ffunction-sections
-ASM_FLAGS += -fdata-sections
-ASM_FLAGS += -funsigned-char
-ASM_FLAGS += -MMD
-ASM_FLAGS += -fno-delete-null-pointer-checks
-ASM_FLAGS += -fomit-frame-pointer
-ASM_FLAGS += -Og
+ASM_FLAGS += -Wnull-dereference
 ASM_FLAGS += -g3
-ASM_FLAGS += -mcpu=cortex-a9
-ASM_FLAGS += -mthumb-interwork
-ASM_FLAGS += -marm
-ASM_FLAGS += -march=armv7-a
-ASM_FLAGS += -mfpu=neon-fp16
-ASM_FLAGS += -mfloat-abi=hard
-ASM_FLAGS += -mno-unaligned-access
+ASM_FLAGS += -Wstack-usage=100
+ASM_FLAGS += -nostdinc
 
 
 # Tools and Flags
@@ -262,12 +250,12 @@ all: lib$(PROJECT).a
 .c.o:
 	+@$(call MAKEDIR,$(dir $@))
 	+@echo "Compile: $(notdir $<)"
-	@$(CC) $(C_FLAGS) $(INCLUDE_PATHS) -o $@ $<
+	@$(CC) $(C_FLAGS) $(INCLUDE_PATHS) -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@)" -c -o "$@" "$<"
 
 .cpp.o:
 	+@$(call MAKEDIR,$(dir $@))
 	+@echo "Compile: $(notdir $<)"
-	@$(CPP) $(CXX_FLAGS) $(INCLUDE_PATHS) -o $@ $<
+	@$(CPP) $(CXX_FLAGS) $(INCLUDE_PATHS) -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@)" -c -o "$@" "$<"
 
 lib$(PROJECT).a: $(OBJECTS)
 	rm -f lib$(PROJECT).a

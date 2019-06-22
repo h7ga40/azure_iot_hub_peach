@@ -46,16 +46,16 @@ PROJECT := zlib
 ###############################################################################
 # Objects and Paths
 
+OBJECTS += src/adler32.o
+OBJECTS += src/compress.o
+OBJECTS += src/crc32.o
+OBJECTS += src/deflate.o
+OBJECTS += src/gzclose.o
+OBJECTS += src/gzlib.o
+OBJECTS += src/gzread.o
 OBJECTS += src/gzwrite.o
 OBJECTS += src/infback.o
 OBJECTS += src/inffast.o
-OBJECTS += src/gzlib.o
-OBJECTS += src/gzread.o
-OBJECTS += src/gzclose.o
-OBJECTS += src/deflate.o
-OBJECTS += src/crc32.o
-OBJECTS += src/adler32.o
-OBJECTS += src/compress.o
 OBJECTS += src/inflate.o
 OBJECTS += src/inftrees.o
 OBJECTS += src/trees.o
@@ -76,85 +76,73 @@ RANLIB  = arm-none-eabi-ranlib
 
 
 C_FLAGS += -std=gnu11
-C_FLAGS += -c
-C_FLAGS += -nostdinc
+C_FLAGS += -mcpu=cortex-a9
+C_FLAGS += -march=armv7-a
+C_FLAGS += -marm
+C_FLAGS += -mthumb-interwork
+C_FLAGS += -mlittle-endian
+C_FLAGS += -mfloat-abi=hard
+C_FLAGS += -mfpu=vfpv3-d16
+C_FLAGS += -Og
+C_FLAGS += -fmessage-length=0
+C_FLAGS += -fsigned-char
+C_FLAGS += -ffunction-sections
+C_FLAGS += -fdata-sections
 C_FLAGS += -Wall
 C_FLAGS += -Wextra
 C_FLAGS += -Wno-unused-parameter
 C_FLAGS += -Wno-missing-field-initializers
-C_FLAGS += -fmessage-length=0
-C_FLAGS += -fno-exceptions
-C_FLAGS += -fno-builtin
-C_FLAGS += -ffunction-sections
-C_FLAGS += -fdata-sections
-C_FLAGS += -funsigned-char
-C_FLAGS += -MMD
-C_FLAGS += -fno-delete-null-pointer-checks
-C_FLAGS += -fomit-frame-pointer
-C_FLAGS += -Og
+C_FLAGS += -Wnull-dereference
+
 C_FLAGS += -g3
-C_FLAGS += -mcpu=cortex-a9
-C_FLAGS += -mthumb-interwork
-C_FLAGS += -marm
-C_FLAGS += -march=armv7-a
-C_FLAGS += -mfpu=neon-fp16
-C_FLAGS += -mfloat-abi=hard
-C_FLAGS += -mno-unaligned-access
+C_FLAGS += -Wstack-usage=100
 
 CXX_FLAGS += -std=gnu++11
-CXX_FLAGS += -nostdinc
-CXX_FLAGS += -fno-rtti
-CXX_FLAGS += -Wvla
-CXX_FLAGS += -c
+CXX_FLAGS += -std=gnu11
+CXX_FLAGS += -mcpu=cortex-a9
+CXX_FLAGS += -march=armv7-a
+CXX_FLAGS += -marm
+CXX_FLAGS += -mthumb-interwork
+CXX_FLAGS += -mlittle-endian
+CXX_FLAGS += -mfloat-abi=hard
+CXX_FLAGS += -mfpu=vfpv3-d16
+CXX_FLAGS += -Og
+CXX_FLAGS += -fmessage-length=0
+CXX_FLAGS += -fsigned-char
+CXX_FLAGS += -ffunction-sections
+CXX_FLAGS += -fdata-sections
 CXX_FLAGS += -Wall
 CXX_FLAGS += -Wextra
 CXX_FLAGS += -Wno-unused-parameter
 CXX_FLAGS += -Wno-missing-field-initializers
-CXX_FLAGS += -fmessage-length=0
-CXX_FLAGS += -fno-exceptions
-CXX_FLAGS += -fno-builtin
-CXX_FLAGS += -ffunction-sections
-CXX_FLAGS += -fdata-sections
-CXX_FLAGS += -funsigned-char
-CXX_FLAGS += -MMD
-CXX_FLAGS += -fno-delete-null-pointer-checks
-CXX_FLAGS += -fomit-frame-pointer
-CXX_FLAGS += -Og
+CXX_FLAGS += -Wnull-dereference
+
 CXX_FLAGS += -g3
-CXX_FLAGS += -mcpu=cortex-a9
-CXX_FLAGS += -mthumb-interwork
-CXX_FLAGS += -marm
-CXX_FLAGS += -march=armv7-a
-CXX_FLAGS += -mfpu=neon-fp16
-CXX_FLAGS += -mfloat-abi=hard
-CXX_FLAGS += -mno-unaligned-access
+CXX_FLAGS += -Wstack-usage=100
+CXX_FLAGS += -nostdinc
 
 ASM_FLAGS += -x
 ASM_FLAGS += assembler-with-cpp
-ASM_FLAGS += -nostdinc
-ASM_FLAGS += -c
+ASM_FLAGS += -mcpu=cortex-a9
+ASM_FLAGS += -march=armv7-a
+ASM_FLAGS += -marm
+ASM_FLAGS += -mthumb-interwork
+ASM_FLAGS += -mlittle-endian
+ASM_FLAGS += -mfloat-abi=hard
+ASM_FLAGS += -mfpu=vfpv3-d16
+ASM_FLAGS += -Og
+ASM_FLAGS += -fmessage-length=0
+ASM_FLAGS += -fsigned-char
+ASM_FLAGS += -ffunction-sections
+ASM_FLAGS += -fdata-sections
 ASM_FLAGS += -Wall
 ASM_FLAGS += -Wextra
 ASM_FLAGS += -Wno-unused-parameter
 ASM_FLAGS += -Wno-missing-field-initializers
-ASM_FLAGS += -fmessage-length=0
-ASM_FLAGS += -fno-exceptions
-ASM_FLAGS += -fno-builtin
-ASM_FLAGS += -ffunction-sections
-ASM_FLAGS += -fdata-sections
-ASM_FLAGS += -funsigned-char
-ASM_FLAGS += -MMD
-ASM_FLAGS += -fno-delete-null-pointer-checks
-ASM_FLAGS += -fomit-frame-pointer
-ASM_FLAGS += -Og
+ASM_FLAGS += -Wnull-dereference
 ASM_FLAGS += -g3
-ASM_FLAGS += -mcpu=cortex-a9
-ASM_FLAGS += -mthumb-interwork
-ASM_FLAGS += -marm
-ASM_FLAGS += -march=armv7-a
-ASM_FLAGS += -mfpu=neon-fp16
-ASM_FLAGS += -mfloat-abi=hard
-ASM_FLAGS += -mno-unaligned-access
+ASM_FLAGS += -Wstack-usage=100
+ASM_FLAGS += -nostdinc
 
 
 # Tools and Flags
@@ -185,12 +173,12 @@ all: lib$(PROJECT).a
 .c.o:
 	+@$(call MAKEDIR,$(dir $@))
 	+@echo "Compile: $(notdir $<)"
-	@$(CC) $(C_FLAGS) $(INCLUDE_PATHS) -o $@ $<
+	@$(CC) $(C_FLAGS) $(INCLUDE_PATHS) -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@)" -c -o "$@" "$<"
 
 .cpp.o:
 	+@$(call MAKEDIR,$(dir $@))
 	+@echo "Compile: $(notdir $<)"
-	@$(CPP) $(CXX_FLAGS) $(INCLUDE_PATHS) -o $@ $<
+	@$(CPP) $(CXX_FLAGS) $(INCLUDE_PATHS) -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@)" -c -o "$@" "$<"
 
 lib$(PROJECT).a: $(OBJECTS)
 	rm -f lib$(PROJECT).a
