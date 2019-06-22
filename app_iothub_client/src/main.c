@@ -217,6 +217,8 @@ static void main_initialize()
 
 	gpio_write(&led_green, 0);
 
+	iothub_client_init();
+
 	ret = get_tim(&main_obj.now);
 	if (ret != E_OK) {
 		syslog(LOG_ERROR, "get_tim");

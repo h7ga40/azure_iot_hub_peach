@@ -24,9 +24,7 @@ and removing calls to _DoWork will yield the same results. */
 extern int sprintf_s(char* dst, size_t dstSizeInBytes, const char* format, ...);
 #endif // _MSC_VER
 
-#if 1//def MBED_BUILD_TIMESTAMP
 #define SET_TRUSTED_CERT_IN_SAMPLES
-#endif // MBED_BUILD_TIMESTAMP
 
 #ifdef SET_TRUSTED_CERT_IN_SAMPLES
 #include "certs.h"
@@ -307,6 +305,10 @@ void iothub_client_run(int proto)
 		}
 		platform_deinit();
 	}
+}
+
+void iothub_client_init()
+{
 }
 
 int iothub_client_main(int argc, char **argv)
