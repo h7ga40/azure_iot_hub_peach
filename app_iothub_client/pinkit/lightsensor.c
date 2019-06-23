@@ -24,5 +24,5 @@ double LightSensor_TakeMeasurement()
 {
 	int raw = analogin_read_u16(&aiLightSense);
 
-	return (double)raw / 4096.0;
+	return (double)raw / 65536.0;
 }

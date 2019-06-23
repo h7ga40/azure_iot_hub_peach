@@ -19,7 +19,7 @@ typedef enum Colors
 } Colors;
 
 void BoardFullColorLED_Init();
-void BoardFullColorLED_SetRgb(float redOn, float greenOn, float blueOn);
+void BoardFullColorLED_SetRgb(bool redOn, bool greenOn, bool blueOn);
 void BoardFullColorLED_SetColor(Colors color);
 
 #endif // _BOARD_FULL_COLOR_LED_H_

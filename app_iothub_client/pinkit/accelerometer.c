@@ -47,44 +47,48 @@ uint8_t xyz[6];
 
 int RegRead(uint8_t reg)
 {
-	int result;
+	int ret, result = -1;
 
 	adata[0] = reg;
 
 	gpio_write(&i2c_cs, 0);
 
-	result = i2c_write(&i2c, ADXL345_ADDR, adata, 1, 0);
-	if (result != 0)
-		return -1;
+	ret = i2c_write(&i2c, ADXL345_ADDR, adata, 1, 0);
+	if (ret != 1)
+		goto exit;
 
 	result = i2c_read(&i2c, ADXL345_ADDR, rdata, 1, 1);
-	if (result != 0)
-		return -1;
+	if (result != 1)
+		goto exit;
 
 	gpio_write(&i2c_cs, 1);
 
+	result = rdata[0];
+exit:
 #ifdef DEBUG_ADXL345
 	printf("R[0x%2X]=0x%2X", reg, rdata[0]);
 #endif
-	return rdata[0];
+	return result;
 }
 
 int RegReads(uint8_t reg, uint8_t *data, int len)
 {
-	int result;
+	int ret, result = -1;
 
 	adata[0] = reg;
 
 	gpio_write(&i2c_cs, 0);
 
-	result = i2c_write(&i2c, ADXL345_ADDR, adata, 1, 0);
-	if (result != 0)
-		return result;
+	ret = i2c_write(&i2c, ADXL345_ADDR, adata, 1, 0);
+	if (ret != 1)
+		goto exit;
 
-	result = i2c_read(&i2c, ADXL345_ADDR, data, len, 1);
-	if (result != 0)
-		return result;
+	ret = i2c_read(&i2c, ADXL345_ADDR, data, len, 1);
+	if (ret != len)
+		goto exit;
 
+	result = 0;
+exit:
 	gpio_write(&i2c_cs, 1);
 
 #ifdef DEBUG_ADXL345
@@ -98,22 +102,26 @@ int RegReads(uint8_t reg, uint8_t *data, int len)
 
 int RegWrite(uint8_t reg, uint8_t val)
 {
-	int result;
+	int ret, result = -1;
 	wdata[0] = reg;
 	wdata[1] = val;
 
 	gpio_write(&i2c_cs, 0);
 
-	result = i2c_write(&i2c, ADXL345_ADDR, wdata, 2, 1);
+	ret = i2c_write(&i2c, ADXL345_ADDR, wdata, 2, 1);
+	if (ret != 2)
+		goto exit;
 
 	gpio_write(&i2c_cs, 1);
 
+	result = 0;
+exit:
 	return result;
 }
 
 int RegWriteMask(uint8_t reg, uint8_t val, uint8_t mask)
 {
-	int result;
+	int ret, result = -1;
 
 	uint8_t tmp = RegRead(reg);
 	wdata[0] = reg;
@@ -121,10 +129,14 @@ int RegWriteMask(uint8_t reg, uint8_t val, uint8_t mask)
 
 	gpio_write(&i2c_cs, 0);
 
-	result = i2c_write(&i2c, ADXL345_ADDR, wdata, 2, 1);
+	ret = i2c_write(&i2c, ADXL345_ADDR, wdata, 2, 1);
+	if (ret != 2)
+		goto exit;
 
 	gpio_write(&i2c_cs, 1);
 
+	result = 0;
+exit:
 	return result;
 }
 

@@ -2,42 +2,42 @@
 
 #include <kernel.h>
 #include "boardfullcolorled.h"
-#include "pwmout_api.h"
+#include "gpio_api.h"
 
-// Še LED ‚ªÚ‘±‚³‚ê‚éƒ|[ƒg
-pwmout_t portRed;     // Ô
-pwmout_t portGreen;   // —Î
-pwmout_t portBlue;    // Â
+// å„ LED ãŒæ¥ç¶šã•ã‚Œã‚‹ãƒãƒ¼ãƒˆ
+gpio_t portRed;     // èµ¤
+gpio_t portGreen;   // ç·‘
+gpio_t portBlue;    // é’
 
-// ƒRƒ“ƒXƒgƒ‰ƒNƒ^[
+// ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ãƒ¼
 void BoardFullColorLED_Init()
 {
-	// Še LED ‚Ì InputPort ƒCƒ“ƒXƒ^ƒ“ƒX
-	pwmout_init(&portRed, LED_RED);
-	pwmout_period_ms(&portRed, 2); // 500Hz
+	// å„ LED ã® InputPort ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹
+	gpio_init(&portRed, LED_RED);
+	gpio_mode(&portRed, PIN_OUTPUT);
 
-	pwmout_init(&portGreen, LED_GREEN);
-	pwmout_period_ms(&portGreen, 2); // 500Hz
+	gpio_init(&portGreen, LED_GREEN);
+	gpio_mode(&portGreen, PIN_OUTPUT);
 
-	pwmout_init(&portBlue, LED_BLUE);
-	pwmout_period_ms(&portBlue, 2); // 500Hz
+	gpio_init(&portBlue, LED_BLUE);
+	gpio_mode(&portBlue, PIN_OUTPUT);
 }
 
 /// <summary>
-/// w’è‚ÌF‚Å LED ‚ğ“_“”AÁ“”‚·‚é
+/// æŒ‡å®šã®è‰²ã§ LED ã‚’ç‚¹ç¯ã€æ¶ˆç¯ã™ã‚‹
 /// </summary>
-/// <param name="redOn">true ‚È‚ç‚ÎÔ‚ğ“_“”</param>
-/// <param name="greenOn">true ‚È‚ç‚Î—Î‚ğ“_“”</param>
-/// <param name="blueOn">true ‚È‚ç‚ÎÂ‚ğ“_“”</param>
-void BoardFullColorLED_SetRgb(float redOn, float greenOn, float blueOn)
+/// <param name="redOn">true ãªã‚‰ã°èµ¤ã‚’ç‚¹ç¯</param>
+/// <param name="greenOn">true ãªã‚‰ã°ç·‘ã‚’ç‚¹ç¯</param>
+/// <param name="blueOn">true ãªã‚‰ã°é’ã‚’ç‚¹ç¯</param>
+void BoardFullColorLED_SetRgb(bool redOn, bool greenOn, bool blueOn)
 {
-	pwmout_write(&portRed, redOn);
-	pwmout_write(&portGreen, greenOn);
-	pwmout_write(&portBlue, blueOn);
+	gpio_write(&portRed, redOn);
+	gpio_write(&portGreen, greenOn);
+	gpio_write(&portBlue, blueOn);
 }
 
 /// <summary>
-/// F–¼w’è‚Å LED ‚ğ“_“”‚·‚é
+/// è‰²åæŒ‡å®šã§ LED ã‚’ç‚¹ç¯ã™ã‚‹
 /// </summary>
 /// <param name="color"></param>
 void BoardFullColorLED_SetColor(Colors color)
@@ -45,7 +45,7 @@ void BoardFullColorLED_SetColor(Colors color)
 	int redFlag = (int)color & (int)Colors_Red;
 	int greenFlag = (int)color & (int)Colors_Green;
 	int blueFlag = (int)color & (int)Colors_Blue;
-	pwmout_write(&portRed, (redFlag != 0) ? 1.0 : 0.0);
-	pwmout_write(&portGreen, (greenFlag != 0) ? 1.0 : 0.0);
-	pwmout_write(&portBlue, (blueFlag != 0) ? 1.0 : 0.0);
+	gpio_write(&portRed, redFlag != 0);
+	gpio_write(&portGreen, greenFlag != 0);
+	gpio_write(&portBlue, blueFlag != 0);
 }

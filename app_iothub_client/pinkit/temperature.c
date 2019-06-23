@@ -26,6 +26,6 @@ double Temperature_TakeMeasurement()
 	double tk = 273.0;
 	double t25 = tk + 25.0;
 	double r25 = 10000.0;
-	double t = 1.0 / (log(VR1 * raw / (4096 - raw) / r25) / Bc + 1.0 / t25) - tk;
+	double t = 1.0 / (log(VR1 * raw / (65536 - raw) / r25) / Bc + 1.0 / t25) - tk;
 	return t;
 }
