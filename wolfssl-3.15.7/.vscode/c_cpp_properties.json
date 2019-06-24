@@ -5,7 +5,7 @@
             "includePath": [
                 "${workspaceFolder}/../musl-1.1.18/include",
                 "${workspaceFolder}/../zlib-1.2.11/src",
-                "${workspaceFolder}/../wolfssl-3.15.7",
+                "${workspaceFolder}/../wolfssl-3.15.7"
             ],
             "defines": [
                 "HAVE_CONFIG_H",

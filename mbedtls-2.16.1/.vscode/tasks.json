@@ -6,7 +6,10 @@
     "type": "shell",
     "problemMatcher": {
         "owner": "cpp",
-        "fileLocation": ["relative", "${workspaceRoot}"],
+        "fileLocation": [
+            "relative",
+            "${workspaceRoot}"
+        ],
         "pattern": {
             "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
             "file": 1,
@@ -19,7 +22,10 @@
     "tasks": [
         {
             "label": "build mbedtls",
-            "args": ["-j", "all"],
+            "args": [
+                "-j",
+                "all"
+            ],
             "linux": {
                 "command": "make"
             },
@@ -36,7 +42,9 @@
         },
         {
             "label": "clean mbedtls",
-            "args": ["clean"],
+            "args": [
+                "clean"
+            ],
             "linux": {
                 "command": "make"
             },

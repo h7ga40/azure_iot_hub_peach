@@ -6,7 +6,10 @@
     "type": "shell",
     "problemMatcher": {
         "owner": "cpp",
-        "fileLocation": ["relative", "${workspaceRoot}"],
+        "fileLocation": [
+            "relative",
+            "${workspaceRoot}"
+        ],
         "pattern": {
             "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
             "file": 1,
@@ -19,7 +22,10 @@
     "tasks": [
         {
             "label": "build all",
-            "args": ["-j", "all"],
+            "args": [
+                "-j",
+                "all"
+            ],
             "linux": {
                 "command": "make"
             },
@@ -36,7 +42,9 @@
         },
         {
             "label": "clean all",
-            "args": ["clean"],
+            "args": [
+                "clean"
+            ],
             "linux": {
                 "command": "make"
             },
@@ -53,8 +61,13 @@
         },
         {
             "label": "build app_iothub_client",
-            "options": {"cwd": "Debug"},
-            "args": ["-j", "all"],
+            "options": {
+                "cwd": "Debug"
+            },
+            "args": [
+                "-j",
+                "all"
+            ],
             "linux": {
                 "command": "make"
             },
@@ -71,8 +84,12 @@
         },
         {
             "label": "clean app_iothub_client",
-            "options": {"cwd": "Debug"},
-            "args": ["clean"],
+            "options": {
+                "cwd": "Debug"
+            },
+            "args": [
+                "clean"
+            ],
             "linux": {
                 "command": "make"
             },

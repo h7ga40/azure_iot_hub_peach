@@ -6,7 +6,10 @@
     "type": "shell",
     "problemMatcher": {
         "owner": "cpp",
-        "fileLocation": ["relative", "${workspaceRoot}"],
+        "fileLocation": [
+            "relative",
+            "${workspaceRoot}"
+        ],
         "pattern": {
             "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
             "file": 1,
@@ -19,8 +22,13 @@
     "tasks": [
         {
             "label": "build asp3_dcre",
-            "options": {"cwd": "Debug"},
-            "args": ["-j", "all"],
+            "options": {
+                "cwd": "Debug"
+            },
+            "args": [
+                "-j",
+                "all"
+            ],
             "linux": {
                 "command": "make"
             },
@@ -37,8 +45,12 @@
         },
         {
             "label": "clean asp3_dcre",
-            "options": {"cwd": "Debug"},
-            "args": ["clean"],
+            "options": {
+                "cwd": "Debug"
+            },
+            "args": [
+                "clean"
+            ],
             "linux": {
                 "command": "make"
             },

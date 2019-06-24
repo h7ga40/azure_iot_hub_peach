@@ -33,7 +33,7 @@
 			"-i"
 		],
 		"terminal.integrated.env.windows": {
-			"PATH": "C:\\Program Files (x86)\\GNU Tools ARM Embedded\\6 2017-q2-update\\bin;C:\\Ruby24-x64\\bin;C:\\Program Files\\GNU MCU Eclipse\\OpenOCD\\0.10.0-7-20180123-1217\\bin",
+			"PATH": "C:\\Program Files (x86)\\GNU Tools ARM Embedded\\6 2017-q2-update\\bin;C:\\Ruby24-x64\\bin;C:\\Program Files\\GNU MCU Eclipse\\OpenOCD\\0.10.0-12-20190422-2015\\bin",
 			"CHERE_INVOKING": "1",
 			"MSYS2_PATH_TYPE": "inherit",
 			"MSYSTEM": "MINGW64",

@@ -5,7 +5,7 @@
             "includePath": [
                 "${workspaceFolder}/../musl-1.1.18/arch/arm",
                 "${workspaceFolder}/../musl-1.1.18/src/internal",
-                "${workspaceFolder}/../musl-1.1.18/include",
+                "${workspaceFolder}/../musl-1.1.18/include"
             ],
             "windowsSdkVersion": "10.0.17763.0",
             "compilerPath": "C:\\Program Files (x86)\\GNU Tools ARM Embedded\\6 2017-q2-update\\bin\\arm-none-eabi-gcc.exe",
