@@ -199,7 +199,7 @@ APPL_COBJS := $(APPL_COBJS) ping.o ping6.o resolver.o dhcp4_cli.o netapp_subr.o 
 APPLDIRS := $(APPLDIRS) ../../ntshell/fatfs ../../ntshell/ntshell ../../ntshell/ntshell/core ../../ntshell/ntshell/util ../../ntshell/src
 APPL_COBJS := $(APPL_COBJS) netcmd.o fdtable.o stdio_stub.o io_stub.o socket_stub.o ffarch.o diskio.o ff.o sdfs.o ccsbcs.o ntshell.o text_editor.o text_history.o usrcmd.o vtrecv.o vtsend.o ntlibc.o ntstdio.o ntopt.o syscall.o
 APPLDIRS := $(APPLDIRS) ../pinkit
-APPL_COBJS := $(APPL_COBJS) accelerometer.o boardfullcolorled.o lightsensor.o temperature.o
+APPL_COBJS := $(APPL_COBJS) accelerometer.o boardfullcolorled.o lightsensor.o temperature.o pinkit.o
 
 #
 #  アプリケーションプログラムに関する定義
