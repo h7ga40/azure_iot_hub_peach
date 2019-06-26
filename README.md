@@ -15,7 +15,7 @@ static const char* connectionString = "[device connection string]";
 
 ビルドはGCC+Makefileで行います。arm向けGCCは[こちら](https://gcc-renesas.com/ja/rz/rz-download-toolchains/)や[こちら](https://launchpad.net/gcc-arm-embedded)から入手できます。Windows向けのVSCodeの設定は**6 2017-q2-update**のバージョンに対応しています。
 
-IDEとして[e² studio](https://www.renesas.com/ja-jp/products/software-tools/tools/ide/e2studio.html) V7.4.0か[VSCodec](https://code.visualstudio.com/)を使用します。
+IDEとして[e² studio](https://www.renesas.com/ja-jp/products/software-tools/tools/ide/e2studio.html) V7.4.0か[VSCode](https://code.visualstudio.com/)を使用します。
 
 Rubyの実行環境が必要なので、​[こちら](https://www.ruby-lang.org/ja/downloads/)からダウンロードして、コマンドプロントから実行できるよう、環境変数でパスを通してください。
 
