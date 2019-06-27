@@ -25,6 +25,9 @@ e² studioを使う場合は、展開したフォルダをワークスペース�
 開発手順は[ここ](https://dev.toppers.jp/trac_user/contrib/wiki/azure_iot_hub_peach)にあります。
 
 VSCodeの場合は、「ファイル」メニューの「ワークスペースを開く」から、ルートにある「*azure_iot_hub_peach.code-workspace*」を開きます。必要に応じてワークスペースファイルや「*.vscode*」フォルダにあるファイルのパスを変更してください。
+開発手順は[ここ](https://qiita.com/takasehideki/items/59e3d179d462142a8633)や[ここ](https://qiita.com/takasehideki/items/fa0a1a6567a22f469515)が参考にしてください。
+
+
 
 ## フォルダ構成
 
