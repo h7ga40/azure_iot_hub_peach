@@ -56,6 +56,7 @@ OBJECTS += c-utility/adapters/tlsio_mbedtls.o
 OBJECTS += c-utility/adapters/tlsio_wolfssl.o
 OBJECTS += c-utility/adapters/uniqueid_stub.o
 OBJECTS += c-utility/src/azure_base64.o
+OBJECTS += c-utility/src/base32.o
 OBJECTS += c-utility/src/buffer.o
 OBJECTS += c-utility/src/connection_string_parser.o
 OBJECTS += c-utility/src/consolelogger.o
@@ -96,6 +97,7 @@ OBJECTS += c-utility/src/xlogging.o
 OBJECTS += certs/certs.o
 OBJECTS += deps/parson/parson.o
 OBJECTS += iothub_client/src/blob.o
+OBJECTS += iothub_client/src/iothub.o
 OBJECTS += iothub_client/src/iothub_client.o
 OBJECTS += iothub_client/src/iothub_client_authorization.o
 OBJECTS += iothub_client/src/iothub_client_core_ll.o
@@ -103,6 +105,7 @@ OBJECTS += iothub_client/src/iothub_client_diagnostic.o
 OBJECTS += iothub_client/src/iothub_client_ll.o
 OBJECTS += iothub_client/src/iothub_client_ll_uploadtoblob.o
 OBJECTS += iothub_client/src/iothub_client_retry_control.o
+OBJECTS += iothub_client/src/iothub_device_client_ll.o
 OBJECTS += iothub_client/src/iothub_message.o
 OBJECTS += iothub_client/src/iothub_transport_ll_private.o
 OBJECTS += iothub_client/src/iothubtransport.o
@@ -111,6 +114,19 @@ OBJECTS += iothub_client/src/iothubtransporthttp.o
 OBJECTS += iothub_client/src/iothubtransportmqtt.o
 OBJECTS += iothub_client/src/iothubtransportmqtt_websockets.o
 OBJECTS += iothub_client/src/version.o
+OBJECTS += provisioning_client/adapters/hsm_client_data.o
+OBJECTS += provisioning_client/adapters/hsm_client_key.o
+OBJECTS += provisioning_client/src/iothub_auth_client.o
+OBJECTS += provisioning_client/src/iothub_security_factory.o
+OBJECTS += provisioning_client/src/prov_auth_client.o
+OBJECTS += provisioning_client/src/prov_device_client.o
+OBJECTS += provisioning_client/src/prov_device_ll_client.o
+OBJECTS += provisioning_client/src/prov_security_factory.o
+OBJECTS += provisioning_client/src/prov_transport_http_client.o
+OBJECTS += provisioning_client/src/prov_transport_mqtt_client.o
+OBJECTS += provisioning_client/src/prov_transport_mqtt_common.o
+OBJECTS += provisioning_client/src/prov_transport_mqtt_ws_client.o
+OBJECTS += uhttp/src/uhttp.o
 OBJECTS += umqtt/src/mqtt_client.o
 OBJECTS += umqtt/src/mqtt_codec.o
 OBJECTS += umqtt/src/mqtt_message.o
@@ -126,7 +142,11 @@ INCLUDE_PATHS += -I../../azure_iothub/c-utility/inc
 INCLUDE_PATHS += -I../../azure_iothub/c-utility/pal/toppers
 INCLUDE_PATHS += -I../../azure_iothub/iothub_client/inc
 INCLUDE_PATHS += -I../../azure_iothub/iothub_client/inc/internal
+INCLUDE_PATHS += -I../../azure_iothub/provisioning_client/adapters
+INCLUDE_PATHS += -I../../azure_iothub/provisioning_client/inc
+INCLUDE_PATHS += -I../../azure_iothub/provisioning_client/inc/azure_prov_client/internal
 INCLUDE_PATHS += -I../../azure_iothub/deps/parson
+INCLUDE_PATHS += -I../../azure_iothub/uhttp/inc
 INCLUDE_PATHS += -I../../azure_iothub/umqtt/inc
 INCLUDE_PATHS += -I../../wolfssl-3.15.7/wolfssl
 INCLUDE_PATHS += -I../../wolfssl-3.15.7/wolfssl/wolfcrypt
@@ -170,6 +190,8 @@ C_FLAGS += -Wstack-usage=100
 C_FLAGS += -nostdinc
 
 C_FLAGS += -DUSE_WOLFSSL=1
+C_FLAGS += -DHSM_TYPE_SYMM_KEY
+C_FLAGS += -DUSE_PROV_MODULE
 C_FLAGS += -Dget_time=azure_get_time
 
 CXX_FLAGS += -mcpu=cortex-a9
@@ -196,6 +218,8 @@ CXX_FLAGS += -nostdinc
 CXX_FLAGS += -std=gnu++11
 
 CXX_FLAGS += -DUSE_WOLFSSL=1
+CXX_FLAGS += -DHSM_TYPE_SYMM_KEY
+CXX_FLAGS += -DUSE_PROV_MODULE
 CXX_FLAGS += -Dget_time=azure_get_time
 
 ASM_FLAGS += -x

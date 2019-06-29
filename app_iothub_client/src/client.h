@@ -10,6 +10,8 @@ extern "C" {
 
 void iothub_client_init(void);
 int iothub_client_main(int argc, char **argv);
+int set_cs_main(int argc, char **argv);
+int dps_csgen_main(int argc, char **argv);
 
 #ifdef __cplusplus
 }

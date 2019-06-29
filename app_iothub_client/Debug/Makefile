@@ -186,7 +186,7 @@ INCLUDES := -I. -I$(SRCDIR)/include -I$(SRCDIR) \
 	-I$(SRCDIR)/../azure_iothub/c-utility/inc \
 	-I$(SRCDIR)/../azure_iothub/c-utility/pal/toppers \
 	-I$(SRCDIR)/../azure_iothub/iothub_client/inc \
-	-I$(SRCDIR)/../azure_iothub/iothub_client/inc/internal \
+	-I$(SRCDIR)/../azure_iothub/provisioning_client/inc \
 	-I$(SRCDIR)/../azure_iothub/deps/parson \
 	-I$(SRCDIR)/../azure_iothub/certs \
 	$(INCLUDES)
@@ -212,10 +212,10 @@ APPL_CDL = main.cdl
 APPL_DIRS := $(APPLDIRS) $(SRCDIR)/library
 APPL_ASMOBJS :=
 ifdef USE_CXX
-	APPL_CXXOBJS := main.o ntshell_main.o client.o
+	APPL_CXXOBJS := main.o ntshell_main.o client.o code.o
 	APPL_COBJS := $(APPL_COBJS)
 else
-	APPL_COBJS := $(APPL_COBJS) main.o ntshell_main.o client.o
+	APPL_COBJS := $(APPL_COBJS) main.o ntshell_main.o client.o code.o
 endif
 APPL_COBJS := $(APPL_COBJS) log_output.o vasyslog.o t_perror.o strerror.o mbed_stub.o
 APPL_BINOBJS := rom_fs.o

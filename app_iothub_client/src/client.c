@@ -33,8 +33,11 @@ extern int sprintf_s(char* dst, size_t dstSizeInBytes, const char* format, ...);
 /*String containing Hostname, Device Id & Device Key in the format:                         */
 /*  "HostName=<host_name>;DeviceId=<device_id>;SharedAccessKey=<device_key>"                */
 /*  "HostName=<host_name>;DeviceId=<device_id>;SharedAccessSignature=<device_sas_token>"    */
-static const char* connectionString = "[device connection string]";
+char* connectionString = NULL;
 
+extern bool g_use_proxy;
+extern const char *PROXY_ADDRESS;
+extern uint16_t PROXY_PORT;
 
 static int callbackCounter;
 static bool g_continueRunning;
@@ -184,17 +187,20 @@ void iothub_client_run(int proto)
 		}
 		else
 		{
-#if 0
 			HTTP_PROXY_OPTIONS proxy_options;
-			proxy_options.host_address = "proxy.example.com";
-			proxy_options.port = 8080;
-			proxy_options.username = NULL;
-			proxy_options.password = NULL;
-			if (IoTHubClient_LL_SetOption(iotHubClientHandle, OPTION_HTTP_PROXY, &proxy_options) != IOTHUB_CLIENT_OK)
+			if (g_use_proxy)
 			{
-				printf("failure to set option \"HTTP Proxy\"\r\n");
-			}
+				proxy_options.host_address = PROXY_ADDRESS;
+				proxy_options.port = PROXY_PORT;
+				proxy_options.username = NULL;
+				proxy_options.password = NULL;
 
+				if (IoTHubClient_LL_SetOption(iotHubClientHandle, OPTION_HTTP_PROXY, &proxy_options) != IOTHUB_CLIENT_OK)
+				{
+					printf("failure to set option \"HTTP Proxy\"\r\n");
+				}
+			}
+#if 0
 			long curl_verbose = 1;
 			if (IoTHubClient_LL_SetOption(iotHubClientHandle, OPTION_CURL_VERBOSE, &curl_verbose) != IOTHUB_CLIENT_OK)
 			{
@@ -313,8 +319,13 @@ void iothub_client_init()
 
 int iothub_client_main(int argc, char **argv)
 {
+	if (connectionString == NULL) {
+		printf("Not set connection string, use dps_csgen or set_cs.\n");
+		return 0;
+	}
+
 	if (argc < 2) {
-		iothub_client_run(0);
+		iothub_client_run(1);
 		return 0;
 	}
 
@@ -332,5 +343,35 @@ int iothub_client_main(int argc, char **argv)
 	}
 
 	printf("%s [http|mqtt|mqttows] \n");
+	return 0;
+}
+
+int set_cs_main(int argc, char **argv)
+{
+	if (argc < 2) {
+		printf("usage:\nset_cs <connection string>\n");
+		return 0;
+	}
+
+	int len = strlen(argv[1]);
+	if (len < 70) {
+		printf("String containing Hostname, Device Id & Device Key in the format:\n");
+		printf("  HostName=<host_name>;DeviceId=<device_id>;SharedAccessKey=<device_key>\n");
+		printf("  HostName=<host_name>;DeviceId=<device_id>;SharedAccessSignature=<device_sas_token>\n");
+		return 0;
+	}
+
+	char *conn_str = (char *)malloc(len + 1);
+	if (conn_str == NULL) {
+		printf("OOM while creating connection string\n");
+		return 1;
+	}
+
+	memcpy(conn_str, argv[1], len);
+	conn_str[len] = 0;
+	free(connectionString);
+	connectionString = conn_str;
+	printf("Connection String:\n%s\n", connectionString);
+
 	return 0;
 }
