@@ -21,9 +21,14 @@ CDEFS := $(CDEFS) -D__TARGET_ARCH_ARM=7
 #  カーネルに関する定義
 #
 KERNEL_DIRS := $(KERNEL_DIRS) $(CHIPDIR)
-KERNEL_ASMOBJS := $(KERNEL_ASMOBJS) gic_support.o
 KERNEL_COBJS := $(KERNEL_COBJS) chip_kernel_impl.o gic_kernel_impl.o \
 															chip_timer.o
+KERNEL_ASMOBJS := $(KERNEL_ASMOBJS) gic_support.o
+
+#
+#  システムサービスに関する定義
+#
+SYSSVC_DIRS := $(SYSSVC_DIRS) $(CHIPDIR)
 
 #
 #  コンフィギュレータ関係の変数の定義

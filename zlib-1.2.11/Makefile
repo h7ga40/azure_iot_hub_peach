@@ -33,7 +33,7 @@ clean :
 else
 
 # trick rules into thinking we are in the root, when we are in the bulid dir
-VPATH = ..
+VPATH = ../../zlib-1.2.11
 
 # Boiler-plate
 ###############################################################################
@@ -158,17 +158,12 @@ all: lib$(PROJECT).a
 .s.o:
 	+@$(call MAKEDIR,$(dir $@))
 	+@echo "Assemble: $(notdir $<)"
-  
 	@$(AS) -c $(ASM_FLAGS) -o $@ $<
-  
-
 
 .S.o:
 	+@$(call MAKEDIR,$(dir $@))
 	+@echo "Assemble: $(notdir $<)"
-  
 	@$(AS) -c $(ASM_FLAGS) -o $@ $<
-  
 
 .c.o:
 	+@$(call MAKEDIR,$(dir $@))

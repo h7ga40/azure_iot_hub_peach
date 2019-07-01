@@ -29,13 +29,16 @@ ifeq ($(EXECUTE_ON),ROM)
 	SYSSVC_COBJS := $(SYSSVC_COBJS)
 endif
 
+#
+#  FPUサポートとコーリングコンベンション
+#
+#  FPUを使用する場合は，USE_ARM_FPUをマクロ定義し，使用するコーリング
+#  コンベンションに応じて，-mfloat-abi=softfpまたは-mfloat-abi=hardオ
+#  プションをつける．
+#
 CDEFS := $(CDEFS) -DUSE_ARM_FPU
+#COPTS := $(COPTS) -mfloat-abi=softfp
 COPTS := $(COPTS) -mfloat-abi=hard
-
-#
-#  MPCoreの種類の定義
-#
-MPCORE_TYPE = CA9
 
 #
 #  コンパイルオプション
@@ -48,7 +51,7 @@ LDFLAGS := $(LDFLAGS) -mlittle-endian
 #  カーネルに関する定義
 #
 KERNEL_DIRS := $(KERNEL_DIRS) $(TARGETDIR)
-KERNEL_COBJS := $(KERNEL_COBJS) target_kernel_impl.o core_pl310.o
+KERNEL_COBJS := $(KERNEL_COBJS) target_kernel_impl.o
 KERNEL_ASMOBJS := $(KERNEL_ASMOBJS) target_support.o
 
 #
@@ -64,20 +67,6 @@ else
 endif
 
 #
-#  GNU開発環境のターゲットアーキテクチャの定義
+#  チップ依存部
 #
-GCC_TARGET = arm-none-eabi
-#GCC_TARGET = arm-atollic-eabi
-
-#
-#  トレースログ記録のサンプルコードに関する定義
-#
-ifeq ($(ENABLE_TRACE),true)
-	COPTS := $(COPTS) -DTOPPERS_ENABLE_TRACE
-	SYSSVC_DIRS := $(SYSSVC_DIRS) $(SRCDIR)/arch/tracelog
-endif
-
-#
-#  チップ依存部のインクルード
-#
-include $(SRCDIR)/arch/arm_gcc/rza1/Makefile.chip
+include $(SRCDIR)/arch/$(CORE)_$(TOOL)/$(CHIP)/Makefile.chip

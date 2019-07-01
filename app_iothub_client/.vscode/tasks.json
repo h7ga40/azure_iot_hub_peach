@@ -8,7 +8,7 @@
         "owner": "cpp",
         "fileLocation": [
             "relative",
-            "${workspaceRoot}"
+            "${workspaceRoot}/app_iothub_client"
         ],
         "pattern": {
             "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
@@ -24,6 +24,7 @@
             "label": "build all",
             "args": [
                 "-j",
+                "-C", "..",
                 "all"
             ],
             "linux": {
@@ -43,6 +44,7 @@
         {
             "label": "clean all",
             "args": [
+                "-C", "..",
                 "clean"
             ],
             "linux": {
@@ -61,9 +63,6 @@
         },
         {
             "label": "build app_iothub_client",
-            "options": {
-                "cwd": "Debug"
-            },
             "args": [
                 "-j",
                 "all"
@@ -84,9 +83,6 @@
         },
         {
             "label": "clean app_iothub_client",
-            "options": {
-                "cwd": "Debug"
-            },
             "args": [
                 "clean"
             ],

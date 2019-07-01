@@ -32,7 +32,7 @@ LIBS := $(LIBS) -lgcc
 #
 KERNEL_DIRS := $(KERNEL_DIRS) $(COREDIR)
 KERNEL_ASMOBJS := $(KERNEL_ASMOBJS) core_support.o
-KERNEL_COBJS := $(KERNEL_COBJS) core_kernel_impl.o arm.o
+KERNEL_COBJS := $(KERNEL_COBJS) core_kernel_impl.o arm.o core_pl310.o
 
 #
 #  コンフィギュレータ関係の変数の定義
@@ -49,9 +49,10 @@ TARGET_OFFSET_TRB = $(COREDIR)/core_offset.trb
 #
 #  START_OBJSをstart.oに設定し，LDFLAGSに-nostdlibを追加する．
 #
-START_OBJS = start.o
+START_OBJS := start.o
+START_OBJS := $(addprefix $(OBJDIR)/, $(START_OBJS))
 
-$(START_OBJS): %.o: %.S
-	$(CC) -c $(CFLAGS) $(KERNEL_CFLAGS) $<
+$(START_OBJS): $(OBJDIR)/%.o: %.S
+	$(CC) -c -o $@ -MD -MP -MF $(DEPDIR)/$*.d $(CFLAGS) $(KERNEL_CFLAGS) $<
 
 LDFLAGS := -nodefaultlibs $(LDFLAGS)
