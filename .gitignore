@@ -52,16 +52,18 @@ Mkfile.old
 dkms.conf
 
 # TOPPERS files
-app_iot_hub_client/Debug/app_iothub_client.*
-app_iot_hub_client/cfg*_out.*
-app_iot_hub_client/*.timestamp
-app_iot_hub_client/kernel_cfg.*
-app_iot_hub_client/gen
+app_iothub_client/Debug/app_iothub_client.*
+app_iothub_client/cfg*_out.*
+app_iothub_client/*.timestamp
+app_iothub_client/kernel_cfg.*
+app_iothub_client/tinet_cfg.*
+app_iothub_client/gen
 asp3_dcre/Debug/asp.*
 asp3_dcre/cfg*_out.*
 asp3_dcre/*.timestamp
 asp3_dcre/kernel_cfg.*
 asp3_dcre/gen
+asp3_dcre/Debug/gen
 asp3_dcre/offset.h
 
 !.gitkeep
