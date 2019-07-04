@@ -22,3 +22,14 @@ clean:
 	$(MAKE) -j -C curl-7.57.0 clean
 	$(MAKE) -j -C azure_iothub clean
 	$(MAKE) -j -C app_iothub_client clean
+
+.PHONY: realclean
+realclean:
+	$(MAKE) -j -C musl-1.1.18 clean
+	$(MAKE) -j -C asp3_dcre realclean
+	$(MAKE) -j -C mbedtls-2.16.1 clean
+	$(MAKE) -j -C wolfssl-3.15.7 clean
+	$(MAKE) -j -C zlib-1.2.11 clean
+	$(MAKE) -j -C curl-7.57.0 clean
+	$(MAKE) -j -C azure_iothub clean
+	$(MAKE) -j -C app_iothub_client realclean
