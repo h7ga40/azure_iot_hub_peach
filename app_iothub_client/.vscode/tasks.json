@@ -62,6 +62,26 @@
             }
         },
         {
+            "label": "realclean all",
+            "args": [
+                "-C", "..",
+                "realclean"
+            ],
+            "linux": {
+                "command": "make"
+            },
+            "osx": {
+                "command": "make"
+            },
+            "windows": {
+                "command": "make.exe"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
             "label": "build app_iothub_client",
             "args": [
                 "-j",
@@ -85,6 +105,25 @@
             "label": "clean app_iothub_client",
             "args": [
                 "clean"
+            ],
+            "linux": {
+                "command": "make"
+            },
+            "osx": {
+                "command": "make"
+            },
+            "windows": {
+                "command": "make.exe"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "realclean app_iothub_client",
+            "args": [
+                "realclean"
             ],
             "linux": {
                 "command": "make"
