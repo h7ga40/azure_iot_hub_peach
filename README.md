@@ -3,12 +3,31 @@
 RTOSの[TOPPERS/ASP3](https://www.toppers.jp/asp3-kernel.html)を使ったAzure IoT Hub へ接続する[Azure IoT Hub Device C SDK](https://github.com/Azure/azure-iot-sdk-c)を使ったサンプルです。
 ターゲットデバイスは、[GR-PEACH](http://gadget.renesas.com/ja/product/peach.html)で、Ethernet上のHTTPかMQTTで通信します。 MQTTは、mbedTLSを使用した場合に接続できます。
 
-注意点として、「get_time」という関数が「c-utility/adapters/agenttime_mbed.c」に定義されていますが、ベースのソフトにも定義されているので、Azure IoT SDK側の「get_time」関数を「azure_get_time」などにリネームして競合を避ける必要があります。
+注意点として、「get_time」という関数が「c-utility/adapters/agenttime_mbed.c」に定義されていますが、ベースのソフトにも定義されているので、Azure IoT SDK側の「get_time」関数を「azure_get_time」などにリネームして競合を避ける必要がありました。
 
-サンプルを動作させるには、[この手順](https://docs.microsoft.com/ja-jp/azure/iot-hub/quickstart-send-telemetry-c)や[この手順](https://github.com/ms-iotkithol-jp/IoTKitHoLV4)を参照にAzure側にデバイスを追加し、そのデバイスの接続文字列を取得し、ソースコード「app_iothub_client/src/client.c」の以下の個所を書き換える必要があります。
+IoT Hubでサンプルを動作させるには、[この手順](https://docs.microsoft.com/ja-jp/azure/iot-hub/quickstart-send-telemetry-c)や[この手順](https://github.com/ms-iotkithol-jp/IoTKitHoLV4)を参照にAzure側にデバイスを追加し、そのデバイスの接続文字列を取得し、「set_cs」コマンドで接続文字列を設定します。
 
-```c
-static const char* connectionString = "[device connection string]";
+```shell
+NTShell> set_cs <device connection string>
+```
+
+そのあと、IoT Hubに接続します。
+
+```shell
+NTShell> iothub mqtt
+```
+
+IoT Centralでサンプルを動作させるには、[この手順](https://github.com/algyan/touch_and_try-ReButton)を参考に、「実際」の「デバイス」を作成し、スコープID（scopeId）、デバイスID（deviceId）、主キー（deviceKey）を取得し、以下のコマンドでデバイスをプロビジョニングします。
+
+```shell
+NTShell> dps_csgen mqtt <scopeId> <deviceId> <deviceKey>
+```
+
+接続文字列が表示されれば成功です。
+そのあと、IoT Centralに接続します。
+
+```shell
+NTShell> iothub mqtt
 ```
 
 ## 開発環境
@@ -26,8 +45,6 @@ e² studioを使う場合は、展開したフォルダをワークスペース�
 
 VSCodeの場合は、「ファイル」メニューの「ワークスペースを開く」から、ルートにある「*azure_iot_hub_peach.code-workspace*」を開きます。必要に応じてワークスペースファイルや「*.vscode*」フォルダにあるファイルのパスを変更してください。
 開発手順は[ここ](https://qiita.com/takasehideki/items/59e3d179d462142a8633)や[ここ](https://qiita.com/takasehideki/items/fa0a1a6567a22f469515)を参考にしてください。
-
-
 
 ## フォルダ構成
 
@@ -132,14 +149,14 @@ curl-7.57.0/lib/curl_config.h(954)
 ## Visual Studio Code対応
 
 以下の記事を参考にしました。
-https://os.mbed.com/users/MACRUM/notebook/how-to-setup-vscode-debugging-for--stm32-platforms/
-https://qiita.com/mitsu48/items/5c6fec6064af6c4a2c4e
+<https://os.mbed.com/users/MACRUM/notebook/how-to-setup-vscode-debugging-for--stm32-platforms/>
+<https://qiita.com/mitsu48/items/5c6fec6064af6c4a2c4e>
 
 ## TOPPERS License
 
 TOPPERS Licenseは、BSDライクなライセンスです。詳しくは、下記のサイトを見てください。
 
-https://www.toppers.jp/license.html
+<https://www.toppers.jp/license.html>
 
 ## 謝辞
 
