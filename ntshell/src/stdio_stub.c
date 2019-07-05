@@ -43,9 +43,6 @@
 #include "syssvc/serial.h"
 #include "syssvc/syslog.h"
 #include "target_syssvc.h"
-#ifdef TOPPERS_OMIT_TECS
-#include "target_serial.h"
-#endif // TOPPERS_OMIT_TECS
 #include "fdtable.h"
 #include "kernel_cfg.h"
 #include <string.h>
@@ -59,6 +56,9 @@
 #ifdef _DEBUG
 static const char THIS_FILE[] = __FILE__;
 #endif
+
+extern bool_t sio_isr_snd(ID siopid);
+extern bool_t sio_isr_rcv(ID siopid, char c);
 
 static unsigned char stdio_xi(struct ntstdio_t *handle);
 static void stdio_xo(struct ntstdio_t *handle, unsigned char c);
@@ -274,9 +274,6 @@ int sio_tcsetattr(struct SHELL_FILE *fp, int optional_actions, const struct term
 
 int sio_ioctl(struct SHELL_FILE *fp, int request, void *arg)
 {
-	if ((fp == NULL) || (fp->type != &IO_TYPE_SIO))
-		return -EBADF;
-
 	switch (request) {
 	case TIOCGWINSZ:
 		return 0;
