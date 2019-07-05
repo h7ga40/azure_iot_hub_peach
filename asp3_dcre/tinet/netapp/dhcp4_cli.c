@@ -1904,8 +1904,6 @@ dhcp4c_renew_info (void)
 	else if (context.fsm == DHCP4_FSM_SLEEP) {
 
 		/* SLEEP を解除する。*/
-		context.fsm = DHCP4_FSM_WAKE;
-		context.timer = 0;
 		wup_tsk(context.tskid);
 		return E_OK;
 		}
@@ -2119,7 +2117,7 @@ dhcp4_cli_progress(T_DHCP4_CLI_CONTEXT *ct, int elapse)
 void
 dhcp4_cli_wakeup(T_DHCP4_CLI_CONTEXT *ct)
 {
-	if (ct->fsm == DHCP4_FSM_WAKE) {
+	if (ct->snd_msg == NULL) {
 		ct->flags = 0;
 		ct->error = E_OK;
 

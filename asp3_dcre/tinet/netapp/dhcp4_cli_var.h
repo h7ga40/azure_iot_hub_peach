@@ -185,7 +185,6 @@ typedef struct dhcp4_cli_context {
 #define DHCP4_FSM_REBOOT	8
 #define DHCP4_FSM_REL_INFO	11	/* DHCPv4 の RFC2131 には無い。*/
 #define DHCP4_FSM_SLEEP		12	/* DHCPv4 の RFC2131 には無い。*/
-#define DHCP4_FSM_WAKE		13	/* DHCPv4 の RFC2131 には無い。*/
 
 /* flag の定義 */
 

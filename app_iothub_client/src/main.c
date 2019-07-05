@@ -91,12 +91,14 @@ extern int execute_command(int wait);
 enum main_state_t {
 	main_state_start,
 	main_state_idle,
+	main_state_start_dhcp,
 };
 
 struct main_t {
 	int timer;
 	enum main_state_t state;
 	SYSTIM prev, now;
+	int dhcp_req, dhcp_res;
 };
 struct main_t main_obj;
 
@@ -116,12 +118,18 @@ int uart_read(char *buf, int cnt, void *extobj)
 
 	obj->prev = obj->now;
 
+	if (main_obj.dhcp_req != main_obj.dhcp_res) {
+		main_obj.dhcp_res = main_obj.dhcp_req;
+		main_obj.state = main_state_start_dhcp;
+		main_obj.timer = 0;
+	}
+
 	/* タイマー取得 */
 	timer = main_get_timer();
 
 	/* 待ち */
 	ret = serial_trea_dat(SIO_PORTID, buf, cnt, timer);
-	if ((ret < 0) && (ret != E_OK) && (ret != E_TMOUT)) {
+	if ((ret < 0) && (ret != E_OK) && (ret != E_TMOUT) && (ret != E_RLWAI)) {
 		syslog(LOG_NOTICE, "tslp_tsk ret: %s %d", itron_strerror(ret), timer);
 		ntshell_exit = 1;
 		return -1;
@@ -177,7 +185,10 @@ static void main_initialize()
 
 	ntshell_task_init(SIO_PORTID);
 
-	main_obj.timer = TMO_FEVR;
+	/* 初期化 */
+	ffarch_init();
+
+	main_obj.timer = 100000;
 	main_obj.state = main_state_start;
 
 	gpio_t led_blue, led_green, led_red, sw;
@@ -210,11 +221,6 @@ static void main_initialize()
 
 		syslog(LOG_NOTICE, "mac_addr %s %s", data, dhcp_enable ? "dhcp" : "static");
 	}
-
-	ether_set_link_callback(netif_link_callback);
-
-	/* 初期化 */
-	ffarch_init();
 
 	gpio_write(&led_green, 0);
 
@@ -256,8 +262,33 @@ static void main_progress(int interval)
  */
 static void main_timeout()
 {
-	//if (main_obj.timer == 0) {
-	//}
+	ER ret;
+
+	if (main_obj.timer != 0)
+		return;
+
+	switch (main_obj.state) {
+	case main_state_start:
+		ether_set_link_callback(netif_link_callback);
+		main_obj.state = main_state_idle;
+		main_obj.timer = TMO_FEVR;
+		break;
+	case main_state_start_dhcp:
+		ret = dhcp4c_renew_info();
+		if (ret == E_OK) {
+			main_obj.state = main_state_idle;
+			main_obj.timer = TMO_FEVR;
+		}
+		else {
+			main_obj.state = main_state_start_dhcp;
+			main_obj.timer = 1000000;
+		}
+		break;
+	default:
+		main_obj.state = main_state_idle;
+		main_obj.timer = TMO_FEVR;
+		break;
+	}
 }
 
 /* MACアドレスの設定時に呼ばれる */
@@ -270,12 +301,18 @@ static void netif_link_callback(T_IFNET *ether)
 {
 	uint8_t link_up = (ether->flags & IF_FLAG_LINK_UP) != 0;
 	uint8_t up = (ether->flags & IF_FLAG_UP) != 0;
+	ER ret;
 
 	if (dhcp_enable) {
 		if (!link_up)
 			dhcp4c_rel_info();
-		else if (!up)
-			dhcp4c_renew_info();
+		else if (!up) {
+			ret = dhcp4c_renew_info();
+			if ((ret != E_OK) && (main_obj.dhcp_req == main_obj.dhcp_res)) {
+				main_obj.dhcp_req++;
+				rel_wai(MAIN_TASK);
+			}
+		}
 	}
 	else {
 		up = link_up;
