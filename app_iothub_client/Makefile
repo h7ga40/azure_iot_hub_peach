@@ -87,7 +87,7 @@ KERNEL_LIB = ../asp3_dcre/Debug
 #  システムサービスコールライブラリ（libsyssvc.a）のディレクトリ名
 #  （システムサービスコールライブラリもmake対象にする時は，空に定義する）
 #
-SYSSVC_LIB = ../asp3_dcre/Debug
+SYSSVC_LIB = 
 
 #
 #  カーネルを関数単位でコンパイルするかどうかの定義
