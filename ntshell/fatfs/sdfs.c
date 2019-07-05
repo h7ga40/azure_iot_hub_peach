@@ -119,8 +119,9 @@
 #include "mbed_wait_api.h"
 #include <stdio.h>
 
-#define debug(...) printf(__VA_ARGS__)
-#define debug_if(cond, ...) if(cond){ printf(__VA_ARGS__); }
+extern void sdfs_debug(const char *fmt, ...);
+#define debug(...) sdfs_debug(__VA_ARGS__)
+#define debug_if(cond, ...) if(cond){ sdfs_debug(__VA_ARGS__); }
 
 static int sdfs_initialise_card_v1(sdfs_t *obj);
 static int sdfs_initialise_card_v2(sdfs_t *obj);
