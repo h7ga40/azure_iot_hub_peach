@@ -113,7 +113,8 @@ SYSSVC_DIRS := $(SYSSVC_DIRS)\
 	$(MBEDDIR)/targets/TARGET_RENESAS/TARGET_RZA1XX/TARGET_RZ_A1H/device/TOOLCHAIN_GCC_ARM\
 	$(MBEDDIR)/targets/TARGET_RENESAS/TARGET_RZA1XX/common
 SYSSVC_ASMOBJS := $(SYSSVC_ASMOBJS)
-START_OBJS = startup_RZ1AH.o
+START_OBJS := startup_RZ1AH.o
+START_OBJS := $(addprefix $(OBJDIR)/, $(START_OBJS))
 SYSSVC_COBJS := $(SYSSVC_COBJS)\
 	mbed_critical_section_api.o mbed_flash_api.o mbed_gpio.o mbed_lp_ticker_api.o\
 	mbed_lp_ticker_wrapper.o mbed_pinmap_common.o mbed_sleep_manager.o mbed_mktime.o\

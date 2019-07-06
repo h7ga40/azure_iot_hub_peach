@@ -547,6 +547,7 @@ endif
 ifndef SYSSVC_LIB
 	rm -f libsyssvc.a
 endif
+	rm -f $(MALLOC_OBJS)
 
 .PHONY: cleankernel
 cleankernel:
