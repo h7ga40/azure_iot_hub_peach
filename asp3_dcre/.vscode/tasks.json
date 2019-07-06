@@ -22,9 +22,6 @@
     "tasks": [
         {
             "label": "build asp3_dcre",
-            "options": {
-                "cwd": "Debug"
-            },
             "args": [
                 "-j",
                 "all"
@@ -45,11 +42,27 @@
         },
         {
             "label": "clean asp3_dcre",
-            "options": {
-                "cwd": "Debug"
-            },
             "args": [
                 "clean"
+            ],
+            "linux": {
+                "command": "make"
+            },
+            "osx": {
+                "command": "make"
+            },
+            "windows": {
+                "command": "make.exe"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "realclean asp3_dcre",
+            "args": [
+                "realclean"
             ],
             "linux": {
                 "command": "make"

@@ -205,7 +205,7 @@ ifdef USE_CXX
 else
 	APPL_COBJS := sample1.o
 endif
-APPL_COBJS := $(APPL_COBJS) log_output.o vasyslog.o t_perror.o strerror.o time.o mbed_stub.o
+APPL_COBJS := $(APPL_COBJS) log_output.o vasyslog.o t_perror.o strerror.o mbed_stub.o
 APPL_CFLAGS := $(APPL_CFLAGS) -nostdinc
 ifdef APPLDIRS
 	INCLUDES := $(INCLUDES) $(foreach dir,$(APPLDIRS),-I$(dir))
@@ -375,7 +375,7 @@ KERNEL_LCOBJS  := $(addprefix $(OBJDIR)/, $(KERNEL_LCOBJS))
 CFG_ASMOBJS    := $(addprefix $(OBJDIR)/, $(CFG_ASMOBJS))
 CFG_COBJS      := $(addprefix $(OBJDIR)/, $(CFG_COBJS))
 CFG_DMY        := $(addprefix $(OBJDIR)/, $(CFG_DMY))
-#MALLOC_OBJS    := $(addprefix $(OBJDIR)/, $(MALLOC_OBJS))
+MALLOC_OBJS    := $(addprefix $(OBJDIR)/, $(MALLOC_OBJS))
 
 #
 #  コンパイルのための変数の定義
@@ -672,8 +672,9 @@ $(APPL_CXXOBJS:$(OBJDIR)/%.o=%.s): %.s: %.cpp
 $(APPL_ASMOBJS): $(OBJDIR)/%.o: %.S
 	$(CC) -c -o $@ -MD -MP -MF $(DEPDIR)/$*.d $(CFLAGS) $(APPL_CFLAGS) $<
 
-$(MALLOC_OBJS):
-	$(AR) x $(MALLOC_LIB) "$(notdir $@)"
+$(MALLOC_OBJS): $(OBJDIR)/%.o:
+	$(AR) x $(MALLOC_LIB) $(notdir $@)
+	mv $(notdir $@) $@
 
 #
 #  デフォルトコンパイルルールを上書き

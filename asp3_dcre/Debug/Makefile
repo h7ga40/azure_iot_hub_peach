@@ -204,7 +204,7 @@ ifdef USE_CXX
 else
 	APPL_COBJS := sample1.o
 endif
-APPL_COBJS := $(APPL_COBJS) log_output.o vasyslog.o t_perror.o strerror.o time.o mbed_stub.o
+APPL_COBJS := $(APPL_COBJS) log_output.o vasyslog.o t_perror.o strerror.o mbed_stub.o
 APPL_CFLAGS := $(APPL_CFLAGS) -nostdinc
 ifdef APPLDIRS
 	INCLUDES := $(INCLUDES) $(foreach dir,$(APPLDIRS),-I$(dir))
@@ -252,7 +252,7 @@ SYSSVC_DIRS := $(TECSGENDIR) $(SRCDIR)/tecs_kernel \
 				$(SYSSVC_DIRS) $(SRCDIR)/syssvc
 SYSSVC_ASMOBJS := $(SYSSVC_ASMOBJS)
 SYSSVC_COBJS := $(SYSSVC_COBJS) $(TECS_COBJS) \
-				 $(INIT_TECS_COBJ) $(CXXRTS)
+				$(INIT_TECS_COBJ) $(CXXRTS)
 SYSSVC_CFLAGS := $(SYSSVC_CFLAGS)
 INCLUDES := $(INCLUDES) -I$(TECSGENDIR) -I$(SRCDIR)/tecs_kernel -I../../musl-1.1.18/include
 
@@ -366,7 +366,6 @@ vpath %.bin $(APPL_DIRS)
 APPL_ASMOBJS   := $(addprefix $(OBJDIR)/, $(APPL_ASMOBJS))
 APPL_CXXOBJS   := $(addprefix $(OBJDIR)/, $(APPL_CXXOBJS))
 APPL_COBJS     := $(addprefix $(OBJDIR)/, $(APPL_COBJS))
-APPL_BINOBJS   := $(addprefix $(OBJDIR)/, $(APPL_BINOBJS))
 SYSSVC_ASMOBJS := $(addprefix $(OBJDIR)/, $(SYSSVC_ASMOBJS))
 SYSSVC_COBJS   := $(addprefix $(OBJDIR)/, $(SYSSVC_COBJS))
 KERNEL_ASMOBJS := $(addprefix $(OBJDIR)/, $(KERNEL_ASMOBJS))
@@ -375,11 +374,12 @@ KERNEL_LCOBJS  := $(addprefix $(OBJDIR)/, $(KERNEL_LCOBJS))
 CFG_ASMOBJS    := $(addprefix $(OBJDIR)/, $(CFG_ASMOBJS))
 CFG_COBJS      := $(addprefix $(OBJDIR)/, $(CFG_COBJS))
 CFG_DMY        := $(addprefix $(OBJDIR)/, $(CFG_DMY))
+MALLOC_OBJS    := $(addprefix $(OBJDIR)/, $(MALLOC_OBJS))
 
 #
 #  コンパイルのための変数の定義
 #
-APPL_OBJS = $(APPL_ASMOBJS) $(APPL_COBJS) $(APPL_CXXOBJS) $(APPL_BINOBJS)
+APPL_OBJS = $(APPL_ASMOBJS) $(APPL_COBJS) $(APPL_CXXOBJS)
 SYSSVC_OBJS = $(SYSSVC_ASMOBJS) $(SYSSVC_COBJS) $(HIDDEN_OBJS)
 KERNEL_LIB_OBJS = $(KERNEL_ASMOBJS) $(KERNEL_COBJS) $(KERNEL_LCOBJS) $(MALLOC_OBJS)
 CFG_OBJS = $(CFG_ASMOBJS) $(CFG_COBJS)
@@ -671,11 +671,9 @@ $(APPL_CXXOBJS:$(OBJDIR)/%.o=%.s): %.s: %.cpp
 $(APPL_ASMOBJS): $(OBJDIR)/%.o: %.S
 	$(CC) -c -o $@ -MD -MP -MF $(DEPDIR)/$*.d $(CFLAGS) $(APPL_CFLAGS) $<
 
-$(APPL_BINOBJS): $(OBJDIR)/%.o: %.bin
-	$(OBJCOPY) -B arm -I binary -O elf32-littlearm --rename-section .data=.rodata $< $(OBJDIR)/$*.o
-
-$(MALLOC_OBJS):
-	$(AR) x $(MALLOC_LIB) "$(notdir $@)"
+$(MALLOC_OBJS): $(OBJDIR)/%.o:
+	$(AR) x $(MALLOC_LIB) $(notdir $@)
+	move $(notdir $@) $@
 
 #
 #  デフォルトコンパイルルールを上書き

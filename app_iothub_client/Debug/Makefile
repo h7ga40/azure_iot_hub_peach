@@ -401,6 +401,7 @@ KERNEL_LCOBJS  := $(addprefix $(OBJDIR)/, $(KERNEL_LCOBJS))
 CFG_ASMOBJS    := $(addprefix $(OBJDIR)/, $(CFG_ASMOBJS))
 CFG_COBJS      := $(addprefix $(OBJDIR)/, $(CFG_COBJS))
 CFG_DMY        := $(addprefix $(OBJDIR)/, $(CFG_DMY))
+MALLOC_OBJS    := $(addprefix $(OBJDIR)/, $(MALLOC_OBJS))
 
 #
 #  コンパイルのための変数の定義
@@ -700,8 +701,9 @@ $(APPL_ASMOBJS): $(OBJDIR)/%.o: %.S
 $(APPL_BINOBJS): $(OBJDIR)/%.o: %.bin
 	$(OBJCOPY) -B arm -I binary -O elf32-littlearm --rename-section .data=.rodata $< $(OBJDIR)/$*.o
 
-$(MALLOC_OBJS):
-	$(AR) x $(MALLOC_LIB) "$(notdir $@)"
+$(MALLOC_OBJS): $(OBJDIR)/%.o:
+	$(AR) x $(MALLOC_LIB) $(notdir $@)
+	move $(notdir $@) $@
 
 #
 #  デフォルトコンパイルルールを上書き
