@@ -205,21 +205,7 @@ static void main_initialize()
 
 	if (!dhcp_enable) {
 		dhcp4c_rel_info();
-
 		in4_add_ifaddr(IPV4_ADDR_STAIC_LOCAL, IPV4_ADDR_STAIC_LOCAL_MASK);
-		uint8_t data[32], c;
-		int i, j;
-
-		for (i = 0, j = 0; i < sizeof(mac_addr); i++) {
-			c = mac_addr[i] >> 4;
-			data[j++] = (c < 10) ? ('0' + c) : ('A' - 10 + c);
-			c = mac_addr[i] & 0xF;
-			data[j++] = (c < 10) ? ('0' + c) : ('A' - 10 + c);
-			data[j++] = ':';
-		}
-		data[--j] = '\0';
-
-		syslog(LOG_NOTICE, "mac_addr %s %s", data, dhcp_enable ? "dhcp" : "static");
 	}
 
 	gpio_write(&led_green, 0);
