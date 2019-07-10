@@ -58,6 +58,21 @@
 #include "util/ntopt.h"
 #include "ntshell_main.h"
 #include "fdtable.h"
+#ifndef NTSHELL_NO_SOCKET
+#include <tinet_config.h>
+#include <netinet/in.h>
+#include <netinet/in_itron.h>
+#include <tinet_nic_defs.h>
+#include <tinet_cfg.h>
+#include <netinet/in_var.h>
+#include <net/ethernet.h>
+#include <net/if6_var.h>
+#include <net/net.h>
+#include <net/if_var.h>
+#include <netinet/udp_var.h>
+#include "netapp/dhcp4_cli.h"
+#include "ntp_cli.h"
+#endif
 
 char command[NTOPT_TEXT_MAXLEN];
 
@@ -77,16 +92,130 @@ int shell_uname(struct utsname *uts)
 	return 0;
 }
 
-void stdio_open(ID portid);
+enum ntshell_state_t {
+	ntshell_state_start,
+	ntshell_state_idle,
+#ifndef NTSHELL_NO_SOCKET
+	ntshell_state_start_dhcp,
+#endif
+	ntshell_state_servey_cmd,
+};
+
+struct ntshell_obj_t {
+	ntshell_t ntshell;
+	int timer;
+	enum ntshell_state_t state;
+	SYSTIM prev, now;
+	task_base_t **tasks;
+	int task_count;
+#ifndef NTSHELL_NO_SOCKET
+	uint8_t link;
+	uint8_t link_up;
+	uint8_t up;
+	uint8_t dhcp;
+#endif
+	int event_req, event_res;
+};
+struct ntshell_obj_t ntshell_obj;
+
+#ifndef NTSHELL_NO_SOCKET
+static void netif_link_callback(T_IFNET *ether);
+static void ntshell_change_netif_link(uint8_t link_up, uint8_t up);
+#endif
+static void ntshell_initialize(struct ntshell_obj_t *obj);
+static void ntshell_finalize(struct ntshell_obj_t *obj);
+static int ntshell_get_timer(struct ntshell_obj_t *obj);
+static void ntshell_progress(struct ntshell_obj_t *obj, int interval);
+static void ntshell_timeout(struct ntshell_obj_t *obj, bool_t wakeup);
+static int execute_command(struct ntshell_obj_t *obj, int wait);
 static int usrcmd_ntopt_callback(long *args, void *extobj);
 
-int ntshell_exit_code;
-volatile int ntshell_state;
-jmp_buf process_exit;
+extern void stdio_open(ID portid);
 
-void ntshell_task_init(ID portid)
+extern bool_t dhcp_enable;
+extern int ntshell_exit;
+int shellcmd_exit_code;
+volatile int shellcmd_state;
+jmp_buf shellcmd_exit;
+
+void ntshell_task_init(task_base_t **tasks, int task_count)
 {
-	stdio_open(portid);
+	ntshell_obj.tasks = tasks;
+	ntshell_obj.task_count = task_count;
+}
+
+int uart_read(char *buf, int cnt, void *extobj)
+{
+	struct ntshell_obj_t *obj = (struct ntshell_obj_t *)extobj;
+	int result;
+	ER ret;
+	int timer;
+	bool_t wakeup = false;
+
+	obj->prev = obj->now;
+
+	if (obj->event_req != obj->event_res) {
+		obj->event_res = obj->event_req;
+		wakeup = true;
+#ifndef NTSHELL_NO_SOCKET
+		if (obj->dhcp) {
+			obj->dhcp = 0;
+			obj->state = ntshell_state_start_dhcp;
+		}
+#endif
+		obj->timer = 0;
+	}
+
+	/* タイマー取得 */
+	timer = ntshell_get_timer(obj);
+
+	/* 待ち */
+	ret = serial_trea_dat(SIO_PORTID, buf, cnt, timer);
+	if ((ret < 0) && (ret != E_OK) && (ret != E_TMOUT) && (ret != E_RLWAI)) {
+		syslog(LOG_NOTICE, "tslp_tsk ret: %s %d", itron_strerror(ret), timer);
+		ntshell_exit = 1;
+		return -1;
+	}
+	if (ret != E_TMOUT)
+		wakeup = true;
+	result = (int)ret;
+
+	ret = get_tim(&obj->now);
+	if (ret != E_OK) {
+		syslog(LOG_NOTICE, "get_tim ret: %s", itron_strerror(ret));
+		ntshell_exit = 1;
+		return -1;
+	}
+
+	/* 時間経過 */
+	int elapse = obj->now - obj->prev;
+	ntshell_progress(obj, elapse);
+
+	/* タイムアウト処理 */
+	ntshell_timeout(obj, wakeup);
+
+	return result;
+}
+
+int uart_write(const char *buf, int cnt, void *extobj)
+{
+	return serial_wri_dat(SIO_PORTID, buf, cnt);
+}
+
+int cmd_execute(const char *text, void *extobj)
+{
+	if (text != NULL) {
+		ntlibc_strlcpy(command, text, sizeof(command));
+	}
+	ER ret;
+	ID tskid = 0;
+
+	ret = get_tid(&tskid);
+	if (ret != E_OK) {
+		syslog(LOG_ERROR, "get_tid %d", ret);
+	}
+
+	return execute_command(&ntshell_obj, tskid == NTSHELL_TASK);
 }
 
 /*
@@ -94,25 +223,218 @@ void ntshell_task_init(ID portid)
  */
 void ntshell_task(intptr_t exinf)
 {
-	ntshell_state = 1;
+	struct ntshell_obj_t *obj = (struct ntshell_obj_t *)&ntshell_obj;
 
-	if (setjmp(process_exit) == 0) {
-		ntshell_exit_code = ntopt_parse(command, usrcmd_ntopt_callback, NULL);
+	/* 初期化 */
+	ffarch_init();
+
+	stdio_open(SIO_PORTID);
+
+	main_initialize();
+
+	ntshell_initialize(obj);
+
+	ntshell_init(&obj->ntshell, uart_read, uart_write, cmd_execute, obj);
+	ntshell_set_prompt(&obj->ntshell, "NTShell>");
+	ntshell_execute(&obj->ntshell);
+
+	ntshell_finalize(obj);
+}
+
+/*
+ * 初期化
+ */
+static void ntshell_initialize(struct ntshell_obj_t *obj)
+{
+	ER ret;
+	ID tskid = 0;
+
+	ret = get_tid(&tskid);
+	if (ret != E_OK) {
+		syslog(LOG_ERROR, "get_tid %d", ret);
+		return;
+	}
+
+	obj->timer = 100000;
+	obj->state = ntshell_state_start;
+
+	for (int i = 0; i < obj->task_count; i++) {
+		task_base_t *task = obj->tasks[i];
+		task->on_start(task, tskid);
+	}
+
+	ret = get_tim(&obj->now);
+	if (ret != E_OK) {
+		syslog(LOG_ERROR, "get_tim");
+		ext_tsk();
+		return;
+	}
+}
+
+static void ntshell_finalize(struct ntshell_obj_t *obj)
+{
+	for (int i = 0; i < obj->task_count; i++) {
+		task_base_t *task = obj->tasks[i];
+		task->on_end(task);
+	}
+
+	main_finalize();
+}
+
+/*
+ * タイマー取得
+ */
+static int ntshell_get_timer(struct ntshell_obj_t *obj)
+{
+	int timer = obj->timer;
+
+	for (int i = 0; i < obj->task_count; i++) {
+		task_base_t *task = obj->tasks[i];
+		int timer2 = task->get_timer(task);
+		if ((timer == -1) || ((timer2 != -1) && (timer > timer2)))
+			timer = timer2;
+	}
+
+	return timer;
+}
+
+/*
+ * 時間経過
+ */
+static void ntshell_progress(struct ntshell_obj_t *obj, int elapse)
+{
+	if (obj->timer != TMO_FEVR) {
+		obj->timer -= elapse;
+		if (obj->timer < 0) {
+			obj->timer = 0;
+		}
+	}
+
+	for (int i = 0; i < obj->task_count; i++) {
+		task_base_t *task = obj->tasks[i];
+		task->progress(task, elapse);
+	}
+}
+
+/*
+ * タイムアウト処理
+ */
+static void ntshell_timeout(struct ntshell_obj_t *obj, bool_t wakeup)
+{
+	ER ret;
+	uint32_t event = wakeup ? NTSHELL_EVENT_WAKEUP : 0;
+
+	if (!wakeup && (obj->timer != 0))
+		return;
+
+	switch (obj->state) {
+	case ntshell_state_start:
+#ifndef NTSHELL_NO_SOCKET
+		ether_set_link_callback(netif_link_callback);
+#endif
+		obj->state = ntshell_state_idle;
+		obj->timer = TMO_FEVR;
+		break;
+#ifndef NTSHELL_NO_SOCKET
+	case ntshell_state_start_dhcp:
+		ret = dhcp4c_renew_info();
+		if (ret == E_OK) {
+			obj->state = ntshell_state_idle;
+			obj->timer = TMO_FEVR;
+		}
+		else {
+			obj->state = ntshell_state_start_dhcp;
+			obj->timer = 1000000;
+		}
+		break;
+#endif
+	default:
+		obj->state = ntshell_state_idle;
+		obj->timer = TMO_FEVR;
+		break;
+	}
+#ifndef NTSHELL_NO_SOCKET
+	if (obj->link) {
+		obj->link = 0;
+		event |= NTSHELL_EVENT_NETIF_CHANGED;
+		if (obj->link_up)
+			event |= NTSHELL_EVENT_LINK_UP;
+		if (obj->up)
+			event |= NTSHELL_EVENT_UP;
+
+		if (obj->link_up && obj->up)
+			ntp_cli_execute();
+
+		ntshell_change_netif_link(obj->link_up, obj->up);
+	}
+#endif
+	for (int i = 0; i < obj->task_count; i++) {
+		task_base_t *task = obj->tasks[i];
+		task->process(task, event);
+	}
+}
+
+#ifndef NTSHELL_NO_SOCKET
+void netif_link_callback(T_IFNET *ether)
+{
+	struct ntshell_obj_t *obj = (struct ntshell_obj_t *)&ntshell_obj;
+	uint8_t link_up = (ether->flags & IF_FLAG_LINK_UP) != 0;
+	uint8_t up = (ether->flags & IF_FLAG_UP) != 0;
+	bool_t wake = false;
+
+	if (dhcp_enable) {
+		if (!link_up)
+			dhcp4c_rel_info();
+		else if (!up) {
+			wake = dhcp4c_renew_info() != E_OK;
+			if (wake) {
+				obj->dhcp = 1;
+			}
+		}
+	}
+	else {
+		up = link_up;
+	}
+
+	if ((obj->link_up != link_up) || (obj->up != up)) {
+		obj->link = 1;
+		wake = true;
+	}
+
+	obj->link_up = link_up;
+	obj->up = up;
+
+	if (wake && (obj->event_req == obj->event_res)) {
+		obj->event_req++;
+		rel_wai(NTSHELL_TASK);
+	}
+}
+#endif
+
+/*
+ *  shellcmdタスク
+ */
+void shellcmd_task(intptr_t exinf)
+{
+	shellcmd_state = 1;
+
+	if (setjmp(shellcmd_exit) == 0) {
+		shellcmd_exit_code = ntopt_parse(command, usrcmd_ntopt_callback, NULL);
 	}
 
 	fflush(stdout);
 	clean_fd();
 
-	ntshell_state = 2;
+	shellcmd_state = 2;
 }
-
+#ifndef NTSHELL_NO_SOCKET
 void ntshell_change_netif_link(uint8_t link_up, uint8_t up)
 {
 	FLGPTN flgptn;
 	T_RTSK rtsk;
 	ER ret;
 
-	ret = ref_tsk(NTSHELL_TASK, &rtsk);
+	ret = ref_tsk(SHELLCMD_TASK, &rtsk);
 	if ((ret != E_OK) || (rtsk.tskstat == TTS_DMT))
 		return;
 
@@ -120,7 +442,7 @@ void ntshell_change_netif_link(uint8_t link_up, uint8_t up)
 
 	set_flg(FLG_SELECT_WAIT, flgptn);
 }
-
+#endif
 static int usrcmd_ntopt_callback(long *args, void *extobj)
 {
 	const cmd_table_t *p = cmd_table_info.table;
@@ -163,38 +485,41 @@ int usrcmd_help(int argc, char **argv)
 
 void shell_abort()
 {
-	ntshell_exit_code = -1;
-	longjmp(process_exit, 1);
+	shellcmd_exit_code = -1;
+	longjmp(shellcmd_exit, 1);
 }
 
 void shell_exit(int exitcd)
 {
-	ntshell_exit_code = exitcd;
-	longjmp(process_exit, 1);
+	shellcmd_exit_code = exitcd;
+	longjmp(shellcmd_exit, 1);
 }
 
 void shell_exit_group(int exitcd)
 {
-	ntshell_exit_code = exitcd;
-	longjmp(process_exit, 1);
+	shellcmd_exit_code = exitcd;
+	longjmp(shellcmd_exit, 1);
 }
 
-int execute_command(int wait)
+void stdio_input(unsigned char c);
+
+int execute_command(struct ntshell_obj_t *obj, int wait)
 {
 	T_RTSK rtsk;
 	ER ret;
 
-	ret = ter_tsk(NTSHELL_TASK);
+	ret = ter_tsk(SHELLCMD_TASK);
 	if ((ret != E_OK) && (ret != E_OBJ)) {
 		syslog(LOG_ERROR, "ter_tsk => %d", ret);
 	}
 
-	tslp_tsk(100000);
+	if (ret == E_OK)
+		tslp_tsk(100000);
 
 	clean_fd();
 
-	ntshell_state = 0;
-	ret = act_tsk(NTSHELL_TASK);
+	shellcmd_state = 0;
+	ret = act_tsk(SHELLCMD_TASK);
 	if (ret != E_OK) {
 		syslog(LOG_ERROR, "act_tsk => %d", ret);
 	}
@@ -203,20 +528,39 @@ int execute_command(int wait)
 		return 0;
 
 	do {
-		tslp_tsk(100000);
+		obj->state = ntshell_state_servey_cmd;
+		obj->timer = 100000;
 
-		ret = ref_tsk(NTSHELL_TASK, &rtsk);
+		char c;
+		if (obj->ntshell.func_read(&c, sizeof(c), obj->ntshell.extobj) == 1) {
+			// Ctrl+Cが押された場合
+			if (c == 0x03) {
+				// コマンドタスクを終了
+				ret = ter_tsk(SHELLCMD_TASK);
+				if (ret != E_OK) {
+					syslog(LOG_ERROR, "ter_tsk => %d", ret);
+				}
+				shellcmd_exit_code = -1;
+				shellcmd_state = 4;
+				if (ret == E_OK)
+					tslp_tsk(100000);
+				break;
+			}
+
+			stdio_input(c);
+		}
+
+		ret = ref_tsk(SHELLCMD_TASK, &rtsk);
 		if ((ret != E_OK) || (rtsk.tskstat == TTS_DMT))
-			ntshell_state = 3;
-	} while(ntshell_state == 1);
+			shellcmd_state = 3;
+	} while(shellcmd_state == 1);
 
-	return ntshell_exit_code;
-}
+	obj->state = ntshell_state_idle;
+	obj->timer = TMO_FEVR;
 
-int cmd_execute(const char *text, void *extobj)
-{
-	ntlibc_strlcpy(command, text, sizeof(command));
-	return execute_command(1);
+	clean_fd();
+
+	return shellcmd_exit_code;
 }
 
 int shell_clock_getres(clockid_t clk_id, struct timespec *res)
@@ -358,7 +702,7 @@ int shell_gettid()
 
 int shell_tkill(int tid, int sig)
 {
-	if ((tid == NTSHELL_TASK) && (sig == SIGABRT)) {
+	if ((tid == SHELLCMD_TASK) && (sig == SIGABRT)) {
 		shell_abort();
 	}
 

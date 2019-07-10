@@ -83,114 +83,55 @@ ID ws_mempoolid = MPF_NET_BUF_256;
 bool_t dhcp_enable = true;
 
 uint8_t mac_addr[6] = {0x12, 0x34, 0x56, 0x78, 0x9A, 0x01};
-PRI main_task_priority = MAIN_PRIORITY + 1;
 
-static void netif_link_callback(T_IFNET *ether);
-extern int execute_command(int wait);
-
-enum main_state_t {
-	main_state_start,
-	main_state_idle,
-	main_state_start_dhcp,
-};
-
-struct main_t {
-	int timer;
-	enum main_state_t state;
-	SYSTIM prev, now;
-	int dhcp_req, dhcp_res;
-};
-struct main_t main_obj;
-
-static void main_initialize();
-static int main_get_timer();
-static void main_progress(int interval);
-static void main_timeout();
-
-extern int ntshell_exit;
-
-int uart_read(char *buf, int cnt, void *extobj)
-{
-	struct main_t *obj = (struct main_t *)extobj;
-	int result;
-	ER ret;
-	int timer;
-
-	obj->prev = obj->now;
-
-	if (main_obj.dhcp_req != main_obj.dhcp_res) {
-		main_obj.dhcp_res = main_obj.dhcp_req;
-		main_obj.state = main_state_start_dhcp;
-		main_obj.timer = 0;
-	}
-
-	/* タイマー取得 */
-	timer = main_get_timer();
-
-	/* 待ち */
-	ret = serial_trea_dat(SIO_PORTID, buf, cnt, timer);
-	if ((ret < 0) && (ret != E_OK) && (ret != E_TMOUT) && (ret != E_RLWAI)) {
-		syslog(LOG_NOTICE, "tslp_tsk ret: %s %d", itron_strerror(ret), timer);
-		ntshell_exit = 1;
-		return -1;
-	}
-	result = (int)ret;
-
-	ret = get_tim(&obj->now);
-	if (ret != E_OK) {
-		syslog(LOG_NOTICE, "get_tim ret: %s", itron_strerror(ret));
-		ntshell_exit = 1;
-		return -1;
-	}
-
-			/* 時間経過 */
-	int elapse = obj->now - obj->prev;
-	main_progress(elapse);
-
-	/* タイムアウト処理 */
-	main_timeout();
-
-	return result;
-}
-
-int uart_write(const char *buf, int cnt, void *extobj)
-{
-	return serial_wri_dat(SIO_PORTID, buf, cnt);
-}
-
-ntshell_t ntshell;
-
-/*
- * メインタスク
- */
-void main_task(intptr_t exinf)
-{
-	main_initialize();
-
-	ntshell_init(&ntshell, uart_read, uart_write, cmd_execute, &main_obj);
-	ntshell_set_prompt(&ntshell, "NTShell>");
-	ntshell_execute(&ntshell);
-}
-
+static void main_on_start(struct task_base_t *task, ID tskid);
+static void main_on_end(struct task_base_t *task);
+static int main_get_timer(struct task_base_t *task);
+static void main_progress(struct task_base_t *task, int elapse);
+static void main_process(struct task_base_t *task, uint32_t event);
 int wolfSSL_Debugging_ON(void);
+
+task_base_t main_task_obj = {
+	main_on_start,
+	main_on_end,
+	main_get_timer,
+	main_progress,
+	main_process,
+	TMO_FEVR
+};
+
+task_base_t *main_task_objs[] = {
+	&main_task_obj
+};
 
 /*
  * 初期化
  */
-static void main_initialize()
+void main_initialize()
 {
-	ER ret;
-
 	//wolfSSL_Debugging_ON();
+	ntshell_task_init(main_task_objs, 1);
+}
 
-	ntshell_task_init(SIO_PORTID);
+void main_finalize()
+{
+}
 
-	/* 初期化 */
-	ffarch_init();
-
-	main_obj.timer = 100000;
-	main_obj.state = main_state_start;
-
+/*
+ * タスク起動時
+ */
+void main_on_start(struct task_base_t *task, ID tskid)
+{
+	FILINFO fno;
+#if FF_USE_LFN
+	char lfn[FF_MAX_LFN + 1];
+	fno.lfname = lfn;
+	fno.lfsize = FF_MAX_LFN + 1;
+#endif
+#ifdef IF_ETHER_BTUSB
+	// PANU mode
+	bt_bnep_mode = 0;
+#endif
 	gpio_t led_blue, led_green, led_red, sw;
 	gpio_init_out(&led_blue, LED_BLUE);
 	gpio_init_out(&led_green, LED_GREEN);
@@ -211,21 +152,22 @@ static void main_initialize()
 	gpio_write(&led_green, 0);
 
 	iothub_client_init();
+}
 
-	ret = get_tim(&main_obj.now);
-	if (ret != E_OK) {
-		syslog(LOG_ERROR, "get_tim");
-		ext_tsk();
-		return;
-	}
+/*
+ * タスク終了時
+ */
+void main_on_end(struct task_base_t *task)
+{
+	(void)task;
 }
 
 /*
  * タイマー取得
  */
-static int main_get_timer()
+static int main_get_timer(struct task_base_t *task)
 {
-	int timer = main_obj.timer;
+	int timer = task->timer;
 
 	return timer;
 }
@@ -233,81 +175,29 @@ static int main_get_timer()
 /*
  * 時間経過
  */
-static void main_progress(int interval)
+static void main_progress(struct task_base_t *task, int elapse)
 {
-	if (main_obj.timer != TMO_FEVR) {
-		main_obj.timer -= interval;
-		if (main_obj.timer < 0) {
-			main_obj.timer = 0;
+	if (task->timer != TMO_FEVR) {
+		task->timer -= elapse;
+		if (task->timer < 0) {
+			task->timer = 0;
 		}
 	}
 }
 
 /*
- * タイムアウト処理
+ * イベント・タイムアウト処理
  */
-static void main_timeout()
+static void main_process(struct task_base_t *task, uint32_t event)
 {
-	ER ret;
-
-	if (main_obj.timer != 0)
-		return;
-
-	switch (main_obj.state) {
-	case main_state_start:
-		ether_set_link_callback(netif_link_callback);
-		main_obj.state = main_state_idle;
-		main_obj.timer = TMO_FEVR;
-		break;
-	case main_state_start_dhcp:
-		ret = dhcp4c_renew_info();
-		if (ret == E_OK) {
-			main_obj.state = main_state_idle;
-			main_obj.timer = TMO_FEVR;
-		}
-		else {
-			main_obj.state = main_state_start_dhcp;
-			main_obj.timer = 1000000;
-		}
-		break;
-	default:
-		main_obj.state = main_state_idle;
-		main_obj.timer = TMO_FEVR;
-		break;
-	}
+	(void)task;
+	(void)event;
 }
 
 /* MACアドレスの設定時に呼ばれる */
 void mbed_mac_address(char *mac)
 {
 	memcpy(mac, mac_addr, 6);
-}
-
-static void netif_link_callback(T_IFNET *ether)
-{
-	uint8_t link_up = (ether->flags & IF_FLAG_LINK_UP) != 0;
-	uint8_t up = (ether->flags & IF_FLAG_UP) != 0;
-	ER ret;
-
-	if (dhcp_enable) {
-		if (!link_up)
-			dhcp4c_rel_info();
-		else if (!up) {
-			ret = dhcp4c_renew_info();
-			if ((ret != E_OK) && (main_obj.dhcp_req == main_obj.dhcp_res)) {
-				main_obj.dhcp_req++;
-				rel_wai(MAIN_TASK);
-			}
-		}
-	}
-	else {
-		up = link_up;
-	}
-
-	if (link_up && up)
-		ntp_cli_execute();
-
-	ntshell_change_netif_link(link_up, up);
 }
 
 int custom_rand_generate_seed(uint8_t* output, int32_t sz)

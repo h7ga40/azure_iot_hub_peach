@@ -1439,7 +1439,7 @@ void lcd_setRotation(LCD_Handler_t *lcd, uint8_t x)
 
 /**************************************************************************/
 /*!
-	@brief Set the font to display when print()ing, either custom or default
+	@brief Set the font to display when printing, either custom or default
 	@param  f  The GFXfont object, if NULL use built in 6x8 font
 */
 /**************************************************************************/

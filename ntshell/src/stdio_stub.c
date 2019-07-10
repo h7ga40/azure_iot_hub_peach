@@ -134,13 +134,10 @@ void sys_init(intptr_t exinf)
 	serial_irq_set(serial, RxIrq, true);
 }
 
-ID serial_portid;
-
 void stdio_open(ID portid)
 {
 	struct SHELL_FILE *fp;
 
-	serial_portid = portid;
 	serial_ctl_por(portid, IOCTL_CRLF | IOCTL_FCSND | IOCTL_FCRCV);
 
 	fp = fd_to_fp(STDIN_FILENO);
@@ -346,8 +343,27 @@ static unsigned char ntstdio_xi(struct ntstdio_t *handle, struct SHELL_FILE *fp)
 	return c;
 }
 
-extern volatile int ntshell_state;
-extern ID serial_portid;
+void stdio_input(unsigned char c)
+{
+	struct SHELL_FILE *fp = fd_to_fp(STDIN_FILENO);
+	stdio_sio_t *uart = (stdio_sio_t *)((struct ntstdio_t *)fp->exinf)->exinf;
+	serial_t *serial = (serial_t *)&uart->serial;
+	ER ret;
+	FLGPTN flgptn = 0;
+
+	uart->rx_buf[uart->rx_pos_w++] = c;
+	if (uart->rx_pos_w >= sizeof(uart->rx_buf))
+		uart->rx_pos_w = 0;
+
+	if (fp->readevt_w == fp->readevt_r) fp->readevt_w++;
+
+	FD_SET(STDIN_FILENO, (fd_set *)&flgptn);
+
+	ret = set_flg(FLG_SELECT_WAIT, flgptn);
+	if (ret != E_OK) {
+		syslog(LOG_ERROR, "set_flg => %d", ret);
+	}
+}
 
 static void serial_rx_irq_handler(int fd)
 {
@@ -358,7 +374,7 @@ static void serial_rx_irq_handler(int fd)
 	if (serial_readable(serial)) {
 		unsigned char c = (unsigned char)serial_getc(serial);
 
-		if (ntshell_state == 1) {
+		if (fd != STDIN_FILENO) {
 			ER ret;
 			FLGPTN flgptn = 0;
 

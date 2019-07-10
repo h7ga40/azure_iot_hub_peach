@@ -55,19 +55,12 @@
  *  各タスクの優先度の定義
  */
 
-#define MAIN_PRIORITY	5		/* メインタスクの優先度 */
-
-#define MAIN_STACK_SIZE		2048	/* メインタスクのスタック領域のサイズ */
-
 #define NUM_MAIN_DATAQUEUE	1	/* メインタスクで待ち受けているデータキューのサイズ */
 
 /*
  *  関数のプロトタイプ宣言
  */
 #ifndef TOPPERS_MACRO_ONLY
-
-/* メインタスク */
-extern void main_task(intptr_t exinf);
 
 #endif /* TOPPERS_MACRO_ONLY */
 

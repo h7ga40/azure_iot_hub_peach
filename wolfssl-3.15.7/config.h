@@ -129,16 +129,16 @@
 #define PACKAGE_NAME "wolfssl"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "wolfssl 3.12.2"
+#define PACKAGE_STRING "wolfssl 3.15.7"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "wolfssl"
 
 /* Define to the home page for this package. */
-#define PACKAGE_URL "http://www.wolfssl.com"
+#define PACKAGE_URL "https://www.wolfssl.com"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "3.12.2"
+#define PACKAGE_VERSION "3.15.7"
 
 /* Define to necessary symbol if this constant uses a non-standard name on
    your system. */
@@ -149,6 +149,9 @@
 
 /* The size of `long long', as computed by sizeof. */
 #define SIZEOF_LONG_LONG 8
+
+/* The size of `time_t', as computed by sizeof. */
+#define SIZEOF_TIME_T 8
 
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1

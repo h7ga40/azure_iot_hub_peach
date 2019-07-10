@@ -170,6 +170,7 @@ typedef struct dhcp4_cli_context {
 	uint16_t	max_prefer;	/* 受信メッセージの最大推奨度	*/
 	uint16_t	secs;		/* seconds since boot began	*/
 	uint8_t		fsm;		/* 現在の状態			*/
+	uint8_t		req;
 	int timer;
 	} T_DHCP4_CLI_CONTEXT;
 

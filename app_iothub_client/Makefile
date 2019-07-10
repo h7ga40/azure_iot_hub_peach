@@ -102,7 +102,7 @@ OMIT_TECS =
 #
 #  TECS関係ファイルのディレクトリの定義
 #
-OMIT_TECS = 
+TECSDIR = 
 
 #
 #  トレースログを取得するかどうかの定義
@@ -326,7 +326,6 @@ else
 endif
 CFG_ASMOBJS := $(CFG_ASMOBJS)
 CFG_COBJS := kernel_cfg.o $(CFG_COBJS)
-CFG_OBJS := $(CFG_ASMOBJS) $(CFG_COBJS)
 CFG_CFLAGS := -DTOPPERS_CB_TYPE_ONLY $(CFG_CFLAGS)
 
 CFG2_OUT_SRCS := kernel_cfg.h kernel_cfg.c $(CFG2_OUT_SRCS)

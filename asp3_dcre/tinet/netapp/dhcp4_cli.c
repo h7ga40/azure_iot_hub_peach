@@ -203,7 +203,7 @@ static uint8_t	request_plist[] = DHCP4_CLI_CFG_REQUEST_OLIST;
 #define DHCP4_CLI_READY_SIGNAL(ct) do { syscall(sig_sem(SEM_DHCP4_CLI_READY)); } while(0)
 #else
 #define DHCP4_CLI_READY_WAIT(ct) do { } while(0)
-#define DHCP4_CLI_READY_SIGNAL(ct) do { syscall(wup_tsk(ct->tskid)); } while(0)
+#define DHCP4_CLI_READY_SIGNAL(ct) do { ct->req = 1; syscall(wup_tsk(ct->tskid)); } while(0)
 #endif
 
 /*
@@ -1904,6 +1904,7 @@ dhcp4c_renew_info (void)
 	else if (context.fsm == DHCP4_FSM_SLEEP) {
 
 		/* SLEEP を解除する。*/
+		context.req = 1;
 		wup_tsk(context.tskid);
 		return E_OK;
 		}
@@ -2117,6 +2118,10 @@ dhcp4_cli_progress(T_DHCP4_CLI_CONTEXT *ct, int elapse)
 void
 dhcp4_cli_wakeup(T_DHCP4_CLI_CONTEXT *ct)
 {
+	if (!ct->req)
+		return;
+	ct->req = 0;
+
 	if (ct->snd_msg == NULL) {
 		ct->flags = 0;
 		ct->error = E_OK;

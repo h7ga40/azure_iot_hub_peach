@@ -13,6 +13,9 @@
 #include "adafruit_ssd1306.h"
 #endif
 
+extern uint16_t lcd_init_height;
+extern uint16_t lcd_init_width;
+
 void lcd_adafruit_gfx(LCD_Handler_t *lcd, int16_t w, int16_t h);
 void lcd_writeLine(LCD_Handler_t *lcd, int16_t x0, int16_t y0, int16_t x1, int16_t y1,
 	uint16_t color);

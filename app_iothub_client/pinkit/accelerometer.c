@@ -40,10 +40,10 @@
 static i2c_t i2c;
 static gpio_t i2c_cs;
 static int timeout = 1000;
-static uint8_t adata[1];
-static uint8_t rdata[1];
-static uint8_t wdata[2];
-uint8_t xyz[6];
+static char adata[1];
+static char rdata[1];
+static char wdata[2];
+char xyz[6];
 
 int RegRead(uint8_t reg)
 {
@@ -71,7 +71,7 @@ exit:
 	return result;
 }
 
-int RegReads(uint8_t reg, uint8_t *data, int len)
+int RegReads(uint8_t reg, char *data, int len)
 {
 	int ret, result = -1;
 

@@ -23,7 +23,7 @@
 #      と．
 #     (a) 再配布に伴うドキュメント（利用者マニュアルなど）に，上記の著
 #         作権表示，この利用条件および下記の無保証規定を掲載すること．
-#    (b) 再配布の形態を，別に定める方法によって，TOPPERSプロジェクトに
+#     (b) 再配布の形態を，別に定める方法によって，TOPPERSプロジェクトに
 #        報告すること．
 #   (4) 本ソフトウェアの利用により直接的または間接的に生じるいかなる損
 #      害からも，上記著作権者およびTOPPERSプロジェクトを免責すること．
@@ -102,7 +102,7 @@ OMIT_TECS =
 #
 #  TECS関係ファイルのディレクトリの定義
 #
-OMIT_TECS = 
+TECSDIR = 
 
 #
 #  トレースログを取得するかどうかの定義
@@ -324,7 +324,6 @@ else
 endif
 CFG_ASMOBJS := $(CFG_ASMOBJS)
 CFG_COBJS := kernel_cfg.o $(CFG_COBJS)
-CFG_OBJS := $(CFG_ASMOBJS) $(CFG_COBJS)
 CFG_CFLAGS := -DTOPPERS_CB_TYPE_ONLY $(CFG_CFLAGS)
 
 CFG2_OUT_SRCS := kernel_cfg.h kernel_cfg.c $(CFG2_OUT_SRCS)
