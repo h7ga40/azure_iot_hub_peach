@@ -145,6 +145,7 @@ void iothub_client_run(int proto)
 	IOTHUB_CLIENT_LL_HANDLE iotHubClientHandle;
 
 	EVENT_INSTANCE messages[MESSAGE_COUNT];
+	int msg_id = 0;
 	double avgWindSpeed = 10.0;
 	double minTemperature = 20.0;
 	double minHumidity = 60.0;
@@ -246,17 +247,21 @@ void iothub_client_run(int proto)
 				(void)printf("IoTHubClient_LL_SetMessageCallback...successful.\r\n");
 
 				/* Now that we are ready to receive commands, let's send some messages */
-				int iterator = 0;
+				int iterator = 4000;
+				double windSpeed = 0;
 				double temperature = 0;
 				double humidity = 0;
 				do
 				{
-					if ((iterator < MESSAGE_COUNT) && (iterator <= callbackCounter))
+					if (iterator >= 5000)
 					{
+						iterator = 0;
+						int msg_pos = msg_id % MESSAGE_COUNT;
+						windSpeed = avgWindSpeed + (rand() % 4 + 2);
 						temperature = minTemperature + (rand() % 10);
 						humidity = minHumidity + (rand() % 20);
-						sprintf_s(msgText, sizeof(msgText), "{\"windSpeed\":%.2f,\"temperature\":%.2f,\"humidity\":%.2f}", avgWindSpeed + (rand() % 4 + 2), temperature, humidity);
-						if ((messages[iterator].messageHandle = IoTHubMessage_CreateFromByteArray((const unsigned char*)msgText, strlen(msgText))) == NULL)
+						sprintf_s(msgText, sizeof(msgText), "{\"windSpeed\":%.2f,\"temperature\":%.2f,\"humidity\":%.2f}", windSpeed, temperature, humidity);
+						if ((messages[msg_pos].messageHandle = IoTHubMessage_CreateFromByteArray((const unsigned char*)msgText, strlen(msgText))) == NULL)
 						{
 							(void)printf("ERROR: iotHubMessageHandle is NULL!\r\n");
 						}
@@ -264,9 +269,9 @@ void iothub_client_run(int proto)
 						{
 							MAP_HANDLE propMap;
 
-							messages[iterator].messageTrackingId = iterator;
+							messages[msg_pos].messageTrackingId = msg_id;
 
-							propMap = IoTHubMessage_Properties(messages[iterator].messageHandle);
+							propMap = IoTHubMessage_Properties(messages[msg_pos].messageHandle);
 							(void)sprintf_s(propText, sizeof(propText), temperature > 28 ? "true" : "false");
 							if (Map_AddOrUpdate(propMap, "temperatureAlert", propText) != MAP_OK)
 							{
@@ -274,30 +279,26 @@ void iothub_client_run(int proto)
 							}
 
 							if (proto == 0) {
-								(void)IoTHubMessage_SetContentTypeSystemProperty(messages[iterator].messageHandle, "application/json");
-								(void)IoTHubMessage_SetContentEncodingSystemProperty(messages[iterator].messageHandle, "utf-8");
+								(void)IoTHubMessage_SetContentTypeSystemProperty(messages[msg_pos].messageHandle, "application/json");
+								(void)IoTHubMessage_SetContentEncodingSystemProperty(messages[msg_pos].messageHandle, "utf-8");
 							}
 
-							if (IoTHubClient_LL_SendEventAsync(iotHubClientHandle, messages[iterator].messageHandle, SendConfirmationCallback, &messages[iterator]) != IOTHUB_CLIENT_OK)
+							if (IoTHubClient_LL_SendEventAsync(iotHubClientHandle, messages[msg_pos].messageHandle, SendConfirmationCallback, &messages[msg_pos]) != IOTHUB_CLIENT_OK)
 							{
 								(void)printf("ERROR: IoTHubClient_LL_SendEventAsync..........FAILED!\r\n");
 							}
 							else
 							{
-								(void)printf("IoTHubClient_LL_SendEventAsync accepted message [%d] for transmission to IoT Hub.\r\n", iterator);
+								(void)printf("IoTHubClient_LL_SendEventAsync accepted message [%d] for transmission to IoT Hub.\r\n", msg_id);
 							}
+							msg_id++;
 						}
-						iterator++;
 					}
+					iterator++;
 
 					IoTHubClient_LL_DoWork(iotHubClientHandle);
 					ThreadAPI_Sleep(1);
 
-					if (callbackCounter >= MESSAGE_COUNT)
-					{
-						printf("exit\n");
-						break;
-					}
 				} while (g_continueRunning);
 
 				(void)printf("iothub_client_sample_http has gotten quit message, call DoWork %d more time to complete final sending...\r\n", DOWORK_LOOP_NUM);
@@ -315,6 +316,12 @@ void iothub_client_run(int proto)
 
 void iothub_client_init()
 {
+	static const char *conn_str = "[device connection string]";
+	int len = strlen(conn_str);
+	free(connectionString);
+	connectionString = malloc(len + 1);
+	memcpy(connectionString, conn_str, len);
+	connectionString[len] = 0;
 }
 
 int iothub_client_main(int argc, char **argv)
@@ -338,7 +345,7 @@ int iothub_client_main(int argc, char **argv)
 		return 0;
 	}
 	else if (strcmp(argv[1], "mqttows") == 0) {
-	iothub_client_run(2);
+		iothub_client_run(2);
 		return 0;
 	}
 
