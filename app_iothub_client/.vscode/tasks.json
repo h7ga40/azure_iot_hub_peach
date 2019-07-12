@@ -138,6 +138,23 @@
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+            "label": "write mbed drive",
+            "windows": {
+                "command": "C:\\Windows\\System32\\robocopy.exe",
+                "args": [
+                    "${workspaceRoot}\\Debug",
+                    "j:\\",
+                    "app_iothub_client.bin"
+                ],
+                "options": {
+                    "shell": {
+                        "executable": "C:\\Windows\\System32\\cmd.exe",
+                        "args":["/D", "/C"]
+                    }
+                }
+            }
         }
     ]
 }
