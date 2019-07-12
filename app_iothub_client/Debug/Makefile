@@ -702,7 +702,7 @@ $(APPL_BINOBJS): $(OBJDIR)/%.o: %.bin
 
 $(MALLOC_OBJS): $(OBJDIR)/%.o:
 	$(AR) x $(MALLOC_LIB) $(notdir $@)
-	move $(notdir $@) $@
+	mv $(notdir $@) $@
 
 #
 #  デフォルトコンパイルルールを上書き
