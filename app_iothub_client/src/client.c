@@ -19,6 +19,7 @@ and removing calls to _DoWork will yield the same results. */
 #include "iothubtransportmqtt.h"
 #include "iothubtransportmqtt_websockets.h"
 #include "iothub_client_options.h"
+#include "pinkit.h"
 
 #ifdef _MSC_VER
 extern int sprintf_s(char* dst, size_t dstSizeInBytes, const char* format, ...);
@@ -349,14 +350,14 @@ int iothub_client_main(int argc, char **argv)
 		return 0;
 	}
 
-	printf("%s [http|mqtt|mqttows] \n");
+	printf("%s [http|mqtt|mqttows] \n", argv[0]);
 	return 0;
 }
 
 int set_cs_main(int argc, char **argv)
 {
 	if (argc < 2) {
-		printf("usage:\nset_cs <connection string>\n");
+		printf("usage:\n%s <connection string>\n", argv[0]);
 		return 0;
 	}
 
@@ -380,5 +381,17 @@ int set_cs_main(int argc, char **argv)
 	connectionString = conn_str;
 	printf("Connection String:\n%s\n", connectionString);
 
+	return 0;
+}
+
+int pinkit_main(int argc, char **argv)
+{
+	for(;;){
+		printf("x:%0.3f, y:%0.3f, z:%0.3f, temp:%0.1f\n",
+			pinkit.accel.X, pinkit.accel.Y, pinkit.accel.Z,
+			pinkit.temperature);
+
+		ThreadAPI_Sleep(1000);
+	}
 	return 0;
 }

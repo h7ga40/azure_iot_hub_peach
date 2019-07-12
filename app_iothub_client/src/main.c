@@ -122,12 +122,6 @@ void main_finalize()
  */
 void main_on_start(struct task_base_t *task, ID tskid)
 {
-	FILINFO fno;
-#if FF_USE_LFN
-	char lfn[FF_MAX_LFN + 1];
-	fno.lfname = lfn;
-	fno.lfsize = FF_MAX_LFN + 1;
-#endif
 #ifdef IF_ETHER_BTUSB
 	// PANU mode
 	bt_bnep_mode = 0;
@@ -234,6 +228,7 @@ static const cmd_table_t cmdlist[] = {
 	{"iothub", "Asure IoT Hub Client", iothub_client_main},
 	{"dps_csgen", "Generate a connection string", dps_csgen_main},
 	{"set_cs", "Set connection string", set_cs_main},
+	{"pinkit", "print pinkit sensor", pinkit_main},
 	{"info", "This is a description text string for info command.", usrcmd_info},
 	{"exit", "Exit Natural Tiny Shell", usrcmd_exit},
 };
