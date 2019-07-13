@@ -7,7 +7,7 @@
         "-i"
     ],
     "terminal.integrated.env.windows": {
-        "PATH": "C:\\Program Files (x86)\\GNU Tools ARM Embedded\\6 2017-q2-update\\bin;C:\\Ruby24-x64\\bin",
+        "PATH": "C:\\Program Files (x86)\\GNU Tools ARM Embedded\\6 2017-q2-update\\bin",
         "CHERE_INVOKING": "1",
         "MSYS2_PATH_TYPE": "inherit",
         "MSYSTEM": "MINGW64",

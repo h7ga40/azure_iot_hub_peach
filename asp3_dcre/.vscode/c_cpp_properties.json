@@ -35,8 +35,6 @@
                 "USE_ARM_FPU",
                 "TOPPERS_EXECUTE_ON_ROM",
                 "TARGET_KERNEL_ASP",
-                "UNICODE",
-                "_UNICODE"
             ],
             "windowsSdkVersion": "10.0.17763.0",
             "compilerPath": "C:\\Program Files (x86)\\GNU Tools ARM Embedded\\6 2017-q2-update\\bin\\arm-none-eabi-gcc.exe",
