@@ -46,6 +46,7 @@
                 "${workspaceFolder}/../azure_iothub/c-utility/pal/toppers",
                 "${workspaceFolder}/../azure_iothub/certs",
                 "${workspaceFolder}/../azure_iothub/deps/parson",
+                "${workspaceFolder}/../azure_iothub/serializer/inc",
                 "${workspaceFolder}/../azure_iothub/iothub_client/inc",
                 "${workspaceFolder}/../azure_iothub/provisioning_client/inc",
                 "${workspaceFolder}/src"

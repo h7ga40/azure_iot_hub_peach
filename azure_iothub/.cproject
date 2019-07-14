@@ -79,6 +79,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/provisioning_client/adapters}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/provisioning_client/inc}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/provisioning_client/inc/azure_prov_client/internal}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/serializer/inc}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/uhttp/inc}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/umqtt/inc}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/wolfssl-3.15.7/wolfssl}&quot;"/>

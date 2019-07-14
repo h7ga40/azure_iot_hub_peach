@@ -19,6 +19,7 @@ and removing calls to _DoWork will yield the same results. */
 #include "iothubtransportmqtt.h"
 #include "iothubtransportmqtt_websockets.h"
 #include "iothub_client_options.h"
+#include "serializer.h"
 #include "pinkit.h"
 
 #ifdef _MSC_VER
@@ -130,6 +131,116 @@ static IOTHUBMESSAGE_DISPOSITION_RESULT ReceiveMessageCallback(IOTHUB_MESSAGE_HA
 	return IOTHUBMESSAGE_ACCEPTED;
 }
 
+static void ReceiveDeviceTwinCallback(DEVICE_TWIN_UPDATE_STATE update_state, const unsigned char* payLoad, size_t size, void* userContextCallback)
+{
+	(void)printf("Device Twin properties received: update=%s\r\npayload=%s,\r\nsize=%lu\r\n", MU_ENUM_TO_STRING(DEVICE_TWIN_UPDATE_STATE, update_state), payLoad, (unsigned long)size);
+}
+
+// Define the Model
+BEGIN_NAMESPACE(WeatherStation);
+
+DECLARE_MODEL(ContosoAnemometer,
+WITH_DATA(ascii_char_ptr, DeviceId),
+WITH_DATA(int, WindSpeed),
+WITH_METHOD(quit),
+WITH_METHOD(TurnFanOn),
+WITH_METHOD(TurnFanOff)
+);
+
+END_NAMESPACE(WeatherStation);
+
+METHODRETURN_HANDLE quit(ContosoAnemometer* device)
+{
+	(void)device;
+	(void)printf("quit with Method.\r\n");
+
+	g_continueRunning = false;
+
+	METHODRETURN_HANDLE result = MethodReturn_Create(0, "{\"Message\":\"quit with Method\"}");
+	return result;
+}
+
+METHODRETURN_HANDLE TurnFanOn(ContosoAnemometer* device)
+{
+	(void)device;
+	(void)printf("Turning fan on with Method.\r\n");
+
+	METHODRETURN_HANDLE result = MethodReturn_Create(1, "{\"Message\":\"Turning fan on with Method\"}");
+	return result;
+}
+
+METHODRETURN_HANDLE TurnFanOff(ContosoAnemometer* device)
+{
+	(void)device;
+	(void)printf("Turning fan off with Method.\r\n");
+
+	METHODRETURN_HANDLE result = MethodReturn_Create(0, "{\"Message\":\"Turning fan off with Method\"}");
+	return result;
+}
+
+static int ReceiveDeviceMethodCallback(const char* method_name, const unsigned char* payload, size_t size, unsigned char** response, size_t* resp_size, void* userContextCallback)
+{
+	int result;
+
+	/*this is step  3: receive the method and push that payload into serializer (from below)*/
+	char* payloadZeroTerminated = (char*)malloc(size + 1);
+	if (payloadZeroTerminated == 0)
+	{
+		printf("failed to malloc\r\n");
+		*resp_size = 0;
+		*response = NULL;
+		result = -1;
+	}
+	else
+	{
+		(void)memcpy(payloadZeroTerminated, payload, size);
+		payloadZeroTerminated[size] = '\0';
+
+		/*execute method - userContextCallback is of type deviceModel*/
+		METHODRETURN_HANDLE methodResult = EXECUTE_METHOD(userContextCallback, method_name, payloadZeroTerminated);
+		free(payloadZeroTerminated);
+
+		if (methodResult == NULL)
+		{
+			printf("failed to EXECUTE_METHOD\r\n");
+			*resp_size = 0;
+			*response = NULL;
+			result = -1;
+		}
+		else
+		{
+			/* get the serializer answer and push it in the networking stack*/
+			const METHODRETURN_DATA* data = MethodReturn_GetReturn(methodResult);
+			if (data == NULL)
+			{
+				printf("failed to MethodReturn_GetReturn\r\n");
+				*resp_size = 0;
+				*response = NULL;
+				result = -1;
+			}
+			else
+			{
+				result = data->statusCode;
+				if (data->jsonValue == NULL)
+				{
+					char* resp = "{}";
+					*resp_size = strlen(resp);
+					*response = (unsigned char*)malloc(*resp_size);
+					(void)memcpy(*response, resp, *resp_size);
+				}
+				else
+				{
+					*resp_size = strlen(data->jsonValue);
+					*response = (unsigned char*)malloc(*resp_size);
+					(void)memcpy(*response, data->jsonValue, *resp_size);
+				}
+			}
+			MethodReturn_Destroy(methodResult);
+		}
+	}
+	return result;
+}
+
 static void SendConfirmationCallback(IOTHUB_CLIENT_CONFIRMATION_RESULT result, void* userContextCallback)
 {
 	EVENT_INSTANCE* eventInstance = (EVENT_INSTANCE*)userContextCallback;
@@ -162,154 +273,182 @@ void iothub_client_run(int proto)
 	{
 		(void)printf("Failed to initialize the platform.\r\n");
 	}
-	else
-	{
-		IOTHUB_CLIENT_TRANSPORT_PROVIDER protocol;
-		switch (proto) {
-		case 0:
-			(void)printf("Starting the IoTHub client sample HTTP...\r\n");
-			protocol = HTTP_Protocol;
-			break;
-		case 1:
-			(void)printf("Starting the IoTHub client sample MQTT...\r\n");
-			protocol = MQTT_Protocol;
-			break;
-		case 2:
-			(void)printf("Starting the IoTHub client sample MQTT over WebSocket...\r\n");
-			protocol = MQTT_WebSocket_Protocol;
-			break;
-		default:
-			platform_deinit();
-			return;
-		}
-
-		if ((iotHubClientHandle = IoTHubClient_LL_CreateFromConnectionString(connectionString, protocol)) == NULL)
+	else {
+		if (serializer_init(NULL) != SERIALIZER_OK)
 		{
-			(void)printf("ERROR: iotHubClientHandle is NULL!\r\n");
+			(void)printf("Failed in serializer_init.");
 		}
 		else
 		{
-			HTTP_PROXY_OPTIONS proxy_options;
-			if (g_use_proxy)
-			{
-				proxy_options.host_address = PROXY_ADDRESS;
-				proxy_options.port = PROXY_PORT;
-				proxy_options.username = NULL;
-				proxy_options.password = NULL;
-
-				if (IoTHubClient_LL_SetOption(iotHubClientHandle, OPTION_HTTP_PROXY, &proxy_options) != IOTHUB_CLIENT_OK)
-				{
-					printf("failure to set option \"HTTP Proxy\"\r\n");
-				}
-			}
-#if 0
-			long curl_verbose = 1;
-			if (IoTHubClient_LL_SetOption(iotHubClientHandle, OPTION_CURL_VERBOSE, &curl_verbose) != IOTHUB_CLIENT_OK)
-			{
-				printf("failure to set option \"CURL Verbose\"\r\n");
-			}
-
-			unsigned int timeout = 241000;
-			// Because it can poll "after 9 seconds" polls will happen effectively // at ~10 seconds.
-			// Note that for scalabilty, the default value of minimumPollingTime
-			// is 25 minutes. For more information, see:
-			// https://azure.microsoft.com/documentation/articles/iot-hub-devguide/#messaging
-			unsigned int minimumPollingTime = 9;
-			if (IoTHubClient_LL_SetOption(iotHubClientHandle, "timeout", &timeout) != IOTHUB_CLIENT_OK)
-			{
-				printf("failure to set option \"timeout\"\r\n");
+			IOTHUB_CLIENT_TRANSPORT_PROVIDER protocol;
+			switch (proto) {
+			case 0:
+				(void)printf("Starting the IoTHub client sample HTTP...\r\n");
+				protocol = HTTP_Protocol;
+				break;
+			case 1:
+				(void)printf("Starting the IoTHub client sample MQTT...\r\n");
+				protocol = MQTT_Protocol;
+				break;
+			case 2:
+				(void)printf("Starting the IoTHub client sample MQTT over WebSocket...\r\n");
+				protocol = MQTT_WebSocket_Protocol;
+				break;
+			default:
+				platform_deinit();
+				return;
 			}
 
-			if (IoTHubClient_LL_SetOption(iotHubClientHandle, "MinimumPollingTime", &minimumPollingTime) != IOTHUB_CLIENT_OK)
+			if ((iotHubClientHandle = IoTHubClient_LL_CreateFromConnectionString(connectionString, protocol)) == NULL)
 			{
-				printf("failure to set option \"MinimumPollingTime\"\r\n");
-			}
-
-			bool traceOn = 1;
-			if (IoTHubClient_LL_SetOption(iotHubClientHandle, OPTION_LOG_TRACE, &traceOn) != IOTHUB_CLIENT_OK)
-			{
-				printf("failure to set option \"log trace on\"\r\n");
-			}
-#endif
-#ifdef SET_TRUSTED_CERT_IN_SAMPLES
-			// For mbed add the certificate information
-			if (IoTHubClient_LL_SetOption(iotHubClientHandle, OPTION_TRUSTED_CERT, certificates) != IOTHUB_CLIENT_OK)
-			{
-				printf("failure to set option \"TrustedCerts\"\r\n");
-			}
-#endif // SET_TRUSTED_CERT_IN_SAMPLES
-			/* Setting Message call back, so we can receive Commands. */
-			if (IoTHubClient_LL_SetMessageCallback(iotHubClientHandle, ReceiveMessageCallback, &receiveContext) != IOTHUB_CLIENT_OK)
-			{
-				(void)printf("ERROR: IoTHubClient_LL_SetMessageCallback..........FAILED!\r\n");
+				(void)printf("ERROR: iotHubClientHandle is NULL!\r\n");
 			}
 			else
 			{
-				(void)printf("IoTHubClient_LL_SetMessageCallback...successful.\r\n");
-
-				/* Now that we are ready to receive commands, let's send some messages */
-				int iterator = 4000;
-				double windSpeed = 0;
-				double temperature = 0;
-				double humidity = 0;
-				do
+				HTTP_PROXY_OPTIONS proxy_options;
+				if (g_use_proxy)
 				{
-					if (iterator >= 5000)
+					proxy_options.host_address = PROXY_ADDRESS;
+					proxy_options.port = PROXY_PORT;
+					proxy_options.username = NULL;
+					proxy_options.password = NULL;
+
+					if (IoTHubClient_LL_SetOption(iotHubClientHandle, OPTION_HTTP_PROXY, &proxy_options) != IOTHUB_CLIENT_OK)
 					{
-						iterator = 0;
-						int msg_pos = msg_id % MESSAGE_COUNT;
-						windSpeed = avgWindSpeed + (rand() % 4 + 2);
-						temperature = minTemperature + (rand() % 10);
-						humidity = minHumidity + (rand() % 20);
-						sprintf_s(msgText, sizeof(msgText), "{\"windSpeed\":%.2f,\"temperature\":%.2f,\"humidity\":%.2f}", windSpeed, temperature, humidity);
-						if ((messages[msg_pos].messageHandle = IoTHubMessage_CreateFromByteArray((const unsigned char*)msgText, strlen(msgText))) == NULL)
+						printf("failure to set option \"HTTP Proxy\"\r\n");
+					}
+				}
+#if 0
+				long curl_verbose = 1;
+				if (IoTHubClient_LL_SetOption(iotHubClientHandle, OPTION_CURL_VERBOSE, &curl_verbose) != IOTHUB_CLIENT_OK)
+				{
+					printf("failure to set option \"CURL Verbose\"\r\n");
+				}
+
+				unsigned int timeout = 241000;
+				// Because it can poll "after 9 seconds" polls will happen effectively // at ~10 seconds.
+				// Note that for scalabilty, the default value of minimumPollingTime
+				// is 25 minutes. For more information, see:
+				// https://azure.microsoft.com/documentation/articles/iot-hub-devguide/#messaging
+				unsigned int minimumPollingTime = 9;
+				if (IoTHubClient_LL_SetOption(iotHubClientHandle, "timeout", &timeout) != IOTHUB_CLIENT_OK)
+				{
+					printf("failure to set option \"timeout\"\r\n");
+				}
+
+				if (IoTHubClient_LL_SetOption(iotHubClientHandle, "MinimumPollingTime", &minimumPollingTime) != IOTHUB_CLIENT_OK)
+				{
+					printf("failure to set option \"MinimumPollingTime\"\r\n");
+				}
+
+				bool traceOn = 1;
+				if (IoTHubClient_LL_SetOption(iotHubClientHandle, OPTION_LOG_TRACE, &traceOn) != IOTHUB_CLIENT_OK)
+				{
+					printf("failure to set option \"log trace on\"\r\n");
+				}
+#endif
+#ifdef SET_TRUSTED_CERT_IN_SAMPLES
+				// For mbed add the certificate information
+				if (IoTHubClient_LL_SetOption(iotHubClientHandle, OPTION_TRUSTED_CERT, certificates) != IOTHUB_CLIENT_OK)
+				{
+					printf("failure to set option \"TrustedCerts\"\r\n");
+				}
+#endif // SET_TRUSTED_CERT_IN_SAMPLES
+				if (IoTHubClient_LL_SetDeviceTwinCallback(iotHubClientHandle, ReceiveDeviceTwinCallback, NULL) != IOTHUB_CLIENT_OK)
+				{
+					(void)printf("ERROR: IoTHubClient_LL_SetDeviceTwinCallback..........FAILED!\r\n");
+				}
+				else
+				{
+					(void)printf("IoTHubClient_LL_SetDeviceTwinCallback...successful.\r\n");
+				}
+				ContosoAnemometer* myWeather = CREATE_MODEL_INSTANCE(WeatherStation, ContosoAnemometer);
+				if (myWeather == NULL)
+				{
+					(void)printf("Failed on CREATE_MODEL_INSTANCE\r\n");
+				}
+				else if (IoTHubClient_LL_SetDeviceMethodCallback(iotHubClientHandle, ReceiveDeviceMethodCallback, myWeather) != IOTHUB_CLIENT_OK)
+				{
+					(void)printf("ERROR: IoTHubClient_LL_SetDeviceMethodCallback..........FAILED!\r\n");
+				}
+				else
+				{
+					(void)printf("IoTHubClient_LL_SetDeviceMethodCallback...successful.\r\n");
+				}
+				/* Setting Message call back, so we can receive Commands. */
+				if (IoTHubClient_LL_SetMessageCallback(iotHubClientHandle, ReceiveMessageCallback, &receiveContext) != IOTHUB_CLIENT_OK)
+				{
+					(void)printf("ERROR: IoTHubClient_LL_SetMessageCallback..........FAILED!\r\n");
+				}
+				else
+				{
+					(void)printf("IoTHubClient_LL_SetMessageCallback...successful.\r\n");
+
+					/* Now that we are ready to receive commands, let's send some messages */
+					int iterator = 4000;
+					double windSpeed = 0;
+					double temperature = 0;
+					double humidity = 0;
+					do
+					{
+						if (iterator >= 5000)
 						{
-							(void)printf("ERROR: iotHubMessageHandle is NULL!\r\n");
-						}
-						else
-						{
-							MAP_HANDLE propMap;
-
-							messages[msg_pos].messageTrackingId = msg_id;
-
-							propMap = IoTHubMessage_Properties(messages[msg_pos].messageHandle);
-							(void)sprintf_s(propText, sizeof(propText), temperature > 28 ? "true" : "false");
-							if (Map_AddOrUpdate(propMap, "temperatureAlert", propText) != MAP_OK)
+							iterator = 0;
+							int msg_pos = msg_id % MESSAGE_COUNT;
+							windSpeed = avgWindSpeed + (rand() % 4 + 2);
+							temperature = minTemperature + (rand() % 10);
+							humidity = minHumidity + (rand() % 20);
+							sprintf_s(msgText, sizeof(msgText), "{\"windSpeed\":%.2f,\"temperature\":%.2f,\"humidity\":%.2f}", windSpeed, temperature, humidity);
+							if ((messages[msg_pos].messageHandle = IoTHubMessage_CreateFromByteArray((const unsigned char*)msgText, strlen(msgText))) == NULL)
 							{
-								(void)printf("ERROR: Map_AddOrUpdate Failed!\r\n");
-							}
-
-							if (proto == 0) {
-								(void)IoTHubMessage_SetContentTypeSystemProperty(messages[msg_pos].messageHandle, "application/json");
-								(void)IoTHubMessage_SetContentEncodingSystemProperty(messages[msg_pos].messageHandle, "utf-8");
-							}
-
-							if (IoTHubClient_LL_SendEventAsync(iotHubClientHandle, messages[msg_pos].messageHandle, SendConfirmationCallback, &messages[msg_pos]) != IOTHUB_CLIENT_OK)
-							{
-								(void)printf("ERROR: IoTHubClient_LL_SendEventAsync..........FAILED!\r\n");
+								(void)printf("ERROR: iotHubMessageHandle is NULL!\r\n");
 							}
 							else
 							{
-								(void)printf("IoTHubClient_LL_SendEventAsync accepted message [%d] for transmission to IoT Hub.\r\n", msg_id);
+								MAP_HANDLE propMap;
+
+								messages[msg_pos].messageTrackingId = msg_id;
+
+								propMap = IoTHubMessage_Properties(messages[msg_pos].messageHandle);
+								(void)sprintf_s(propText, sizeof(propText), temperature > 28 ? "true" : "false");
+								if (Map_AddOrUpdate(propMap, "temperatureAlert", propText) != MAP_OK)
+								{
+									(void)printf("ERROR: Map_AddOrUpdate Failed!\r\n");
+								}
+
+								if (proto == 0) {
+									(void)IoTHubMessage_SetContentTypeSystemProperty(messages[msg_pos].messageHandle, "application/json");
+									(void)IoTHubMessage_SetContentEncodingSystemProperty(messages[msg_pos].messageHandle, "utf-8");
+								}
+
+								if (IoTHubClient_LL_SendEventAsync(iotHubClientHandle, messages[msg_pos].messageHandle, SendConfirmationCallback, &messages[msg_pos]) != IOTHUB_CLIENT_OK)
+								{
+									(void)printf("ERROR: IoTHubClient_LL_SendEventAsync..........FAILED!\r\n");
+								}
+								else
+								{
+									(void)printf("IoTHubClient_LL_SendEventAsync accepted message [%d] for transmission to IoT Hub.\r\n", msg_id);
+								}
+								msg_id++;
 							}
-							msg_id++;
 						}
+						iterator++;
+
+						IoTHubClient_LL_DoWork(iotHubClientHandle);
+						ThreadAPI_Sleep(1);
+
+					} while (g_continueRunning);
+
+					(void)printf("iothub_client_sample_http has gotten quit message, call DoWork %d more time to complete final sending...\r\n", DOWORK_LOOP_NUM);
+					for (size_t index = 0; index < DOWORK_LOOP_NUM; index++)
+					{
+						IoTHubClient_LL_DoWork(iotHubClientHandle);
+						ThreadAPI_Sleep(1);
 					}
-					iterator++;
-
-					IoTHubClient_LL_DoWork(iotHubClientHandle);
-					ThreadAPI_Sleep(1);
-
-				} while (g_continueRunning);
-
-				(void)printf("iothub_client_sample_http has gotten quit message, call DoWork %d more time to complete final sending...\r\n", DOWORK_LOOP_NUM);
-				for (size_t index = 0; index < DOWORK_LOOP_NUM; index++)
-				{
-					IoTHubClient_LL_DoWork(iotHubClientHandle);
-					ThreadAPI_Sleep(1);
 				}
+				IoTHubClient_LL_Destroy(iotHubClientHandle);
 			}
-			IoTHubClient_LL_Destroy(iotHubClientHandle);
+			serializer_deinit();
 		}
 		platform_deinit();
 	}

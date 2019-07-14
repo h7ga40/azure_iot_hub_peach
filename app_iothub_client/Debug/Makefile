@@ -200,6 +200,7 @@ INCLUDES := -I. -I$(SRCDIR)/include -I$(SRCDIR) \
 	-I$(SRCDIR)/../azure_iothub/iothub_client/inc \
 	-I$(SRCDIR)/../azure_iothub/provisioning_client/inc \
 	-I$(SRCDIR)/../azure_iothub/deps/parson \
+	-I$(SRCDIR)/../azure_iothub/serializer/inc \
 	-I$(SRCDIR)/../azure_iothub/certs \
 	$(INCLUDES)
 LDFLAGS := $(LDFLAGS) -L.
