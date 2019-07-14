@@ -13,7 +13,7 @@ extern "C"
 #include <stdbool.h>
 #endif
 
-#include "azure_c_shared_utility/umock_c_prod.h"
+#include "umock_c/umock_c_prod.h"
 
 typedef struct STRING_TOKEN_TAG* STRING_TOKEN_HANDLE;
 
