@@ -248,7 +248,7 @@ C_FLAGS += -Wno-missing-field-initializers
 C_FLAGS += -Wnull-dereference
 
 C_FLAGS += -g3
-C_FLAGS += -Wstack-usage=100
+C_FLAGS += -Wstack-usage=256
 C_FLAGS += -nostdinc
 
 C_FLAGS += -DHAVE_CONFIG_H
@@ -275,7 +275,7 @@ CXX_FLAGS += -Wno-missing-field-initializers
 CXX_FLAGS += -Wnull-dereference
 
 CXX_FLAGS += -g3
-CXX_FLAGS += -Wstack-usage=100
+CXX_FLAGS += -Wstack-usage=256
 CXX_FLAGS += -nostdinc
 
 C_FLAGS += -DHAVE_CONFIG_H
@@ -302,7 +302,7 @@ ASM_FLAGS += -Wno-unused-parameter
 ASM_FLAGS += -Wno-missing-field-initializers
 ASM_FLAGS += -Wnull-dereference
 ASM_FLAGS += -g3
-ASM_FLAGS += -Wstack-usage=100
+ASM_FLAGS += -Wstack-usage=256
 ASM_FLAGS += -nostdinc
 
 

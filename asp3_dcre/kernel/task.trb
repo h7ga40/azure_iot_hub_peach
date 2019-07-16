@@ -95,7 +95,7 @@ class TaskObject < KernelObject
     end
     return("(#{params[:tskatr]}), (intptr_t)(#{params[:exinf]}), " \
 			"(TASK)(#{params[:task]}), INT_PRIORITY(#{params[:itskpri]}), " \
-			+ tskinictxb + ", \"#{params[:task]}\"")
+			+ tskinictxb)
   end
 end
 

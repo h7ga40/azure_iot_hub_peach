@@ -176,7 +176,7 @@ include $(SRCDIR)/mbed/Makefile.mbed
 #
 #  共通コンパイルオプションの定義
 #
-COPTS := -g -std=gnu99 -ffunction-sections -fdata-sections $(COPTS)
+COPTS := -g -std=gnu99 -ffunction-sections -fdata-sections -Wno-unused-variable -Wno-unused-function -Wno-missing-braces $(COPTS)
 ifndef OMIT_WARNING_ALL
 	COPTS := -Wall $(COPTS)
 endif

@@ -1383,8 +1383,15 @@ C_FLAGS += -Wno-unused-parameter
 C_FLAGS += -Wno-missing-field-initializers
 C_FLAGS += -Wnull-dereference
 
+C_FLAGS += -Wno-sign-compare
+C_FLAGS += -Wno-parentheses
+C_FLAGS += -Wno-unknown-pragmas
+C_FLAGS += -Wno-unused-value
+C_FLAGS += -Wno-missing-braces
+C_FLAGS += -Wno-unused-but-set-variable
+
 C_FLAGS += -g3
-C_FLAGS += -Wstack-usage=100
+C_FLAGS += -Wstack-usage=256
 C_FLAGS += -nostdinc
 
 C_FLAGS += -include vis.h
@@ -1416,7 +1423,7 @@ CXX_FLAGS += -Wno-missing-field-initializers
 CXX_FLAGS += -Wnull-dereference
 
 CXX_FLAGS += -g3
-CXX_FLAGS += -Wstack-usage=100
+CXX_FLAGS += -Wstack-usage=256
 CXX_FLAGS += -nostdinc
 
 ASM_FLAGS += -x
@@ -1439,7 +1446,7 @@ ASM_FLAGS += -Wno-unused-parameter
 ASM_FLAGS += -Wno-missing-field-initializers
 ASM_FLAGS += -Wnull-dereference
 ASM_FLAGS += -g3
-ASM_FLAGS += -Wstack-usage=100
+ASM_FLAGS += -Wstack-usage=256
 ASM_FLAGS += -nostdinc
 
 

@@ -133,7 +133,7 @@ int set_proxy_main(int argc, char **argv)
 			}
 			break;
 		case proxy_parse_state_password:
-			case_proxy_parse_state_password:
+		case_proxy_parse_state_password:
 			if (c == '@') {
 				password_len = (int)pos - (int)password;
 				address = pos + 1;
@@ -250,7 +250,7 @@ int clear_proxy_main(int argc, char **argv)
 
 int pinkit_main(int argc, char **argv)
 {
-	for(;;){
+	for (;;) {
 		printf("x:%0.3f, y:%0.3f, z:%0.3f, temp:%0.1f\n",
 			pinkit.accel.X, pinkit.accel.Y, pinkit.accel.Z,
 			pinkit.temperature);
