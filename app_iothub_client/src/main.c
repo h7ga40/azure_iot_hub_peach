@@ -228,6 +228,8 @@ static const cmd_table_t cmdlist[] = {
 	{"iothub", "Asure IoT Hub Client", iothub_client_main},
 	{"dps_csgen", "Generate a connection string", dps_csgen_main},
 	{"set_cs", "Set connection string", set_cs_main},
+	{"set_proxy", "Set proxy", set_proxy_main},
+	{"clear_proxy", "Set proxy", clear_proxy_main},
 	{"pinkit", "print pinkit sensor", pinkit_main},
 	{"info", "This is a description text string for info command.", usrcmd_info},
 	{"exit", "Exit Natural Tiny Shell", usrcmd_exit},

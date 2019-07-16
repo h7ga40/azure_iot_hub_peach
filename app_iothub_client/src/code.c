@@ -28,6 +28,7 @@
 #include "azure_prov_client/prov_transport_mqtt_client.h"
 #include "iothubtransportmqtt_websockets.h"
 #include "azure_prov_client/prov_transport_mqtt_ws_client.h"
+#include "client.h"
 
 #define SET_TRUSTED_CERT_IN_SAMPLES
 
@@ -43,9 +44,8 @@ MU_DEFINE_ENUM_STRINGS(PROV_DEVICE_REG_STATUS, PROV_DEVICE_REG_STATUS_VALUES);
 static const char *global_prov_uri = "global.azure-devices-provisioning.net";
 static char *g_access_key = NULL;
 
-bool g_use_proxy = false;
-const char *PROXY_ADDRESS = "127.0.0.1";
-uint16_t PROXY_PORT = 8888;
+extern bool g_use_proxy;
+extern HTTP_PROXY_OPTIONS g_proxy_options;
 
 #define MESSAGES_TO_SEND            2
 #define TIME_BETWEEN_MESSAGES       2
@@ -193,14 +193,6 @@ int dps_csgen_main(int argc, char *argv[])
 	user_ctx.registration_complete = 0;
 	user_ctx.sleep_time = 10;
 
-	if (g_use_proxy)
-	{
-		http_proxy.host_address = PROXY_ADDRESS;
-		http_proxy.port = PROXY_PORT;
-		http_proxy.username = NULL;
-		http_proxy.password = NULL;
-	}
-
 	PROV_DEVICE_LL_HANDLE handle;
 	if ((handle = Prov_Device_LL_Create(global_prov_uri, scope_id, prov_device_protocol)) == NULL)
 	{
@@ -210,7 +202,7 @@ int dps_csgen_main(int argc, char *argv[])
 	{
 		if (http_proxy.host_address != NULL)
 		{
-			Prov_Device_LL_SetOption(handle, OPTION_HTTP_PROXY, &http_proxy);
+			Prov_Device_LL_SetOption(handle, OPTION_HTTP_PROXY, &g_proxy_options);
 		}
 
 #ifdef SET_TRUSTED_CERT_IN_SAMPLES
