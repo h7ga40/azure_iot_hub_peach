@@ -11,7 +11,7 @@
             "${workspaceRoot}/Debug"
         ],
         "pattern": {
-            "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+            "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error|fatal error):\\s+(.*)$",
             "file": 1,
             "line": 2,
             "column": 3,
