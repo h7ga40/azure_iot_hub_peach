@@ -90,6 +90,7 @@ OBJECTS += wolfcrypt/src/wolfmath.o
 INCLUDE_PATHS += -I../../musl-1.1.18/include
 INCLUDE_PATHS += -I../../zlib-1.2.11/src
 INCLUDE_PATHS += -I../../wolfssl-3.15.7
+INCLUDE_PATHS += -I../../wolfssl-3.15.7/src
 
 # Objects and Paths
 ###############################################################################
