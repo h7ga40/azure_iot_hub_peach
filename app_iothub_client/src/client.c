@@ -20,6 +20,7 @@ and removing calls to _DoWork will yield the same results. */
 #include "iothubtransportmqtt_websockets.h"
 #include "iothub_client_options.h"
 #include "serializer.h"
+#include "serializer_devicetwin.h"
 #include "pinkit.h"
 #include "client.h"
 
@@ -43,11 +44,10 @@ HTTP_PROXY_OPTIONS g_proxy_options;
 
 static int callbackCounter;
 static bool g_continueRunning;
-static char msgText[1024];
+static bool g_twinReport;
 static char propText[1024];
 #define MESSAGE_COUNT       5
 #define DOWORK_LOOP_NUM     3
-
 
 typedef struct EVENT_INSTANCE_TAG
 {
@@ -131,23 +131,55 @@ static IOTHUBMESSAGE_DISPOSITION_RESULT ReceiveMessageCallback(IOTHUB_MESSAGE_HA
 	return IOTHUBMESSAGE_ACCEPTED;
 }
 
-static void ReceiveDeviceTwinCallback(DEVICE_TWIN_UPDATE_STATE update_state, const unsigned char* payLoad, size_t size, void* userContextCallback)
-{
-	(void)printf("Device Twin properties received: update=%s\r\npayload=%s,\r\nsize=%lu\r\n", MU_ENUM_TO_STRING(DEVICE_TWIN_UPDATE_STATE, update_state), payLoad, (unsigned long)size);
-}
-
 // Define the Model
 BEGIN_NAMESPACE(WeatherStation);
 
 DECLARE_MODEL(ContosoAnemometer,
-WITH_DATA(ascii_char_ptr, DeviceId),
-WITH_DATA(int, WindSpeed),
+WITH_DATA(double, windSpeed),
+WITH_DATA(double, temperature),
+WITH_DATA(double, humidity),
 WITH_METHOD(quit),
 WITH_METHOD(TurnFanOn),
 WITH_METHOD(TurnFanOff)
 );
 
+DECLARE_STRUCT(FanSpeedD,
+	int, value
+);
+
+DECLARE_STRUCT(FanSpeedR,
+	int, value,
+	ascii_char_ptr, status
+);
+
+DECLARE_DEVICETWIN_MODEL(AnemometerState,
+WITH_REPORTED_PROPERTY(FanSpeedR, fanSpeed)
+);
+
+DECLARE_DEVICETWIN_MODEL(AnemometerSettings,
+WITH_DESIRED_PROPERTY(FanSpeedD, fanSpeed, onDesiredFanSpeed)
+);
+
 END_NAMESPACE(WeatherStation);
+
+void anemometerReportedStateCallback(int status_code, void* userContextCallback)
+{
+	AnemometerState *anemometer = (AnemometerState *)userContextCallback;
+
+	printf("received states %d, reported fanSpeed = %d\n", status_code, anemometer->fanSpeed.value);
+}
+
+void onDesiredFanSpeed(void* argument)
+{
+	// Note: The argument is NOT a pointer to fanSpeed, but instead a pointer to the MODEL
+	//       that contains fanSpeed as one of its arguments.  In this case, it
+	//       is AnemometerSettings*.
+
+	AnemometerSettings *anemometer = (AnemometerSettings *)argument;
+	printf("received a new desired.fanSpeed = %d\n", anemometer->fanSpeed.value);
+
+	g_twinReport = true;
+}
 
 METHODRETURN_HANDLE quit(ContosoAnemometer* device)
 {
@@ -278,6 +310,10 @@ void iothub_client_run(int proto)
 		{
 			(void)printf("Failed in serializer_init.");
 		}
+		else if (SERIALIZER_REGISTER_NAMESPACE(WeatherStation) == NULL)
+		{
+			LogError("unable to SERIALIZER_REGISTER_NAMESPACE");
+		}
 		else
 		{
 			IOTHUB_CLIENT_TRANSPORT_PROVIDER protocol;
@@ -348,13 +384,23 @@ void iothub_client_run(int proto)
 					printf("failure to set option \"TrustedCerts\"\r\n");
 				}
 #endif // SET_TRUSTED_CERT_IN_SAMPLES
-				if (IoTHubClient_LL_SetDeviceTwinCallback(iotHubClientHandle, ReceiveDeviceTwinCallback, NULL) != IOTHUB_CLIENT_OK)
+				AnemometerState *anemometerState = IoTHubDeviceTwin_LL_CreateAnemometerState(iotHubClientHandle);
+				if (anemometerState == NULL)
 				{
-					(void)printf("ERROR: IoTHubClient_LL_SetDeviceTwinCallback..........FAILED!\r\n");
+					printf("Failure in IoTHubDeviceTwin_LL_CreateAnemometerState");
 				}
 				else
 				{
-					(void)printf("IoTHubClient_LL_SetDeviceTwinCallback...successful.\r\n");
+					(void)printf("IoTHubDeviceTwin_LL_CreateAnemometerState...successful.\r\n");
+				}
+				AnemometerSettings *anemometerSettings = IoTHubDeviceTwin_LL_CreateAnemometerSettings(iotHubClientHandle);
+				if (anemometerSettings == NULL)
+				{
+					printf("Failure in IoTHubDeviceTwin_LL_CreateAnemometerSettings");
+				}
+				else
+				{
+					(void)printf("IoTHubDeviceTwin_LL_CreateAnemometerSettings...successful.\r\n");
 				}
 				ContosoAnemometer* myWeather = CREATE_MODEL_INSTANCE(WeatherStation, ContosoAnemometer);
 				if (myWeather == NULL)
@@ -377,69 +423,87 @@ void iothub_client_run(int proto)
 				else
 				{
 					(void)printf("IoTHubClient_LL_SetMessageCallback...successful.\r\n");
+				}
 
-					/* Now that we are ready to receive commands, let's send some messages */
-					int iterator = 4000;
-					double windSpeed = 0;
-					double temperature = 0;
-					double humidity = 0;
-					do
+				/* Now that we are ready to receive commands, let's send some messages */
+				int iterator = 4000;
+				do
+				{
+					if (iterator >= 5000)
 					{
-						if (iterator >= 5000)
+						iterator = 0;
+						int msgPos = msg_id % MESSAGE_COUNT;
+						unsigned char *msgText;
+						size_t msgSize;
+						myWeather->windSpeed = avgWindSpeed + (rand() % 4 + 2);
+						myWeather->temperature = minTemperature + (rand() % 10);
+						myWeather->humidity = minHumidity + (rand() % 20);
+						if (SERIALIZE(&msgText, &msgSize, myWeather->windSpeed, myWeather->temperature, myWeather->humidity) != CODEFIRST_OK)
 						{
-							iterator = 0;
-							int msg_pos = msg_id % MESSAGE_COUNT;
-							windSpeed = avgWindSpeed + (rand() % 4 + 2);
-							temperature = minTemperature + (rand() % 10);
-							humidity = minHumidity + (rand() % 20);
-							sprintf_s(msgText, sizeof(msgText), "{\"windSpeed\":%.2f,\"temperature\":%.2f,\"humidity\":%.2f}", windSpeed, temperature, humidity);
-							if ((messages[msg_pos].messageHandle = IoTHubMessage_CreateFromByteArray((const unsigned char*)msgText, strlen(msgText))) == NULL)
+							(void)printf("Failed to serialize\r\n");
+						}
+						else if ((messages[msgPos].messageHandle = IoTHubMessage_CreateFromByteArray((const unsigned char*)msgText, msgSize)) == NULL)
+						{
+							(void)printf("ERROR: iotHubMessageHandle is NULL!\r\n");
+							free(msgText);
+						}
+						else
+						{
+							MAP_HANDLE propMap;
+
+							messages[msgPos].messageTrackingId = msg_id;
+
+							propMap = IoTHubMessage_Properties(messages[msgPos].messageHandle);
+							(void)sprintf_s(propText, sizeof(propText), myWeather->temperature > 28 ? "true" : "false");
+							if (Map_AddOrUpdate(propMap, "temperatureAlert", propText) != MAP_OK)
 							{
-								(void)printf("ERROR: iotHubMessageHandle is NULL!\r\n");
+								(void)printf("ERROR: Map_AddOrUpdate Failed!\r\n");
+							}
+
+							if (proto == 0) {
+								(void)IoTHubMessage_SetContentTypeSystemProperty(messages[msgPos].messageHandle, "application/json");
+								(void)IoTHubMessage_SetContentEncodingSystemProperty(messages[msgPos].messageHandle, "utf-8");
+							}
+
+							if (IoTHubClient_LL_SendEventAsync(iotHubClientHandle, messages[msgPos].messageHandle, SendConfirmationCallback, &messages[msgPos]) != IOTHUB_CLIENT_OK)
+							{
+								(void)printf("ERROR: IoTHubClient_LL_SendEventAsync..........FAILED!\r\n");
 							}
 							else
 							{
-								MAP_HANDLE propMap;
-
-								messages[msg_pos].messageTrackingId = msg_id;
-
-								propMap = IoTHubMessage_Properties(messages[msg_pos].messageHandle);
-								(void)sprintf_s(propText, sizeof(propText), temperature > 28 ? "true" : "false");
-								if (Map_AddOrUpdate(propMap, "temperatureAlert", propText) != MAP_OK)
-								{
-									(void)printf("ERROR: Map_AddOrUpdate Failed!\r\n");
-								}
-
-								if (proto == 0) {
-									(void)IoTHubMessage_SetContentTypeSystemProperty(messages[msg_pos].messageHandle, "application/json");
-									(void)IoTHubMessage_SetContentEncodingSystemProperty(messages[msg_pos].messageHandle, "utf-8");
-								}
-
-								if (IoTHubClient_LL_SendEventAsync(iotHubClientHandle, messages[msg_pos].messageHandle, SendConfirmationCallback, &messages[msg_pos]) != IOTHUB_CLIENT_OK)
-								{
-									(void)printf("ERROR: IoTHubClient_LL_SendEventAsync..........FAILED!\r\n");
-								}
-								else
-								{
-									(void)printf("IoTHubClient_LL_SendEventAsync accepted message [%d] for transmission to IoT Hub.\r\n", msg_id);
-								}
-								msg_id++;
+								(void)printf("IoTHubClient_LL_SendEventAsync accepted message [%d] for transmission to IoT Hub.\r\n", msg_id);
 							}
+
+							free(msgText);
+							msg_id++;
 						}
-						iterator++;
-
-						IoTHubClient_LL_DoWork(iotHubClientHandle);
-						ThreadAPI_Sleep(1);
-
-					} while (g_continueRunning);
-
-					(void)printf("iothub_client_sample_http has gotten quit message, call DoWork %d more time to complete final sending...\r\n", DOWORK_LOOP_NUM);
-					for (size_t index = 0; index < DOWORK_LOOP_NUM; index++)
-					{
-						IoTHubClient_LL_DoWork(iotHubClientHandle);
-						ThreadAPI_Sleep(1);
 					}
+					else if (g_twinReport) {
+						g_twinReport = false;
+						anemometerState->fanSpeed.value = anemometerSettings->fanSpeed.value;
+						anemometerState->fanSpeed.status = "success";
+						IoTHubDeviceTwin_LL_SendReportedStateAnemometerState(anemometerState, anemometerReportedStateCallback, anemometerState);
+					}
+					iterator++;
+
+					IoTHubClient_LL_DoWork(iotHubClientHandle);
+					ThreadAPI_Sleep(1);
+
+				} while (g_continueRunning);
+
+				(void)printf("iothub_client_sample_http has gotten quit message, call DoWork %d more time to complete final sending...\r\n", DOWORK_LOOP_NUM);
+				for (size_t index = 0; index < DOWORK_LOOP_NUM; index++)
+				{
+					IoTHubClient_LL_DoWork(iotHubClientHandle);
+					ThreadAPI_Sleep(1);
 				}
+
+				if (anemometerSettings != NULL)
+					IoTHubDeviceTwin_LL_DestroyAnemometerSettings(anemometerSettings);
+				if (anemometerState != NULL)
+					IoTHubDeviceTwin_LL_DestroyAnemometerState(anemometerState);
+				if (myWeather != NULL)
+					DESTROY_MODEL_INSTANCE(myWeather);
 				IoTHubClient_LL_Destroy(iotHubClientHandle);
 			}
 			serializer_deinit();
