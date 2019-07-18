@@ -16,11 +16,7 @@
                 "${workspaceFolder}/../azure_iothub/iothub_client/inc/internal",
                 "${workspaceFolder}/../azure_iothub/deps/parson",
                 "${workspaceFolder}/../azure_iothub/umqtt/inc",
-                "${workspaceFolder}/../wolfssl-3.15.7/wolfssl",
-                "${workspaceFolder}/../wolfssl-3.15.7/wolfssl/wolfcrypt",
-                "${workspaceFolder}/../wolfssl-3.15.7",
                 "${workspaceFolder}/../mbedtls-2.16.1/include",
-                "${workspaceFolder}/../curl-7.57.0/include",
                 "${workspaceFolder}/../zlib-1.2.11/src"
             ],
             "defines": [

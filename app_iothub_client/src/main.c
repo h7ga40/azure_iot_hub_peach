@@ -208,7 +208,7 @@ int custom_rand_generate_seed(uint8_t* output, int32_t sz)
 	return 0;
 }
 
-extern int curl_main(int argc, char **argv);
+//extern int curl_main(int argc, char **argv);
 extern int iothub_client_main(int argc, char **argv);
 
 static const cmd_table_t cmdlist[] = {
@@ -220,7 +220,7 @@ static const cmd_table_t cmdlist[] = {
 	{"mkdir", "Make directory", usrcmd_mkdir},
 	{"hexdump", "Hex dump", usrcmd_hexdump},
 	{"date", "print date and time", usrcmd_date},
-	{"curl", "Command lines or scripts to transfer data", curl_main},
+//	{"curl", "Command lines or scripts to transfer data", curl_main},
 	{"ping", "ping", usrcmd_ping},
 	{"dhcpc", "DHCP Client rel/renew/info", usrcmd_dhcp4c},
 	{"dnsc", "DNS client", usrcmd_dnsc },

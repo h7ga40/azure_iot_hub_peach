@@ -140,7 +140,6 @@ CPP     = arm-none-eabi-g++
 AR      = arm-none-eabi-ar
 RANLIB  = arm-none-eabi-ranlib
 
-
 C_FLAGS += -std=gnu11
 C_FLAGS += -mcpu=cortex-a9
 C_FLAGS += -march=armv7-a

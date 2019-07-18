@@ -348,35 +348,6 @@ void iothub_client_run(int proto)
 						printf("failure to set option \"HTTP Proxy\"\r\n");
 					}
 				}
-#if 0
-				long curl_verbose = 1;
-				if (IoTHubClient_LL_SetOption(iotHubClientHandle, OPTION_CURL_VERBOSE, &curl_verbose) != IOTHUB_CLIENT_OK)
-				{
-					printf("failure to set option \"CURL Verbose\"\r\n");
-				}
-
-				unsigned int timeout = 241000;
-				// Because it can poll "after 9 seconds" polls will happen effectively // at ~10 seconds.
-				// Note that for scalabilty, the default value of minimumPollingTime
-				// is 25 minutes. For more information, see:
-				// https://azure.microsoft.com/documentation/articles/iot-hub-devguide/#messaging
-				unsigned int minimumPollingTime = 9;
-				if (IoTHubClient_LL_SetOption(iotHubClientHandle, "timeout", &timeout) != IOTHUB_CLIENT_OK)
-				{
-					printf("failure to set option \"timeout\"\r\n");
-				}
-
-				if (IoTHubClient_LL_SetOption(iotHubClientHandle, "MinimumPollingTime", &minimumPollingTime) != IOTHUB_CLIENT_OK)
-				{
-					printf("failure to set option \"MinimumPollingTime\"\r\n");
-				}
-
-				bool traceOn = 1;
-				if (IoTHubClient_LL_SetOption(iotHubClientHandle, OPTION_LOG_TRACE, &traceOn) != IOTHUB_CLIENT_OK)
-				{
-					printf("failure to set option \"log trace on\"\r\n");
-				}
-#endif
 #ifdef SET_TRUSTED_CERT_IN_SAMPLES
 				// For mbed add the certificate information
 				if (IoTHubClient_LL_SetOption(iotHubClientHandle, OPTION_TRUSTED_CERT, certificates) != IOTHUB_CLIENT_OK)

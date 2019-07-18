@@ -84,11 +84,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/serializer/inc}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/uhttp/inc}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/umqtt/inc}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/wolfssl-3.15.7/wolfssl}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/wolfssl-3.15.7/wolfssl/wolfcrypt}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/wolfssl-3.15.7}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mbedtls-2.16.1/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/curl-7.57.0/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/zlib-1.2.11/src}&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.nostdinc.1014264285" name="Do not search system directories (-nostdinc)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.nostdinc" useByScannerDiscovery="true" value="true" valueType="boolean"/>
@@ -127,7 +123,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="c-utility/adapters/tlsio_wolfssl.c|c-utility/adapters/httpapi_curl.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -226,7 +222,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="c-utility/adapters/tlsio_wolfssl.c|c-utility/adapters/httpapi_curl.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

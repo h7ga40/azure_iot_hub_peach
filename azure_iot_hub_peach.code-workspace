@@ -4,22 +4,13 @@
 			"path": "app_iothub_client"
 		},
 		{
-			"path": "asp3_dcre"
-		},
-		{
 			"path": "azure_iothub"
-		},
-		{
-			"path": "curl-7.57.0"
 		},
 		{
 			"path": "mbedtls-2.16.1"
 		},
 		{
 			"path": "musl-1.1.18"
-		},
-		{
-			"path": "wolfssl-3.15.7"
 		},
 		{
 			"path": "zlib-1.2.11"

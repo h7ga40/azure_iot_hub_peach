@@ -48,12 +48,12 @@ PROJECT := azure_iothub
 
 OBJECTS += c-utility/adapters/agenttime_mbed.o
 OBJECTS += c-utility/adapters/httpapi_compact.o
+OBJECTS += c-utility/adapters/lock_toppers.o
 OBJECTS += c-utility/adapters/platform_toppers.o
 OBJECTS += c-utility/adapters/socketio_berkeley.o
 OBJECTS += c-utility/adapters/threadapi_toppers.o
 OBJECTS += c-utility/adapters/tickcounter_toppers.o
 OBJECTS += c-utility/adapters/tlsio_mbedtls.o
-OBJECTS += c-utility/adapters/tlsio_wolfssl.o
 OBJECTS += c-utility/adapters/uniqueid_stub.o
 OBJECTS += c-utility/src/azure_base32.o
 OBJECTS += c-utility/src/azure_base64.o
@@ -100,6 +100,7 @@ OBJECTS += iothub_client/src/blob.o
 OBJECTS += iothub_client/src/iothub.o
 OBJECTS += iothub_client/src/iothub_client.o
 OBJECTS += iothub_client/src/iothub_client_authorization.o
+OBJECTS += iothub_client/src/iothub_client_core.o
 OBJECTS += iothub_client/src/iothub_client_core_ll.o
 OBJECTS += iothub_client/src/iothub_client_diagnostic.o
 OBJECTS += iothub_client/src/iothub_client_ll.o
@@ -165,11 +166,7 @@ INCLUDE_PATHS += -I../../azure_iothub/deps/umock-c/inc
 INCLUDE_PATHS += -I../../azure_iothub/serializer/inc
 INCLUDE_PATHS += -I../../azure_iothub/uhttp/inc
 INCLUDE_PATHS += -I../../azure_iothub/umqtt/inc
-INCLUDE_PATHS += -I../../wolfssl-3.15.7/wolfssl
-INCLUDE_PATHS += -I../../wolfssl-3.15.7/wolfssl/wolfcrypt
-INCLUDE_PATHS += -I../../wolfssl-3.15.7
 INCLUDE_PATHS += -I../../mbedtls-2.16.1/include
-INCLUDE_PATHS += -I../../curl-7.57.0/include
 INCLUDE_PATHS += -I../../zlib-1.2.11/src
 
 # Objects and Paths

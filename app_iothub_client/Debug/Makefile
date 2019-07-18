@@ -58,7 +58,6 @@ ifeq ($(SRCLANG),c)
 	LIBS = $(SRCDIR)/../musl-1.1.18/Debug/libmusl.a \
 		$(SRCDIR)/../zlib-1.2.11/Debug/libzlib.a \
 		$(SRCDIR)/../mbedtls-2.16.1/Debug/libmbedtls.a \
-		$(SRCDIR)/../curl-7.57.0/Debug/libcurl.a \
 		$(SRCDIR)/../azure_iothub/Debug/libazure_iothub.a
 endif
 ifeq ($(SRCLANG),c++)
@@ -81,7 +80,7 @@ OBJEXT = elf
 #  カーネルライブラリ（libkernel.a）のディレクトリ名
 #  （カーネルライブラリもmake対象にする時は，空に定義する）
 #
-KERNEL_LIB = ../../asp3_dcre/Debug
+KERNEL_LIB = 
 
 #
 #  システムサービスコールライブラリ（libsyssvc.a）のディレクトリ名
@@ -189,12 +188,7 @@ endif
 CDEFS := $(CDEFS) -DDHCP4_CLI_CFG -DUSE_PING -DUSE_RESOLVER -DUSE_NETAPP_SUBR -DNOUSE_MPF_NET_BUF -DECHONET_USE_MALLOC -DHAVE_CONFIG_H -DWOLFSSL_USER_SETTINGS -DRamDisk=_binary_______ntshell_src_rom_fs_bin_start
 INCLUDES := -I. -I$(SRCDIR)/include -I$(SRCDIR) \
 	-I$(SRCDIR)/../zlib-1.2.11/src \
-	-I$(SRCDIR)/../wolfssl-3.15.7/wolfssl \
-	-I$(SRCDIR)/../wolfssl-3.15.7/wolfssl/wolfcrypt \
-	-I$(SRCDIR)/../wolfssl-3.15.7 \
 	-I$(SRCDIR)/../mbedtls-2.16.1/include \
-	-I$(SRCDIR)/../curl-7.57.0/include \
-	-I$(SRCDIR)/../curl-7.57.0 \
 	-I$(SRCDIR)/../azure_iothub/c-utility/inc \
 	-I$(SRCDIR)/../azure_iothub/c-utility/pal/toppers \
 	-I$(SRCDIR)/../azure_iothub/iothub_client/inc \
