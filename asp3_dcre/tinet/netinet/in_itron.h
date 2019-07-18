@@ -130,7 +130,6 @@ extern ER	udp_can_cep (ID cepid, FN fncd);
 
 extern ER_UINT	udp6_snd_dat (ID cepid, T_IPV6EP *p_dstaddr, void *data, int_t len, TMO tmout);
 extern ER_UINT	udp6_rcv_dat (ID cepid, T_IPV6EP *p_dstaddr, void *data, int_t len, TMO tmout);
-extern ER	udp6_can_cep(ID cepid, FN fncd);
 
 /* 【拡張機能】 */
 

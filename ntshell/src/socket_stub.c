@@ -139,6 +139,7 @@ typedef struct socket_t {
 #define tcp6_cre_cep tcp_cre_cep
 #define tcp6_del_cep tcp_del_cep
 #define tcp6_del_rep tcp_del_rep
+#define tcp6_can_cep tcp_can_cep
 #define tcp6_sht_cep tcp_sht_cep
 #define tcp6_cls_cep tcp_cls_cep
 #define tcp6_snd_oob tcp_snd_oob
@@ -148,6 +149,8 @@ typedef struct socket_t {
 #define tcp6_rel_buf tcp_rel_buf
 #define tcp6_get_opt tcp_get_opt
 #define tcp6_set_opt tcp_set_opt
+
+#define udp6_can_cep udp_can_cep
 
 #ifndef SUPPORT_INET6
 
@@ -1562,12 +1565,19 @@ int tcp_fd_close(struct SHELL_FILE *fp)
 	case AF_INET: {
 		if (socket->cepid != 0) {
 			ID cepid = socket->cepid;
+			ret = tcp_can_cep(cepid, TFN_TCP_ALL);
+			if ((ret < 0) && (ret != E_OBJ)) {
+				syslog(LOG_ERROR, "tcp_can_cep => %d", ret);
+			}
 			ret = tcp_sht_cep(cepid);
-			if (ret < 0) {
-				//return -1;
+			if ((ret < 0) && (ret != E_OBJ)) {
+				syslog(LOG_ERROR, "tcp_sht_cep => %d", ret);
 			}
 			ret = tcp_cls_cep(cepid, (socket->repid != 0) ? 0 : SOCKET_TIMEOUT);
 			ret2 = tcp_del_cep(cepid);
+			if (ret2 < 0) {
+				syslog(LOG_ERROR, "tcp_del_cep => %d", ret2);
+			}
 			//delete_fd_by_id(&IO_TYPE_TCP, cepid);
 			delete_id(tcp_cepid_table, tcp_cepid_table_count, cepid);
 			if ((ret < 0) || (ret2 < 0)) {
@@ -1591,12 +1601,19 @@ int tcp_fd_close(struct SHELL_FILE *fp)
 	case AF_INET6: {
 		if (socket->cepid != 0) {
 			ID cepid = socket->cepid;
+			ret = tcp6_can_cep(cepid, TFN_TCP_ALL);
+			if ((ret < 0) && (ret != E_OBJ)) {
+				syslog(LOG_ERROR, "tcp_can_cep => %d", ret);
+			}
 			ret = tcp6_sht_cep(cepid);
-			if (ret < 0) {
-				//return -1;
+			if ((ret < 0) && (ret != E_OBJ)) {
+				syslog(LOG_ERROR, "tcp6_sht_cep => %d", ret);
 			}
 			ret = tcp6_cls_cep(cepid, (socket->repid != 0) ? 0 : SOCKET_TIMEOUT);
 			ret2 = tcp6_del_cep(cepid);
+			if (ret2 < 0) {
+				syslog(LOG_ERROR, "tcp6_del_cep => %d", ret2);
+			}
 			//delete_fd_by_id(&IO_TYPE_TCP, cepid);
 			delete_id(tcp6_cepid_table, tcp6_cepid_table_count, cepid);
 			if ((ret < 0) || (ret2 < 0)) {
@@ -1872,7 +1889,14 @@ int udp_fd_close(struct SHELL_FILE *fp)
 	switch (socket->family) {
 	case AF_INET: {
 		cepid = socket->cepid;
+		ret = udp_can_cep(cepid, TFN_UDP_ALL);
+		if ((ret < 0) && (ret != E_OBJ)) {
+			syslog(LOG_ERROR, "udp_can_cep => %d", ret);
+		}
 		ret = udp_del_cep(cepid);
+		if (ret < 0) {
+			syslog(LOG_ERROR, "udp_del_cep => %d", ret);
+		}
 		//delete_fd_by_id(&IO_TYPE_UDP, cepid);
 		delete_id(udp_cepid_table, udp_cepid_table_count, cepid);
 		if (ret < 0) {
@@ -1882,7 +1906,14 @@ int udp_fd_close(struct SHELL_FILE *fp)
 	}
 	case AF_INET6: {
 		cepid = socket->cepid;
+		ret = udp6_can_cep(cepid, TFN_UDP_ALL);
+		if ((ret < 0) && (ret != E_OBJ)) {
+			syslog(LOG_ERROR, "udp6_can_cep => %d", ret);
+		}
 		ret = udp6_del_cep(cepid);
+		if (ret < 0) {
+			syslog(LOG_ERROR, "udp6_del_cep => %d", ret);
+		}
 		//delete_fd_by_id(&IO_TYPE_UDP, cepid);
 		delete_id(udp6_cepid_table, udp6_cepid_table_count, cepid);
 		if (ret < 0) {
@@ -2217,7 +2248,7 @@ int __get_resolv_conf(struct resolvconf *conf, char *search, size_t search_sz)
 	nns++;
 #endif
 
-#if 0//defined(SUPPORT_INET6)
+#if defined(SUPPORT_INET6)
 	conf->ns[nns].family = AF_INET6;
 	conf->ns[nns].scopeid = 0;
 	dns_in6_get_addr((T_IN6_ADDR *)conf->ns[nns].addr);
