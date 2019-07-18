@@ -269,6 +269,7 @@ int shell_utimes(const char *, struct timeval *);
 // sys/resource.h
 struct rusage;
 int shell_wait4(pid_t, int *, int, struct rusage *);
+ssize_t shell_getrandom(void *buf, size_t buflen, unsigned int flags);
 // ↑↑↑musl
 
 // arduino.h

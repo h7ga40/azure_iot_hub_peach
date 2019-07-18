@@ -77,38 +77,38 @@ long no_implement(const char *text)
 	return -ENOSYS;
 }
 
-long __syscall_nr(long n, ...)
+long __syscall_nr(long n, long a, long b, long c, long d, long e, long f)
 {
 	long ret = -ENOSYS;
-	va_list ap;
-
-	va_start(ap, n);
 
 	switch (n) {
 	case __NR_setresgid:
-		no_implement("setresgid");
+		ret = no_implement("setresgid");
 		break;
 	case __NR_setresuid:
-		no_implement("setresuid");
+		ret = no_implement("setresuid");
 		break;
 	case __NR_setgid:
-		no_implement("setgid");
+		ret = no_implement("setgid");
 		break;
 	case __NR_setregid:
-		no_implement("setregid");
+		ret = no_implement("setregid");
 		break;
 	case __NR_setreuid:
-		no_implement("setreuid");
+		ret = no_implement("setreuid");
 		break;
 	case __NR_setuid:
-		no_implement("setuid");
+		ret = no_implement("setuid");
 		break;
 	default:
-		no_implement("syscall");
+		if (n == (long)SYS_getrandom) {
+			ret = shell_getrandom((void *)a, (size_t)b, (unsigned int)c);
+		}
+		else {
+			ret = no_implement("syscall");
+		}
 		break;
 	}
-
-	va_end(ap);
 
 	return ret;
 }
@@ -536,6 +536,16 @@ long SYS_setuid32()
 long SYS_tgkill()
 {
 	return no_implement("tgkill\n");
+}
+
+long SYS_getrandom(long a, long b, long c)
+{
+	return shell_getrandom((void *)a, (size_t)b, (unsigned int)c);;
+}
+
+long SYS_setitimer()
+{
+	return no_implement("setitimer\n");
 }
 
 long SYS_prlimit64(long a, long b, long c, long d) {

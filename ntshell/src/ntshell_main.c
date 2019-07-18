@@ -758,3 +758,22 @@ int shell_nanosleep(const struct timespec *req, struct timespec *rem)
 
 	return -EFAULT;
 }
+
+ssize_t shell_getrandom(void *buf, size_t buflen, unsigned int flags)
+{
+	SYSTIM now;
+	int32_t i;
+	int *output = (int *)buf;
+	size_t sz = buflen / 4;
+
+	get_tim(&now);
+	srand(now);
+
+	for (i = 0; i < sz; i++)
+		output[i] = rand();
+
+	for (i = 4 * sz; i < buflen; i++)
+		((char *)buf)[i] = rand();
+
+	return buflen;
+}
