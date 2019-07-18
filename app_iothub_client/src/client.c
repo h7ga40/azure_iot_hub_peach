@@ -491,7 +491,7 @@ void iothub_client_run(int proto)
 
 				} while (g_continueRunning);
 
-				(void)printf("iothub_client_sample_http has gotten quit message, call DoWork %d more time to complete final sending...\r\n", DOWORK_LOOP_NUM);
+				(void)printf("iothub_client_run has gotten quit message, call DoWork %d more time to complete final sending...\r\n", DOWORK_LOOP_NUM);
 				for (size_t index = 0; index < DOWORK_LOOP_NUM; index++)
 				{
 					IoTHubClient_LL_DoWork(iotHubClientHandle);
