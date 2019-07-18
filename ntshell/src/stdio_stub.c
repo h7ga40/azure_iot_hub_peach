@@ -433,12 +433,12 @@ static void ntstdio_xo(struct ntstdio_t *handle, struct SHELL_FILE *fp, unsigned
 	if (lock)
 		unl_cpu();
 
-	do {
+	while (uart->tx_pos_w != uart->tx_pos_r) {
 		FLGPTN flgptn = 0, waitptn = 0;
 		FD_SET(fp->fd, (fd_set *)&waitptn);
 
-		ret = wai_flg(FLG_SELECT_WAIT, waitptn, TWF_ORW, &flgptn);
-		if (ret != E_OK) {
+		ret = twai_flg(FLG_SELECT_WAIT, waitptn, TWF_ORW, &flgptn, 1000);
+		if ((ret != E_OK) && (ret != E_TMOUT)) {
 			syslog(LOG_ERROR, "wai_flg => %d", ret);
 			break;
 		}
@@ -447,9 +447,9 @@ static void ntstdio_xo(struct ntstdio_t *handle, struct SHELL_FILE *fp, unsigned
 		if (ret != E_OK) {
 			syslog(LOG_ERROR, "clr_flg => %d", ret);
 		}
-	} while (fp->writeevt_w == fp->writeevt_r);
+	}
 
-	fp->writeevt_r++;
+	if (fp->writeevt_w != fp->writeevt_r) fp->writeevt_r++;
 
 	if (lock)
 		loc_cpu();
