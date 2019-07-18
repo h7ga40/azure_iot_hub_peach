@@ -32,7 +32,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  @(#) $Id$
+ *  @(#) $Id: socket_stub.c 1982 2019-07-18 00:13:56Z coas-nagasima $
  */
 #include "shellif.h"
 #include <kernel.h>
@@ -371,6 +371,9 @@ int shell_bind(int fd, const struct sockaddr *addr, socklen_t len)
 			T_TCP_CCEP ccep = { 0, socket->buf, TCP_SOCKET_BUF_SIZE, &socket->buf[TCP_SOCKET_BUF_SIZE], TCP_SOCKET_BUF_SIZE, (FP)socket_tcp_callback };
 			ret = tcp_cre_cep(cepid, &ccep);
 			if (ret != E_OK) {
+				free(socket->buf);
+				socket->buf = NULL;
+				socket->buf_size = 0;
 				delete_id(tcp_cepid_table, tcp_cepid_table_count, cepid);
 				return -ENOMEM;
 			}
@@ -418,6 +421,9 @@ int shell_bind(int fd, const struct sockaddr *addr, socklen_t len)
 			T_TCP6_CCEP ccep = { 0, socket->buf, TCP_SOCKET_BUF_SIZE, &socket->buf[TCP_SOCKET_BUF_SIZE], TCP_SOCKET_BUF_SIZE, (FP)socket_tcp6_callback };
 			ret = tcp6_cre_cep(cepid, &ccep);
 			if (ret != E_OK) {
+				free(socket->buf);
+				socket->buf = NULL;
+				socket->buf_size = 0;
 				delete_id(tcp6_cepid_table, tcp6_cepid_table_count, cepid);
 				return -ENOMEM;
 			}
@@ -530,6 +536,9 @@ int shell_connect(int fd, const struct sockaddr *addr, socklen_t alen)
 			T_TCP_CCEP ccep = { 0, socket->buf, TCP_SOCKET_BUF_SIZE, &socket->buf[TCP_SOCKET_BUF_SIZE], TCP_SOCKET_BUF_SIZE, (FP)socket_tcp_callback };
 			ret = tcp_cre_cep(cepid, &ccep);
 			if (ret != E_OK) {
+				free(socket->buf);
+				socket->buf = NULL;
+				socket->buf_size = 0;
 				delete_id(tcp_cepid_table, tcp_cepid_table_count, cepid);
 				return -ENOMEM;
 			}
@@ -568,6 +577,9 @@ int shell_connect(int fd, const struct sockaddr *addr, socklen_t alen)
 			T_TCP6_CCEP ccep = { 0, socket->buf, TCP_SOCKET_BUF_SIZE, &socket->buf[TCP_SOCKET_BUF_SIZE], TCP_SOCKET_BUF_SIZE, (FP)socket_tcp6_callback };
 			ret = tcp6_cre_cep(cepid, &ccep);
 			if (ret != E_OK) {
+				free(socket->buf);
+				socket->buf = NULL;
+				socket->buf_size = 0;
 				delete_id(tcp6_cepid_table, tcp6_cepid_table_count, cepid);
 				return -ENOMEM;
 			}
@@ -637,6 +649,9 @@ int shell_accept(int fd, struct sockaddr *__restrict addr, socklen_t *__restrict
 			T_TCP_CCEP ccep = { 0, socket->buf, TCP_SOCKET_BUF_SIZE, &socket->buf[TCP_SOCKET_BUF_SIZE], TCP_SOCKET_BUF_SIZE, (FP)socket_tcp_callback };
 			ret = tcp_cre_cep(cepid, &ccep);
 			if (ret != E_OK) {
+				free(socket->buf);
+				socket->buf = NULL;
+				socket->buf_size = 0;
 				delete_id(tcp_cepid_table, tcp_cepid_table_count, cepid);
 				return -ENOMEM;
 			}
@@ -692,6 +707,9 @@ int shell_accept(int fd, struct sockaddr *__restrict addr, socklen_t *__restrict
 			T_TCP6_CCEP ccep = { 0, socket->buf, TCP_SOCKET_BUF_SIZE, &socket->buf[TCP_SOCKET_BUF_SIZE], TCP_SOCKET_BUF_SIZE, (FP)socket_tcp6_callback };
 			ret = tcp6_cre_cep(cepid, &ccep);
 			if (ret != E_OK) {
+				free(socket->buf);
+				socket->buf = NULL;
+				socket->buf_size = 0;
 				delete_id(tcp6_cepid_table, tcp6_cepid_table_count, cepid);
 				return -ENOMEM;
 			}
@@ -2199,7 +2217,7 @@ int __get_resolv_conf(struct resolvconf *conf, char *search, size_t search_sz)
 	nns++;
 #endif
 
-#if defined(SUPPORT_INET6)
+#if 0//defined(SUPPORT_INET6)
 	conf->ns[nns].family = AF_INET6;
 	conf->ns[nns].scopeid = 0;
 	dns_in6_get_addr((T_IN6_ADDR *)conf->ns[nns].addr);
