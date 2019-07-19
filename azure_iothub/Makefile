@@ -48,6 +48,7 @@ PROJECT := azure_iothub
 
 OBJECTS += c-utility/adapters/agenttime_mbed.o
 OBJECTS += c-utility/adapters/httpapi_compact.o
+OBJECTS += c-utility/adapters/lock_toppers.o
 OBJECTS += c-utility/adapters/platform_toppers.o
 OBJECTS += c-utility/adapters/socketio_berkeley.o
 OBJECTS += c-utility/adapters/threadapi_toppers.o
@@ -100,6 +101,7 @@ OBJECTS += iothub_client/src/blob.o
 OBJECTS += iothub_client/src/iothub.o
 OBJECTS += iothub_client/src/iothub_client.o
 OBJECTS += iothub_client/src/iothub_client_authorization.o
+OBJECTS += iothub_client/src/iothub_client_core.o
 OBJECTS += iothub_client/src/iothub_client_core_ll.o
 OBJECTS += iothub_client/src/iothub_client_diagnostic.o
 OBJECTS += iothub_client/src/iothub_client_ll.o
