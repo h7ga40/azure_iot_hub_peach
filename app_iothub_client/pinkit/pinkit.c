@@ -27,7 +27,7 @@ void pinkit_task(intptr_t exinf)
 		pinkit.humidity = LightSensor_TakeMeasurement();
 
 		BoardFullColorLED_SetRgb(fabs(pinkit.accel.X) > 0.5, fabs(pinkit.accel.Y) > 0.5, fabs(pinkit.accel.Z) > 0.5);
-		gpio_write(&user_led, pinkit.temperature > 28.0);
+		gpio_write(&user_led, pinkit.ledOn);
 
 		dly_tsk(1000);
 	}
