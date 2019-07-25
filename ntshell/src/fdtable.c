@@ -143,6 +143,9 @@ int delete_fp(struct SHELL_FILE *fp)
 {
 	ER ret;
 
+	if (fp->type == NULL)
+		return 0;
+
 	fp->type->delete(fp);
 
 	ret = wai_sem(SEM_FILEDESC);
