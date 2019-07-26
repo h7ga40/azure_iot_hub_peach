@@ -205,12 +205,14 @@ void Measure()
 	RegWriteMask(R_POWER_CTL, 0x08, 0x08);
 }
 
-static void ReadXYZ(int16_t *x, int16_t *y, int16_t *z)
+static int ReadXYZ(int16_t *x, int16_t *y, int16_t *z)
 {
-	RegReads(R_DATAX0, xyz, 6);
+	int result;
+	result = RegReads(R_DATAX0, xyz, 6);
 	*x = (int16_t)(((uint16_t)xyz[1] << 8) + (uint16_t)xyz[0]);
 	*y = (int16_t)(((uint16_t)xyz[3] << 8) + (uint16_t)xyz[2]);
 	*z = (int16_t)(((uint16_t)xyz[5] << 8) + (uint16_t)xyz[4]);
+	return result;
 }
 
 static bool measuring = false;
@@ -243,11 +245,11 @@ bool Accelerometer_TakeMeasurements(SensorReading *result)
 	}
 
 	int16_t x, y, z;
-	ReadXYZ(&x, &y, &z);
+	int ret = ReadXYZ(&x, &y, &z);
 
 	result->X = ((double)x) / 127.0;
 	result->Y = ((double)y) / 127.0;
 	result->Z = ((double)z) / 127.0;
 
-	return true;
+	return ret == 0;
 }
