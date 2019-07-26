@@ -56,6 +56,9 @@
 #define MBEDTLS_HAVE_ASM
 #define MBEDTLS_HAVE_TIME
 #define MBEDTLS_FS_IO
+#define MBEDTLS_ZLIB_SUPPORT
+#define MBEDTLS_TIMING_C
+#define MBEDTLS_HAVEGE_C
 
 /* mbed TLS feature support */
 #define MBEDTLS_ECP_DP_SECP256R1_ENABLED
@@ -111,6 +114,7 @@
 /* Save RAM at the expense of speed, see ecp.h */
 #define MBEDTLS_ECP_WINDOW_SIZE        2
 #define MBEDTLS_ECP_FIXED_POINT_OPTIM  0
+#define MBEDTLS_ECP_RESTARTABLE
 
 /* Significant speed benefit at the expense of some ROM */
 #define MBEDTLS_ECP_NIST_OPTIM
@@ -153,7 +157,7 @@
  * The minimum size here depends on the certificate chain used as well as the
  * typical size of records.
  */
-#define MBEDTLS_SSL_MAX_CONTENT_LEN             5120
+#define MBEDTLS_SSL_MAX_CONTENT_LEN             10240
 
 #include "mbedtls/check_config.h"
 

@@ -163,6 +163,8 @@ C_FLAGS += -Wnull-dereference
 C_FLAGS += -g3
 C_FLAGS += -Wstack-usage=256
 C_FLAGS += -nostdinc
+C_FLAGS += -D__linux__
+C_FLAGS += -D__GLIBC__
 
 CXX_FLAGS += -std=gnu++11
 CXX_FLAGS += -mcpu=cortex-a9
