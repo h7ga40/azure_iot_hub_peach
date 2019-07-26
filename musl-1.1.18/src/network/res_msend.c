@@ -46,6 +46,7 @@ int __res_msend_rc(int nqueries, const unsigned char *const *queries,
 	int cs;
 	struct pollfd pfd;
 	unsigned long t0, t1, t2;
+	int ret = -1;
 
 	pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &cs);
 
@@ -77,9 +78,9 @@ int __res_msend_rc(int nqueries, const unsigned char *const *queries,
 		}
 		if (fd < 0 || bind(fd, (void *)&sa, sl) < 0) {
 			if (fd >= 0) close(fd);
-			pthread_setcancelstate(cs, 0);
-			return -1;
+			continue;
 		}
+		ret = 0;
 
 		/* Past this point, there are no errors. Each individual query will
 		 * yield either no reply (indicated by zero length) or an answer
@@ -92,7 +93,7 @@ int __res_msend_rc(int nqueries, const unsigned char *const *queries,
 		if (family == AF_INET6) {
 			setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &(int){0}, sizeof 0);
 			i=nns;
-			if (ns[i].sin.sin_family != AF_INET) continue;
+			if (ns[i].sin.sin_family != AF_INET) goto out;
 			memcpy(ns[i].sin6.sin6_addr.s6_addr+12,
 				&ns[i].sin.sin_addr, 4);
 			memcpy(ns[i].sin6.sin6_addr.s6_addr,
@@ -172,7 +173,7 @@ int __res_msend_rc(int nqueries, const unsigned char *const *queries,
 	out:
 		pthread_cleanup_pop(1);
 	}
-	return 0;
+	return ret;
 }
 
 int __res_msend(int nqueries, const unsigned char *const *queries,
