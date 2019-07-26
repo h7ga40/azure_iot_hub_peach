@@ -29,7 +29,7 @@ void pinkit_task(intptr_t exinf)
 		BoardFullColorLED_SetRgb(fabs(pinkit.accel.X) > 0.5, fabs(pinkit.accel.Y) > 0.5, fabs(pinkit.accel.Z) > 0.5);
 		gpio_write(&user_led, pinkit.ledOn);
 
-		dly_tsk(1000);
+		dly_tsk(10000);
 	}
 }
 
