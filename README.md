@@ -17,10 +17,10 @@ NTShell> set_cs <device connection string>
 NTShell> iothub mqtt
 ```
 
-IoT Centralでサンプルを動作させるには、[この手順](https://github.com/algyan/touch_and_try-ReButton)を参考に、「実際」の「デバイス」を作成し、スコープID（scopeId）、デバイスID（deviceId）、主キー（deviceKey）を取得し、以下のコマンドでデバイスをプロビジョニングします。
+IoT Centralでサンプルを動作させるには、[この手順](https://github.com/algyan/touch_and_try-ReButton)を参考に、「実際」の「デバイス」を作成し、スコープID（scopeId）、デバイスID（deviceId）、主キー（primaryKey）を取得し、以下のコマンドでデバイスをプロビジョニングします。
 
 ```shell
-NTShell> dps_csgen mqtt <scopeId> <deviceId> <deviceKey>
+NTShell> dps_csgen mqtt <scopeId> <deviceId> <primaryKey>
 ```
 
 接続文字列が表示されれば成功です。
