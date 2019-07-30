@@ -203,7 +203,7 @@ static uint8_t	request_plist[] = DHCP4_CLI_CFG_REQUEST_OLIST;
 #define DHCP4_CLI_READY_SIGNAL(ct) do { syscall(sig_sem(SEM_DHCP4_CLI_READY)); } while(0)
 #else
 #define DHCP4_CLI_READY_WAIT(ct) do { } while(0)
-#define DHCP4_CLI_READY_SIGNAL(ct) do { ct->req = 1; syscall(wup_tsk(ct->tskid)); } while(0)
+#define DHCP4_CLI_READY_SIGNAL(ct) do { ct->sig = 1; syscall(wup_tsk(ct->tskid)); } while(0)
 #endif
 
 /*
@@ -2118,23 +2118,26 @@ dhcp4_cli_progress(T_DHCP4_CLI_CONTEXT *ct, int elapse)
 void
 dhcp4_cli_wakeup(T_DHCP4_CLI_CONTEXT *ct)
 {
-	if (!ct->req)
-		return;
-	ct->req = 0;
+	if (ct->req) {
+		ct->req = 0;
+		if (ct->snd_msg == NULL) {
+			ct->flags = 0;
+			ct->error = E_OK;
 
-	if (ct->snd_msg == NULL) {
-		ct->flags = 0;
-		ct->error = E_OK;
+			/* メッセージ構造体を初期化する。*/
+			if ((ct->error = init_cli_msg(ct)) != E_OK)
+				return;
 
-		/* メッセージ構造体を初期化する。*/
-		if ((ct->error = init_cli_msg(ct)) != E_OK)
-			return;
+			ct->timer = 1000 * 1000;
 
-		ct->timer = 1000 * 1000;
-
-		/* SELECT 状態に遷移する。*/
-		start_select(ct);
+			/* SELECT 状態に遷移する。*/
+			start_select(ct);
+			}
 		}
+
+	if (!ct->sig)
+		return;
+	ct->sig = 0;
 
 	if (ct->flags & DHCP4C_FLAG_RCV_MSG) {
 		while (ct->val_lst != NULL) {

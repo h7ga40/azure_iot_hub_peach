@@ -171,6 +171,7 @@ typedef struct dhcp4_cli_context {
 	uint16_t	secs;		/* seconds since boot began	*/
 	uint8_t		fsm;		/* 現在の状態			*/
 	uint8_t		req;
+	uint8_t		sig;
 	int timer;
 	} T_DHCP4_CLI_CONTEXT;
 
