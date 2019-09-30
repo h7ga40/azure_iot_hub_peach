@@ -139,25 +139,25 @@ WITH_DATA(double, windSpeed),
 WITH_DATA(double, temperature),
 WITH_DATA(double, humidity),
 WITH_METHOD(quit),
-WITH_METHOD(TurnFanOn),
-WITH_METHOD(TurnFanOff)
+WITH_METHOD(turnLedOn),
+WITH_METHOD(turnLedOff)
 );
 
-DECLARE_STRUCT(FanSpeedD,
-	int, value
+DECLARE_STRUCT(ThresholdD,
+	double, value
 );
 
-DECLARE_STRUCT(FanSpeedR,
-	int, value,
+DECLARE_STRUCT(ThresholdR,
+	double, value,
 	ascii_char_ptr, status
 );
 
 DECLARE_DEVICETWIN_MODEL(AnemometerState,
-WITH_REPORTED_PROPERTY(FanSpeedR, fanSpeed)
+WITH_REPORTED_PROPERTY(ThresholdR, threshold)
 );
 
 DECLARE_DEVICETWIN_MODEL(AnemometerSettings,
-WITH_DESIRED_PROPERTY(FanSpeedD, fanSpeed, onDesiredFanSpeed)
+WITH_DESIRED_PROPERTY(ThresholdD, threshold, onDesiredThreshold)
 );
 
 END_NAMESPACE(WeatherStation);
@@ -166,17 +166,17 @@ void anemometerReportedStateCallback(int status_code, void* userContextCallback)
 {
 	AnemometerState *anemometer = (AnemometerState *)userContextCallback;
 
-	printf("received states %d, reported fanSpeed = %d\n", status_code, anemometer->fanSpeed.value);
+	printf("received states \033[43m%d\033[49m, reported threshold = %.1f\n", status_code, anemometer->threshold.value);
 }
 
-void onDesiredFanSpeed(void* argument)
+void onDesiredThreshold(void* argument)
 {
-	// Note: The argument is NOT a pointer to fanSpeed, but instead a pointer to the MODEL
-	//       that contains fanSpeed as one of its arguments.  In this case, it
+	// Note: The argument is NOT a pointer to threshold, but instead a pointer to the MODEL
+	//       that contains threshold as one of its arguments.  In this case, it
 	//       is AnemometerSettings*.
 
 	AnemometerSettings *anemometer = (AnemometerSettings *)argument;
-	printf("received a new desired.fanSpeed = %d\n", anemometer->fanSpeed.value);
+	printf("received a new desired.threshold = \033[42m%.1f\033[49m\n", anemometer->threshold.value);
 
 	g_twinReport = true;
 }
@@ -192,19 +192,23 @@ METHODRETURN_HANDLE quit(ContosoAnemometer* device)
 	return result;
 }
 
-METHODRETURN_HANDLE TurnFanOn(ContosoAnemometer* device)
+METHODRETURN_HANDLE turnLedOn(ContosoAnemometer* device)
 {
 	(void)device;
-	(void)printf("Turning fan on with Method.\r\n");
+	(void)printf("\033[41mTurning LED on with Method.\033[49m\r\n");
+
+	pinkit.ledOn = 1;
 
 	METHODRETURN_HANDLE result = MethodReturn_Create(1, "{\"Message\":\"Turning fan on with Method\"}");
 	return result;
 }
 
-METHODRETURN_HANDLE TurnFanOff(ContosoAnemometer* device)
+METHODRETURN_HANDLE turnLedOff(ContosoAnemometer* device)
 {
 	(void)device;
-	(void)printf("Turning fan off with Method.\r\n");
+	(void)printf("\033[44mTurning LED off with Method.\033[49m\r\n");
+
+	pinkit.ledOn = 0;
 
 	METHODRETURN_HANDLE result = MethodReturn_Create(0, "{\"Message\":\"Turning fan off with Method\"}");
 	return result;
@@ -436,7 +440,7 @@ void iothub_client_run(int proto)
 						unsigned char *msgText;
 						size_t msgSize;
 						myWeather->windSpeed = avgWindSpeed + (rand() % 4 + 2);
-						myWeather->temperature = minTemperature + (rand() % 10);
+						myWeather->temperature = pinkit.temperature;
 						myWeather->humidity = minHumidity + (rand() % 20);
 						if (SERIALIZE(&msgText, &msgSize, myWeather->windSpeed, myWeather->temperature, myWeather->humidity) != CODEFIRST_OK)
 						{
@@ -454,7 +458,7 @@ void iothub_client_run(int proto)
 							messages[msgPos].messageTrackingId = msg_id;
 
 							propMap = IoTHubMessage_Properties(messages[msgPos].messageHandle);
-							(void)sprintf_s(propText, sizeof(propText), myWeather->temperature > 28 ? "true" : "false");
+							(void)sprintf_s(propText, sizeof(propText), myWeather->temperature > anemometerSettings->threshold.value ? "true" : "false");
 							if (Map_AddOrUpdate(propMap, "temperatureAlert", propText) != MAP_OK)
 							{
 								(void)printf("ERROR: Map_AddOrUpdate Failed!\r\n");
@@ -480,8 +484,8 @@ void iothub_client_run(int proto)
 					}
 					else if (g_twinReport) {
 						g_twinReport = false;
-						anemometerState->fanSpeed.value = anemometerSettings->fanSpeed.value;
-						anemometerState->fanSpeed.status = "success";
+						anemometerState->threshold.value = anemometerSettings->threshold.value;
+						anemometerState->threshold.status = "success";
 						IoTHubDeviceTwin_LL_SendReportedStateAnemometerState(anemometerState, anemometerReportedStateCallback, anemometerState);
 					}
 					iterator++;

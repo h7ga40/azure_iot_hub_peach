@@ -19,6 +19,7 @@ typedef struct pinkit_t {
 	SensorReading accel;
 	double temperature;
 	double humidity;
+	int ledOn;
 } pinkit_t;
 
 extern pinkit_t pinkit;
