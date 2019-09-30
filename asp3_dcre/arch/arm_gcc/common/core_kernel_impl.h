@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2006-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -56,9 +56,9 @@
 /*
  *  ターゲット依存のタスク属性（エラーチェック用）
  */
-#ifdef USE_ARM_FPU
+/*#ifdef USE_ARM_FPU*/
 #define TARGET_TSKATR		(TA_FPU)
-#endif /* USE_ARM_FPU */
+/*#endif /* USE_ARM_FPU */
 
 /*
  *  エラーチェック方法の指定
@@ -74,6 +74,9 @@
 #define CHECK_STACK_NONNULL			/* スタック領域の非NULLチェック */
 #define CHECK_MPF_ALIGN		4		/* 固定長メモリプール領域のアライン単位 */
 #define CHECK_MPF_NONNULL			/* 固定長メモリプール領域の非NULLチェック */
+#define CHECK_MPK_ALIGN		4		/* カーネルメモリプール領域のアライン単位 */
+#define CHECK_MPK_NONNULL			/* カーネルメモリプール領域の非NULL  */
+									/*							チェック */
 #define CHECK_MB_ALIGN		4		/* 管理領域のアライン単位 */
 
 #ifndef TOPPERS_MACRO_ONLY
@@ -275,7 +278,7 @@ extern void dispatch(void);
 /*
  *  非タスクコンテキストからのディスパッチ要求
  */
-#define request_dispatch()
+#define request_dispatch_retint()
 
 /*
  *  ディスパッチャの動作開始（core_support.S）
@@ -330,7 +333,7 @@ extern void start_r(void);
 /*
  *  割込みハンドラテーブル（kernel_cfg.c）
  */
-extern FP inh_table[TNUM_INHNO];
+extern /*const*/FP inh_table[TNUM_INHNO];
 
 /*
  *  割込み要求ライン設定テーブル（kernel_cfg.c）
@@ -464,6 +467,13 @@ extern void arm_mmu_initialize(void);
 #endif /* USE_ARM_MMU */
 
 #ifndef TOPPERS_MACRO_ONLY
+
+/*
+ *  FPUの初期化
+ */
+#ifdef USE_ARM_FPU
+extern void arm_fpu_initialize(void);
+#endif /* USE_ARM_FPU */
 
 /*
  *  コア依存の初期化

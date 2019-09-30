@@ -4,7 +4,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2004-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2004-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -40,16 +40,16 @@
  */
 
 /*
- *		トレースログに関する設定
+ *		トレースログ機能のヘッダファイル
  *
  *  このインクルードファイルは，target_kernel_impl.hおよび
- *  target_syssvc.hのみからインクルードされる．また，トレースログ機能の
- *  初期化や記録の開始／停止，トレースログのダンプを行うプログラムから
- *  インクルードすることを想定している．
+ *  target_syssvc.hからインクルードされる．また，トレースログ機能の初
+ *  期化や記録の開始／停止，トレースログのダンプを行うプログラムからイ
+ *  ンクルードすることを想定している．
  */
 
-#ifndef TOPPERS_TRACE_CONFIG_H
-#define TOPPERS_TRACE_CONFIG_H
+#ifndef TOPPERS_TRACE_LOG_H
+#define TOPPERS_TRACE_LOG_H
 
 /*
  *  トレースログのデータ構造
@@ -74,7 +74,7 @@ typedef	SYSLOG	TRACE;
 #ifndef TOPPERS_MACRO_ONLY
 
 /*
- *  TECSで記述されたテストプログラム用のサービスを直接呼び出すための定義
+ *  TECSで記述されたトレースログ機能を直接呼び出すための定義
  *
  *  C言語で記述されたアプリケーションから，TECSで記述されたトレースログ
  *  機能を呼び出すためには，アダプタを用いるのが正当な方法であるが，ト
@@ -133,7 +133,7 @@ trace_write_0(uint_t type)
 }
 
 Inline void
-trace_write_1(uint_t type, intptr_t arg1)
+trace_write_1(uint_t type, LOGPAR arg1)
 {
 	TRACE	trace;
 
@@ -143,7 +143,7 @@ trace_write_1(uint_t type, intptr_t arg1)
 }
 
 Inline void
-trace_write_2(uint_t type, intptr_t arg1, intptr_t arg2)
+trace_write_2(uint_t type, LOGPAR arg1, LOGPAR arg2)
 {
 	TRACE	trace;
 
@@ -154,7 +154,7 @@ trace_write_2(uint_t type, intptr_t arg1, intptr_t arg2)
 }
 
 Inline void
-trace_write_3(uint_t type, intptr_t arg1, intptr_t arg2, intptr_t arg3)
+trace_write_3(uint_t type, LOGPAR arg1, LOGPAR arg2, LOGPAR arg3)
 {
 	TRACE	trace;
 
@@ -173,22 +173,17 @@ trace_write_3(uint_t type, intptr_t arg1, intptr_t arg2, intptr_t arg3)
 				trace_write_0(type)
 
 #define trace_1(type, arg1) \
-				trace_write_1(type, (intptr_t)(arg1))
+				trace_write_1(type, (LOGPAR)(arg1))
 
 #define trace_2(type, arg1, arg2) \
-				trace_write_2(type, (intptr_t)(arg1), (intptr_t)(arg2))
+				trace_write_2(type, (LOGPAR)(arg1), (LOGPAR)(arg2))
 
 #define trace_3(type, arg1, arg2, arg3) \
-				trace_write_3(type, (intptr_t)(arg1), (intptr_t)(arg2), \
-														(intptr_t)(arg3))
+				trace_write_3(type, (LOGPAR)(arg1), (LOGPAR)(arg2), \
+														(LOGPAR)(arg3))
 
 /* 
  *  トレースログのダンプ
- *
- *  トレースログをダンプする．終了処理ルーチンとして登録することも想定
- *  している．引数として，ダンプ先となる文字出力関数へのポインタを渡す．
- *  ターゲット依存の低レベル文字出力を利用する場合には，target_putcを渡
- *  す．
  */
 Inline void
 trace_dump(void)
@@ -203,7 +198,9 @@ trace_dump(void)
  */
 #define LOG_TSKSTAT(p_tcb)		trace_2(LOG_TYPE_TSKSTAT, p_tcb, p_tcb->tstat)
 
+#define LOG_DSP_LEAVE(p_tcb)	trace_1(LOG_TYPE_DSP|LOG_LEAVE, p_tcb)
+
 #define LOG_TSYSLOG_ESYSLOG_WRITE_ENTER(priority, p_syslog) \
 								trace_wri_log((TRACE *) p_syslog)
 
-#endif /* TOPPERS_TRACE_CONFIG_H */
+#endif /* TOPPERS_TRACE_LOG_H */

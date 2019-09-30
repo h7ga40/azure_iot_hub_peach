@@ -1,7 +1,6 @@
 /*
- *  TOPPERS/ASP Kernel
- *      Toyohashi Open Platform for Embedded Real-Time Systems/
- *      Advanced Standard Profile Kernel
+ *  TOPPERS Software
+ *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
@@ -69,6 +68,22 @@ extern void	syslog_initialize(intptr_t exinf) throw();
 #endif
 
 /*
+ *  ログ情報の重要度のビットマップを作るためのマクロ
+ */
+#define LOG_MASK(prio)		(1U << (prio))
+#define LOG_UPTO(prio)		((1U << ((prio) + 1)) - 1)
+
+/*
+ *  パケット形式の定義
+ */
+typedef struct t_syslog_rlog {
+	uint_t	count;		/* ログバッファ中のログの数 */
+	uint_t	lost;		/* 失われたログの数 */
+	uint_t	logmask;	/* ログバッファに記録すべき重要度 */
+	uint_t	lowmask;	/* 低レベル出力すべき重要度 */
+} T_SYSLOG_RLOG;
+
+/*
  *  ログ情報の出力
  */
 extern ER	syslog_wri_log(uint_t prio, const SYSLOG *p_syslog) throw();
@@ -81,17 +96,17 @@ extern ER_UINT	syslog_rea_log(SYSLOG *p_syslog) throw();
 /*
  *  出力すべきログ情報の重要度の設定
  */
-extern ER	syslog_msk_log(uint_t logmask, uint_t lowmask) throw();
+extern ER		syslog_msk_log(uint_t logmask, uint_t lowmask) throw();
 
 /*
  *  ログバッファの状態参照
  */
-extern ER	syslog_ref_log(T_SYSLOG_RLOG *pk_rlog) throw();
+extern ER		syslog_ref_log(T_SYSLOG_RLOG *pk_rlog) throw();
 
 /*
  *  低レベル出力によるすべてのログ情報の出力
  */
-extern ER	syslog_fls_log(void) throw();
+extern ER		syslog_fls_log(void) throw();
 
 #ifdef __cplusplus
 }

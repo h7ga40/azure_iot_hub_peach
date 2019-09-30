@@ -68,7 +68,7 @@ wait = waimake.o waicmp.o waitmo.o waitmook.o \
 		wobjwai.o wobjwaitmo.o iniwque.o
 
 time_event = tmeini.o tmeup.o tmedown.o tmecur.o tmeset.o tmereg.o \
-		tmeenq.o tmedeq.o tmechk.o tmeltim.o sigtim.o
+		tmeenqrel.o tmedeq.o tmechk.o tmeltim.o sigtim.o
 
 task_manage = acre_tsk.o del_tsk.o act_tsk.o can_act.o get_tst.o \
 		chg_pri.o get_pri.o get_inf.o

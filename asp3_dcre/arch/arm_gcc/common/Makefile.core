@@ -1,7 +1,7 @@
 #
 #		Makefileのコア依存部（ARM用）
 #
-#  $Id$
+#  $Id: Makefile.core 755 2016-06-12 10:08:22Z ertl-hiro $
 #
 
 #
@@ -32,7 +32,7 @@ LIBS := $(LIBS) -lgcc
 #
 KERNEL_DIRS := $(KERNEL_DIRS) $(COREDIR)
 KERNEL_ASMOBJS := $(KERNEL_ASMOBJS) core_support.o
-KERNEL_COBJS := $(KERNEL_COBJS) core_kernel_impl.o arm.o core_pl310.o
+KERNEL_COBJS := $(KERNEL_COBJS) core_kernel_impl.o arm.o
 
 #
 #  コンフィギュレータ関係の変数の定義

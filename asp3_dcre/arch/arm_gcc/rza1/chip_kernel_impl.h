@@ -2,12 +2,12 @@
  *  TOPPERS/ASP Kernel
  *      Toyohashi Open Platform for Embedded Real-Time Systems/
  *      Advanced Standard Profile Kernel
- *
+ * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2006-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
- *
+ * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
  *  ア（本ソフトウェアを改変したものを含む．以下同じ）を使用・複製・改
  *  変・再配布（以下，利用と呼ぶ）することを無償で許諾する．
@@ -30,13 +30,13 @@
  *      また，本ソフトウェアのユーザまたはエンドユーザからのいかなる理
  *      由に基づく請求からも，上記著作権者およびTOPPERSプロジェクトを
  *      免責すること．
- *
+ * 
  *  本ソフトウェアは，無保証で提供されているものである．上記著作権者お
  *  よびTOPPERSプロジェクトは，本ソフトウェアに関して，特定の使用目的
  *  に対する適合性も含めて，いかなる保証も行わない．また，本ソフトウェ
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
- *
+ * 
  *  $Id$
  */
 
@@ -57,10 +57,11 @@
 #include "rza1.h"
 
 /*
- *  MMUの使用に関する設定
+ *  デフォルトの非タスクコンテキスト用のスタック領域の定義
  */
-#define USE_ARM_MMU
-#define USE_ARM_SSECTION
+#ifndef DEFAULT_ISTKSZ
+#define DEFAULT_ISTKSZ  0x2000U			/* 8KB */
+#endif /* DEFAULT_ISTKSZ */
 
 /*
  *  GICのディストリビュータの割込みコンフィギュレーションレジスタに設定
@@ -69,16 +70,19 @@
 #define GIC_ARM11MPCORE
 
 /*
- *  GIC依存部の割込み管理機能の初期化は使用しない．
+ *  GIC 390 Errataへの対策を実施
+ */
+#define GIC_PL390_ERRATA
+
+/*
+ *  GIC依存部の割込み管理機能の初期化は使用しない
  */
 #define OMIT_GIC_INITIALIZE_INTERRUPT
 
 /*
- *  GICに関する定義，コアで共通な定義
- *
- *  core_kernel_impl.hは，gic_kernel_impl.hからインクルードされる．
+ *  MPCoreで共通な定義
  */
-#include "gic_kernel_impl.h"
+#include "mpcore_kernel_impl.h"
 
 #ifndef TOPPERS_MACRO_ONLY
 

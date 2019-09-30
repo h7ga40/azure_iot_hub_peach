@@ -4,7 +4,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2006-2017 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -69,8 +69,35 @@ ALABEL(irc_begin_int)
 	/*
 	 *  割込み要因を取得する．
 	 */
+#ifdef GIC_PL390_ERRATA			/* GIC 390 Errata 801120への対策 */
+	ldr		r1, =GICC_HPPIR
+	ldr		r0, [r1]	
+#endif /* GIC_PL390_ERRATA */
 	ldr		r1, =GICC_IAR
 	ldr		r3, [r1]
+	lsl		r4, r3, #22			/* 下位10ビットを取り出す */
+	lsr		r4, r4, #22
+
+#ifdef GIC_PL390_ERRATA			/* GIC 390 Errata 733075への対策 */
+	movw	r0, #1023
+	cmp		r4, r0
+	beq		irc_begin_int_errata_1
+	movw	r0, #1022
+	cmp		r4, r0
+	beq		irc_begin_int_errata_1
+	cmp		r3, #0
+	bne		irc_begin_int_errata_2
+	ldr		r1, =GICD_ISACTIVER(0)		/* 割込み要求があるかチェック */
+	ldr		r0, [r1]
+	tst		r0, #0x01
+	movweq	r4, #1024					/* 無効な割込みとみなす */
+ALABEL(irc_begin_int_errata_1)
+	ldr		r1, =GICD_IPRIORITYR(0)		/* 割込み優先度レジスタ0に書き込み */
+	ldr		r0, [r1]
+	str		r0, [r1]
+	asm_data_sync_barrier r0
+ALABEL(irc_begin_int_errata_2)
+#endif /* GIC_PL390_ERRATA */
 
 	/*
 	 *  割込み要因の割込み優先度を求め，割込み優先度マスクに設定する．
@@ -90,10 +117,8 @@ ALABEL(irc_begin_int)
 	str		r3, [r1]
 
 	/*
-	 *  割込み番号を返値としてリターンする．
+	 *  r4に割込み番号を入れた状態でリターンする．
 	 */
-	lsl		r4, r3, #22			/* 下位10ビットを取り出す */
-	lsr		r4, r4, #22
 	bx		lr
 
 /*

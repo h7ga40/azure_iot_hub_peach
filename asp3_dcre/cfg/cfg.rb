@@ -1,10 +1,10 @@
-#!/usr/bin/env ruby
+#!/usr/bin/env ruby -Eutf-8 -w
 # -*- coding: utf-8 -*-
 #
 #  TOPPERS Configurator by Ruby
 #
 #  Copyright (C) 2015 by FUJI SOFT INCORPORATED, JAPAN
-#  Copyright (C) 2015,2016 by Embedded and Real-Time Systems Laboratory
+#  Copyright (C) 2015-2019 by Embedded and Real-Time Systems Laboratory
 #              Graduate School of Information Science, Nagoya Univ., JAPAN
 #
 #  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -36,7 +36,7 @@
 #  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #  の責任を負わない．
 #
-#  $Id$
+#  $Id: cfg.rb 175 2019-06-19 01:51:58Z ertl-hiro $
 #
 
 if $0 == __FILE__
@@ -55,18 +55,20 @@ require "SRecord.rb"
 #  定数定義
 #
 # 共通
-VERSION = "1.2.2"
+VERSION = "1.4.1"
 
 # cfg1_out関係
-CFG1_PREFIX        = "TOPPERS_cfg_"
-CFG1_MAGIC_NUM     = "TOPPERS_magic_number"
-CFG1_SIZEOF_SIGNED = "TOPPERS_sizeof_signed_t"
-CFG1_OUT_C         = "cfg1_out.c"
-CFG1_OUT_DB        = "cfg1_out.db"
-CFG1_OUT_SREC      = "cfg1_out.srec"
-CFG1_OUT_SYMS      = "cfg1_out.syms"
-CFG1_OUT_TIMESTAMP = "cfg1_out.timestamp"
-CFG1_OUT_TARGET_H  = "target_cfg1_out.h"
+CFG1_PREFIX         = "TOPPERS_cfg_"
+CFG1_MAGIC_NUM      = "TOPPERS_magic_number"
+CFG1_SIZEOF_SIGNED  = "TOPPERS_sizeof_signed_t"
+CFG1_SIZEOF_INTPTR  = "TOPPERS_sizeof_intptr_t"
+CFG1_SIZEOF_CHARPTR = "TOPPERS_sizeof_char_ptr_t"
+CFG1_OUT_C          = "cfg1_out.c"
+CFG1_OUT_DB         = "cfg1_out.db"
+CFG1_OUT_SREC       = "cfg1_out.srec"
+CFG1_OUT_SYMS       = "cfg1_out.syms"
+CFG1_OUT_TIMESTAMP  = "cfg1_out.timestamp"
+CFG1_OUT_TARGET_H   = "target_cfg1_out.h"
 
 # cfg2_out関係
 CFG2_OUT_DB        = "cfg2_out.db"
@@ -154,11 +156,6 @@ end
 # 静的API処理時のエラー（エラーコード付き）
 def error_ercd(errorCode, params, message)
   error_api(params, "#{errorCode}: #{message}")
-end
-
-# 静的API処理時の警告（エラーコード付き）
-def warning_ercd(errorCode, params, message)
-  warning_api(params, "#{errorCode}: #{message}")
 end
 
 # パラメータのエラー
@@ -315,7 +312,7 @@ class NumStr
 
   # ハッシュのキーとして使う時の比較も数値情報で行う
   def eql?(other)
-    @val == other.val
+    @val == other
   end
 
   # ハッシュ値の定義も上書きする
@@ -389,6 +386,10 @@ def DefineSymbolValue
   $symbolValueTable.each do |symbolName, symbolData|
     if symbolData.has_key?(:VALUE)
       eval("$#{symbolName} = #{symbolData[:VALUE]}")
+      if symbolData.has_key?(:NUMSTRVAR)
+        eval("$#{symbolData[:NUMSTRVAR]} = " \
+					"NumStr.new(symbolData[:VALUE], symbolData[:EXPR])")
+      end
     end
   end
 end
@@ -430,6 +431,17 @@ def IncludeTrb(fileName)
 end
 
 #
+#  インクルードディレクティブ（#include）の生成
+#
+def GenerateIncludes(genFile)
+  $cfgFileInfo.each do |cfgInfo|
+    if cfgInfo.has_key?(:DIRECTIVE)
+      genFile.add(cfgInfo[:DIRECTIVE])
+    end
+  end
+end
+
+#
 #  パス3の処理
 #
 def Pass3
@@ -438,16 +450,10 @@ def Pass3
   #
   db = PStore.new(CFG2_OUT_DB)
   db.transaction(true) do
-    $apiDefinition = db[:apiDefinition]
-    $symbolValueTable = db[:symbolValueTable]
-    $cfgFileInfo = db[:cfgFileInfo]
-    $includeFiles = db[:includeFiles]
-    $cfgData = db[:cfgData]
-    $asmLabel = db[:asmLabel]
-    $endianLittle = db[:endianLittle]
-    $cfg2Data = db[:cfg2Data]
+    db.roots.each do |var|
+      eval("$#{var} = db[:#{var}]")
+    end
   end
-  $cfg3Data = {}
 
   #
   #  値取得シンボルをグローバル変数として定義する
@@ -464,17 +470,12 @@ def Pass3
   #
   #  パス4に引き渡す情報をファイルに生成
   #
-  if $omitOutputDb.nil?
+  if !$omitOutputDb
     db = PStore.new(CFG3_OUT_DB)
     db.transaction do
-      db[:apiDefinition] = $apiDefinition
-      db[:symbolValueTable] = $symbolValueTable
-      db[:cfgFileInfo] = $cfgFileInfo
-      db[:includeFiles] = $includeFiles
-      db[:cfgData] = $cfgData
-      db[:asmLabel] = $asmLabel
-      db[:endianLittle] = $endianLittle
-      db[:cfg3Data] = $cfg3Data
+      $globalVars.each do |var|
+        eval("db[:#{var}] = $#{var}")
+      end
     end
   end
 end
@@ -488,14 +489,9 @@ def Pass4
   #
   db = PStore.new(CFG3_OUT_DB)
   db.transaction(true) do
-    $apiDefinition = db[:apiDefinition]
-    $symbolValueTable = db[:symbolValueTable]
-    $cfgFileInfo = db[:cfgFileInfo]
-    $includeFiles = db[:includeFiles]
-    $cfgData = db[:cfgData]
-    $asmLabel = db[:asmLabel]
-    $endianLittle = db[:endianLittle]
-    $cfg3Data = db[:cfg3Data] || db[:cfg2Data]
+    db.roots.each do |var|
+      eval("$#{var} = db[:#{var}]")
+    end
   end
 
   #
@@ -556,15 +552,19 @@ $apiTableFileNames = []
 $symvalTableFileNames = []
 $romImageFileName = nil
 $romSymbolFileName = nil
-$dependencyFileName = nil
 $idInputFileName = nil
 $idOutputFileName = nil
+$dependencyFileName = nil
+$omitOutputDb = false
+$supportDomain = false
+$supportClass = false
 
 #
 #  オプションの処理
 #
-OptionParser.new(banner="Usage: cfg.rb [options] CONFIG-FILE", 40) do |opt|
+OptionParser.new("Usage: cfg.rb [options] CONFIG-FILE", 40) do |opt|
   opt.version = VERSION
+  opt.release = nil
   opt.on("-k KERNEL", "--kernel KERNEL", "kernel profile name") do |val|
     $kernel = val
   end
@@ -604,11 +604,19 @@ OptionParser.new(banner="Usage: cfg.rb [options] CONFIG-FILE", 40) do |opt|
   opt.on("-O", "--omit-output-db", "omit DB file output") do
     $omitOutputDb = true
   end
+  opt.on("--enable-domain", "enable DOMAIN support") do
+	$supportDomain = true
+  end
+  opt.on("--enable-class", "enable CLASS support") do
+	$supportClass = true
+  end
   opt.on("-v", "--version", "show version number") do
-    abort(opt.ver)
+    puts(opt.ver)
+    exit(0)
   end
   opt.on("-h", "--help", "show help (this)") do
-    abort(opt.help)
+    puts(opt.help)
+    exit(0)
   end
   opt.parse!(ARGV)
 end
@@ -641,6 +649,9 @@ case $kernel
 when /^hrp/
 	$supportDomain = true
 when /^fmp/
+	$supportClass = true
+when /^hrmp/
+	$supportDomain = true
 	$supportClass = true
 end
 

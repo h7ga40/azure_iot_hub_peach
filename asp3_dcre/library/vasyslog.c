@@ -4,7 +4,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2004-2014 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2004-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -50,15 +50,14 @@
 #ifndef TOPPERS_OMIT_SYSLOG
 
 void
-vsyslog(uint_t prio, const char *format, va_list ap)
+tt_syslog(SYSLOG *p_logbuf, const char *format, va_list ap)
 {
-	SYSLOG	logbuf;
 	uint_t	i;
 	char	sz;
 	char	c;
 
-	logbuf.logtype = LOG_TYPE_COMMENT;
-	logbuf.logpar[0] = (LOGPAR) format;
+	p_logbuf->logtype = LOG_TYPE_COMMENT;
+	p_logbuf->logpar[0] = (LOGPAR) format;
 	i = 1U;
 
 	while ((c = *format++) != '\0' && i < TNUM_LOGPAR) {
@@ -77,27 +76,27 @@ vsyslog(uint_t prio, const char *format, va_list ap)
 		}
 		switch (c) {
 		case 'd':
-			logbuf.logpar[i++] = (sz == 'l') ? (LOGPAR) va_arg(ap, long_t)
-							   : (sz == 't') ? (LOGPAR) va_arg(ap, int32_t)
-							   : (sz == 'T') ? (LOGPAR) va_arg(ap, SYSTIM)
-							   : (LOGPAR) va_arg(ap, int_t);
+			p_logbuf->logpar[i++] = (sz == 'l') ? (LOGPAR) va_arg(ap, long_t)
+								  : (sz == 't') ? (LOGPAR) va_arg(ap, int32_t)
+								  : (sz == 'T') ? (LOGPAR) va_arg(ap, SYSTIM)
+								  : (LOGPAR) va_arg(ap, int_t);
 			break;
 		case 'u':
 		case 'x':
 		case 'X':
-			logbuf.logpar[i++] = (sz == 'l') ? (LOGPAR) va_arg(ap, ulong_t)
-							   : (sz == 't') ? (LOGPAR) va_arg(ap, uint32_t)
-							   : (sz == 'T') ? (LOGPAR) va_arg(ap, SYSTIM)
-							   : (LOGPAR) va_arg(ap, uint_t);
+			p_logbuf->logpar[i++] = (sz == 'l') ? (LOGPAR) va_arg(ap, ulong_t)
+								  : (sz == 't') ? (LOGPAR) va_arg(ap, uint32_t)
+								  : (sz == 'T') ? (LOGPAR) va_arg(ap, SYSTIM)
+								  : (LOGPAR) va_arg(ap, uint_t);
 			break;
 		case 'p':
-			logbuf.logpar[i++] = (LOGPAR) va_arg(ap, void *);
+			p_logbuf->logpar[i++] = (LOGPAR) va_arg(ap, void *);
 			break;
 		case 'c':
-			logbuf.logpar[i++] = (LOGPAR) va_arg(ap, int);
+			p_logbuf->logpar[i++] = (LOGPAR) va_arg(ap, int);
 			break;
 		case 's':
-			logbuf.logpar[i++] = (LOGPAR) va_arg(ap, const char *);
+			p_logbuf->logpar[i++] = (LOGPAR) va_arg(ap, const char *);
 			break;
 		case '\0':
 			format--;
@@ -106,26 +105,18 @@ vsyslog(uint_t prio, const char *format, va_list ap)
 			break;
 		}
 	}
-	(void) tSysLog_eSysLog_write(prio, &logbuf);
 }
 
 void
 syslog(uint_t prio, const char *format, ...)
 {
 	va_list	ap;
-	va_start(ap, format);
-	vsyslog(prio, format, ap);
-	va_end(ap);
-}
+	SYSLOG	logbuf;
 
-/* mbed weak error function */
-void
-error(const char* format, ...) {
-	va_list arg;
-	va_start(arg, format);
-	vsyslog(LOG_ERROR, format, arg);
-	va_end(arg);
-	ext_ker();
+	va_start(ap, format);
+	tt_syslog(&logbuf, format, ap);
+	va_end(ap);
+	syslog_write(prio, &logbuf);
 }
 
 #endif /* TOPPERS_OMIT_SYSLOG */

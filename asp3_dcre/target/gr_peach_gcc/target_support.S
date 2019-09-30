@@ -50,7 +50,7 @@
 #define ULONG_C(val)		(val)		/* ulong_t型の定数を作るマクロ */
 #define CAST(type, val)		(val)		/* 型キャストを行うマクロ */
 #include "kernel_impl.h"
-#include "core_pl310.h"
+#include "pl310.h"
 #include "core_asm.inc"
 
 /*
@@ -70,7 +70,7 @@ ALABEL(hardware_init_hook)
 	strb	r0, [r2]		/* 内蔵保持用RAMのページ0～3への書込み許可 */
 	ldrb	r0, [r2]		/* ダミーリード */
 
-	/* 
+	/*
 	 *  クロック関係の初期化
 	 *
 	 *  以下の設定とする．
@@ -102,7 +102,7 @@ ALABEL(set_frqcr)
 	bne		set_frqcr
 
 #ifdef TOPPERS_RZA1H
-	/* 
+	/*
 	 *  画像処理クロックを「×2/3」に（266.67MHz）
 	 */
 ALABEL(set_frqcr2)
@@ -114,7 +114,7 @@ ALABEL(set_frqcr2)
 	bne		set_frqcr2
 #endif /* TOPPERS_RZA1H */
 
-	/* 
+	/*
 	 *  ソフトウェアスタンバイ復帰中でなくなるまで待つ
 	 */
 wait_isbusy:

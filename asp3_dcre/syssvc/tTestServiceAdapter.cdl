@@ -1,0 +1,10 @@
+/*
+ *		C言語で記述されたアプリケーションから，TECSベースのテストプログ
+ *		ラム用サービスを呼び出すためのアダプタ用セルタイプの定義
+ *
+ *  $Id$
+ */
+[singleton, active]
+celltype tTestServiceAdapter {
+	call	sTestService	cTestService;
+};

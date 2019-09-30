@@ -98,7 +98,7 @@ OMIT_TECS =
 #
 #  TECS関係ファイルのディレクトリの定義
 #
-OMIT_TECS = 
+TECSDIR = 
 
 #
 #  トレースログを取得するかどうかの定義

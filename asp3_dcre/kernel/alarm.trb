@@ -5,7 +5,7 @@
 #       Advanced Standard Profile Kernel
 # 
 #   Copyright (C) 2015 by FUJI SOFT INCORPORATED, JAPAN
-#   Copyright (C) 2015,2016 by Embedded and Real-Time Systems Laboratory
+#   Copyright (C) 2015-2019 by Embedded and Real-Time Systems Laboratory
 #               Graduate School of Information Science, Nagoya Univ., JAPAN
 # 
 #   上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -51,9 +51,9 @@ class AlarmObject < KernelObject
   end
 
   def prepare(key, params)
-    # almatrが無効の場合（E_RSATR）［NGKI2491］
-    #（TA_STA以外のビットがセットされている場合）
-    if (params[:almatr] & ~($TA_STA)) != 0
+    # almatrが無効の場合（E_RSATR）［NGKI2491］［NGKI3423］［NGKI3424］
+    #（TA_NULLでない場合）
+    if (params[:almatr] != $TA_NULL)
       error_illegal_id("E_RSATR", params, :almatr, :almid)
     end
 

@@ -2,7 +2,7 @@
  *  TOPPERS Software
  *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2006-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -53,22 +53,22 @@ extern "C" {
 /*
  *  実行時間分布計測の初期化
  */
-extern void	init_hist(ID histid);
+extern ER	init_hist(ID histid);
 
 /*
  *  実行時間計測の開始
  */
-extern void	begin_measure(ID histid);
+extern ER	begin_measure(ID histid);
 
 /*
  *  実行時間計測の終了
  */
-extern void	end_measure(ID histid);
+extern ER	end_measure(ID histid);
 
 /*
  *  実行時間分布計測の表示
  */
-extern void	print_hist(ID histid);
+extern ER	print_hist(ID histid);
 
 #ifdef __cplusplus
 }

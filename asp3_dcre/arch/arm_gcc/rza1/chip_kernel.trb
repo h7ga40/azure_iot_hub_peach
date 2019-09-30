@@ -26,8 +26,8 @@ IncludeTrb("core_kernel.trb")
 #
 #  割込み要求ライン属性に関するターゲット依存のエラーチェック
 #
-$cfgData[:CFG_INT].each do |key, params|
-  if $INTNO_IRQ0 <= key && key <= $INTNO_IRQ7
+$cfgData[:CFG_INT].each do |_, params|
+  if $INTNO_IRQ0 <= params[:intno] && params[:intno] <= $INTNO_IRQ7
     # IRQ割込みの場合
     #（TA_EDGEがセットされている場合）
     if (params[:intatr] & $TA_EDGE) != 0

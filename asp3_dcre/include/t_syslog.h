@@ -1,11 +1,10 @@
 /*
- *  TOPPERS/ASP Kernel
- *      Toyohashi Open Platform for Embedded Real-Time Systems/
- *      Advanced Standard Profile Kernel
+ *  TOPPERS Software
+ *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2004-2014 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2004-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -68,6 +67,10 @@ extern "C" {
 
 #include <t_stddef.h>
 
+#ifndef TOPPERS_MACRO_ONLY
+#include <stdarg.h>
+#endif /* TOPPERS_MACRO_ONLY */
+
 /*
  *  ログ情報の種別の定義
  */
@@ -123,66 +126,53 @@ typedef struct {
 } SYSLOG;
 
 /*
- *  ログ情報の重要度のビットマップを作るためのマクロ
+ *  ログ情報の出力
+ *
+ *  ログ情報の出力は，システムログ機能のアダプタ経由で行う．
  */
-#define LOG_MASK(prio)		(1U << (prio))
-#define LOG_UPTO(prio)		((1U << ((prio) + 1)) - 1)
 
-/*
- *  パケット形式の定義
- */
-typedef struct t_syslog_rlog {
-	uint_t	count;		/* ログバッファ中のログの数 */
-	uint_t	lost;		/* 失われたログの数 */
-	uint_t	logmask;	/* ログバッファに記録すべき重要度 */
-	uint_t	lowmask;	/* 低レベル出力すべき重要度 */
-} T_SYSLOG_RLOG;
+extern ER	syslog_wri_log(uint_t prio, const SYSLOG *p_syslog) throw();
+
+#define syslog_write(prio, p_syslog) \
+						((void) syslog_wri_log(prio, p_syslog))
 
 #ifndef TOPPERS_OMIT_SYSLOG
-#ifdef TOPPERS_OMIT_TECS
-#define tSysLog_eSysLog_write syslog_wri_log
-#endif
-
 /*
- *  ログ情報を出力するためのライブラリ関数
- *
- *  TECSで記述されたシステムログ機能を直接呼び出す．
+ *  システムログ出力のための下位のライブラリ関数
  */
 
-extern ER	tSysLog_eSysLog_write(uint_t prio, const SYSLOG *p_syslog) throw();
-
 Inline void
-_syslog_0(uint_t prio, uint_t type)
+t_syslog_0(uint_t prio, uint_t type)
 {
 	SYSLOG	logbuf;
 
 	logbuf.logtype = type;
-	(void) tSysLog_eSysLog_write(prio, &logbuf);
+	syslog_write(prio, &logbuf);
 }
 
 Inline void
-_syslog_1(uint_t prio, uint_t type, LOGPAR arg1)
+t_syslog_1(uint_t prio, uint_t type, LOGPAR arg1)
 {
 	SYSLOG	logbuf;
 
 	logbuf.logtype = type;
 	logbuf.logpar[0] = arg1;
-	(void) tSysLog_eSysLog_write(prio, &logbuf);
+	syslog_write(prio, &logbuf);
 }
 
 Inline void
-_syslog_2(uint_t prio, uint_t type, LOGPAR arg1, LOGPAR arg2)
+t_syslog_2(uint_t prio, uint_t type, LOGPAR arg1, LOGPAR arg2)
 {
 	SYSLOG	logbuf;
 
 	logbuf.logtype = type;
 	logbuf.logpar[0] = arg1;
 	logbuf.logpar[1] = arg2;
-	(void) tSysLog_eSysLog_write(prio, &logbuf);
+	syslog_write(prio, &logbuf);
 }
 
 Inline void
-_syslog_3(uint_t prio, uint_t type, LOGPAR arg1, LOGPAR arg2, LOGPAR arg3)
+t_syslog_3(uint_t prio, uint_t type, LOGPAR arg1, LOGPAR arg2, LOGPAR arg3)
 {
 	SYSLOG	logbuf;
 
@@ -190,11 +180,11 @@ _syslog_3(uint_t prio, uint_t type, LOGPAR arg1, LOGPAR arg2, LOGPAR arg3)
 	logbuf.logpar[0] = arg1;
 	logbuf.logpar[1] = arg2;
 	logbuf.logpar[2] = arg3;
-	(void) tSysLog_eSysLog_write(prio, &logbuf);
+	syslog_write(prio, &logbuf);
 }
 
 Inline void
-_syslog_4(uint_t prio, uint_t type, LOGPAR arg1, LOGPAR arg2,
+t_syslog_4(uint_t prio, uint_t type, LOGPAR arg1, LOGPAR arg2,
 											LOGPAR arg3, LOGPAR arg4)
 {
 	SYSLOG	logbuf;
@@ -204,11 +194,11 @@ _syslog_4(uint_t prio, uint_t type, LOGPAR arg1, LOGPAR arg2,
 	logbuf.logpar[1] = arg2;
 	logbuf.logpar[2] = arg3;
 	logbuf.logpar[3] = arg4;
-	(void) tSysLog_eSysLog_write(prio, &logbuf);
+	syslog_write(prio, &logbuf);
 }
 
 Inline void
-_syslog_5(uint_t prio, uint_t type, LOGPAR arg1, LOGPAR arg2,
+t_syslog_5(uint_t prio, uint_t type, LOGPAR arg1, LOGPAR arg2,
 								LOGPAR arg3, LOGPAR arg4, LOGPAR arg5)
 {
 	SYSLOG	logbuf;
@@ -219,11 +209,11 @@ _syslog_5(uint_t prio, uint_t type, LOGPAR arg1, LOGPAR arg2,
 	logbuf.logpar[2] = arg3;
 	logbuf.logpar[3] = arg4;
 	logbuf.logpar[4] = arg5;
-	(void) tSysLog_eSysLog_write(prio, &logbuf);
+	syslog_write(prio, &logbuf);
 }
 
 Inline void
-_syslog_6(uint_t prio, uint_t type, LOGPAR arg1, LOGPAR arg2,
+t_syslog_6(uint_t prio, uint_t type, LOGPAR arg1, LOGPAR arg2,
 					LOGPAR arg3, LOGPAR arg4, LOGPAR arg5, LOGPAR arg6)
 {
 	SYSLOG	logbuf;
@@ -235,54 +225,70 @@ _syslog_6(uint_t prio, uint_t type, LOGPAR arg1, LOGPAR arg2,
 	logbuf.logpar[3] = arg4;
 	logbuf.logpar[4] = arg5;
 	logbuf.logpar[5] = arg6;
-	(void) tSysLog_eSysLog_write(prio, &logbuf);
+	syslog_write(prio, &logbuf);
 }
 
 /*
  *  ログ情報（コメント）を出力するためのライブラリ関数（vasyslog.c）
  */
-extern void	syslog(uint_t prio, const char *format, ...) throw();
+extern void	tt_syslog(SYSLOG *p_logbuf, const char *format, va_list ap);
+
+extern void syslog(uint_t prio, const char *format, ...);
+
+/*
+ *  エラーメッセージを出力するためのライブラリ関数（t_perror.c）
+ */
+extern void	tt_perror(SYSLOG *p_logbuf, const char *file, int_t line,
+		 									const char *expr, ER ercd);
+
+Inline void
+t_perror(uint_t prio, const char *file, int_t line, const char *expr, ER ercd)
+{
+	SYSLOG	logbuf;
+
+	tt_perror(&logbuf, file, line, expr, ercd);
+	syslog_write(prio, &logbuf);
+}
 
 #else /* TOPPERS_OMIT_SYSLOG */
-
 /*
  *  システムログ出力を抑止する場合
  */
 
 Inline void
-_syslog_0(uint_t prio, uint_t type)
+t_syslog_0(uint_t prio, uint_t type)
 {
 }
 
 Inline void
-_syslog_1(uint_t prio, uint_t type, LOGPAR arg1)
+t_syslog_1(uint_t prio, uint_t type, LOGPAR arg1)
 {
 }
 
 Inline void
-_syslog_2(uint_t prio, uint_t type, LOGPAR arg1, LOGPAR arg2)
+t_syslog_2(uint_t prio, uint_t type, LOGPAR arg1, LOGPAR arg2)
 {
 }
 
 Inline void
-_syslog_3(uint_t prio, uint_t type, LOGPAR arg1, LOGPAR arg2, LOGPAR arg3)
+t_syslog_3(uint_t prio, uint_t type, LOGPAR arg1, LOGPAR arg2, LOGPAR arg3)
 {
 }
 
 Inline void
-_syslog_4(uint_t prio, uint_t type, LOGPAR arg1, LOGPAR arg2,
+t_syslog_4(uint_t prio, uint_t type, LOGPAR arg1, LOGPAR arg2,
 											LOGPAR arg3, LOGPAR arg4)
 {
 }
 
 Inline void
-_syslog_5(uint_t prio, uint_t type, LOGPAR arg1, LOGPAR arg2,
+t_syslog_5(uint_t prio, uint_t type, LOGPAR arg1, LOGPAR arg2,
 								LOGPAR arg3, LOGPAR arg4, LOGPAR arg5)
 {
 }
 
 Inline void
-_syslog_6(uint_t prio, uint_t type, LOGPAR arg1, LOGPAR arg2,
+t_syslog_6(uint_t prio, uint_t type, LOGPAR arg1, LOGPAR arg2,
 					LOGPAR arg3, LOGPAR arg4, LOGPAR arg5, LOGPAR arg6)
 {
 }
@@ -291,11 +297,16 @@ Inline void
 syslog(uint_t prio, const char *format, ...)
 {
 }
+												
+Inline void
+t_perror(uint_t prio, const char *file, int_t line, const char *expr, ER ercd)
+{
+}
 
 #endif /* TOPPERS_OMIT_SYSLOG */
 
 /*
- *  ログ情報（コメント）を出力するためのマクロ
+ *  システムログ出力のためのライブラリ関数
  *
  *  formatおよび後続の引数から作成したメッセージを，重大度prioでログ情
  *  報として出力するためのマクロ．arg1～argnはLOGPAR型にキャストするた
@@ -303,27 +314,27 @@ syslog(uint_t prio, const char *format, ...)
  */
 
 #define syslog_0(prio, format) \
-				_syslog_1(prio, LOG_TYPE_COMMENT, (LOGPAR)(format))
+				t_syslog_1(prio, LOG_TYPE_COMMENT, (LOGPAR)(format))
 
 #define syslog_1(prio, format, arg1) \
-				_syslog_2(prio, LOG_TYPE_COMMENT, (LOGPAR)(format), \
+				t_syslog_2(prio, LOG_TYPE_COMMENT, (LOGPAR)(format), \
 														(LOGPAR)(arg1))
 
 #define syslog_2(prio, format, arg1, arg2) \
-				_syslog_3(prio, LOG_TYPE_COMMENT, (LOGPAR)(format), \
+				t_syslog_3(prio, LOG_TYPE_COMMENT, (LOGPAR)(format), \
 										(LOGPAR)(arg1), (LOGPAR)(arg2))
 
 #define syslog_3(prio, format, arg1, arg2, arg3) \
-				_syslog_4(prio, LOG_TYPE_COMMENT, (LOGPAR)(format), \
+				t_syslog_4(prio, LOG_TYPE_COMMENT, (LOGPAR)(format), \
 						(LOGPAR)(arg1), (LOGPAR)(arg2), (LOGPAR)(arg3))
 
 #define syslog_4(prio, format, arg1, arg2, arg3, arg4) \
-				_syslog_5(prio, LOG_TYPE_COMMENT, (LOGPAR)(format), \
+				t_syslog_5(prio, LOG_TYPE_COMMENT, (LOGPAR)(format), \
 						(LOGPAR)(arg1), (LOGPAR)(arg2), (LOGPAR)(arg3), \
 														(LOGPAR)(arg4))
 
 #define syslog_5(prio, format, arg1, arg2, arg3, arg4, arg5) \
-				_syslog_6(prio, LOG_TYPE_COMMENT, (LOGPAR)(format), \
+				t_syslog_6(prio, LOG_TYPE_COMMENT, (LOGPAR)(format), \
 						(LOGPAR)(arg1), (LOGPAR)(arg2), (LOGPAR)(arg3), \
 										(LOGPAR)(arg4), (LOGPAR)(arg5))
 
@@ -332,7 +343,7 @@ syslog(uint_t prio, const char *format, ...)
  */
 #ifndef TOPPERS_assert_fail
 #define TOPPERS_assert_fail(exp, file, line) \
-				_syslog_3(LOG_EMERG, LOG_TYPE_ASSERT, (LOGPAR)(file), \
+				t_syslog_3(LOG_EMERG, LOG_TYPE_ASSERT, (LOGPAR)(file), \
 										(LOGPAR)(line), (LOGPAR)(exp))
 #endif /* TOPPERS_assert_fail */
 

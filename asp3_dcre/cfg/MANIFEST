@@ -1,3 +1,6 @@
+PACKAGE cfg
+VERSION 1.4.1
+
 MANIFEST
 cfg.rb
 pass1.rb

@@ -80,8 +80,8 @@ extern uint8_t mac_addr[6];
 const struct utsname host_name = {
 	"TOPPERS/ASP3",
 	TARGET_NAME,
-	"3.2.0",
-	"3.2.0",
+	"3.4.0",
+	"3.4.0",
 	TARGET_NAME,
 	"toppers.jp"
 };

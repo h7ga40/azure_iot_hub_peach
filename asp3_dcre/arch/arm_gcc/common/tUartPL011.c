@@ -1,9 +1,8 @@
 /*
- *  TOPPERS/ASP Kernel
- *      Toyohashi Open Platform for Embedded Real-Time Systems/
- *      Advanced Standard Profile Kernel
+ *  TOPPERS Software
+ *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2006-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -94,35 +93,43 @@ eSIOPort_open(CELLIDX idx)
 {
 	CELLCB	*p_cellcb = GET_CELLCB(idx);
 
-	/*
-	 *  UARTをディスエーブル
-	 */
-	sil_wrw_mem(UART_CR(ATTR_baseAddress), 0U);
+	if (!VAR_opened) {
+		/*
+		 *  既にオープンしている場合は、二重にオープンしない．
+		 */
 
-	/*
-	 *  エラーフラグをクリア
-	 */
-	sil_wrw_mem(UART_ECR(ATTR_baseAddress), 0U);
+		/*
+		 *  UARTをディスエーブル
+		 */
+		sil_wrw_mem(UART_CR(ATTR_baseAddress), 0U);
 
-	/*
-	 *  FIFOを空にする
-	 */
-	while (uart_pl011_getready(p_cellcb)) {
-		(void) uart_pl011_getchar(p_cellcb);
-	}
+		/*
+		 *  エラーフラグをクリア
+		 */
+		sil_wrw_mem(UART_ECR(ATTR_baseAddress), 0U);
 
-	/*
-	 *  ボーレートと通信規格を設定
-	 */
-	sil_wrw_mem(UART_IBRD(ATTR_baseAddress), ATTR_ibrd);
-	sil_wrw_mem(UART_FBRD(ATTR_baseAddress), ATTR_fbrd);
-	sil_wrw_mem(UART_LCR_H(ATTR_baseAddress), ATTR_lcr_h);
-		
-	/*
-	 *  UARTをイネーブル
-	 */
-	sil_wrw_mem(UART_CR(ATTR_baseAddress),
+		/*
+		 *  FIFOを空にする
+		 */
+		while (uart_pl011_getready(p_cellcb)) {
+			(void) uart_pl011_getchar(p_cellcb);
+		}
+
+		/*
+		 *  ボーレートと通信規格を設定
+		 */
+		sil_wrw_mem(UART_IBRD(ATTR_baseAddress), ATTR_ibrd);
+		sil_wrw_mem(UART_FBRD(ATTR_baseAddress), ATTR_fbrd);
+		sil_wrw_mem(UART_LCR_H(ATTR_baseAddress), ATTR_lcr_h);
+
+		/*
+		 *  UARTをイネーブル
+		 */
+		sil_wrw_mem(UART_CR(ATTR_baseAddress),
 						UART_CR_UARTEN|UART_CR_TXE|UART_CR_RXE);
+
+		VAR_opened = true;
+	}
 }
 
 /*
@@ -133,10 +140,14 @@ eSIOPort_close(CELLIDX idx)
 {
 	CELLCB	*p_cellcb = GET_CELLCB(idx);
 
-	/*
-	 *  UARTをディスエーブル
-	 */
-	sil_wrw_mem(UART_CR(ATTR_baseAddress), 0U);
+	if (VAR_opened) {
+		/*
+		 *  UARTをディスエーブル
+		 */
+		sil_wrw_mem(UART_CR(ATTR_baseAddress), 0U);
+
+		VAR_opened = false;
+	}
 }
 
 /*
@@ -230,4 +241,13 @@ eiISR_main(CELLIDX idx)
 		 */
 		ciSIOCBR_readySend();
 	}
+}
+
+/*
+ *  SIOドライバの終了処理
+ */
+void
+eTerminate_main(CELLIDX idx)
+{
+	eSIOPort_close(idx);
 }

@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2015 by Ushio Laboratory
  *              Graduate School of Engineering Science, Osaka Univ., JAPAN
- *  Copyright (C) 2015 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2015-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -80,7 +80,7 @@ Inline ER
 eiAlarm_start(CELLIDX idx, RELTIM alarmTime)
 {
 	CELLCB	*p_cellcb = GET_CELLCB(idx);
-	return(ista_alm(ATTR_id, alarmTime));
+	return(sta_alm(ATTR_id, alarmTime));
 }
 
 /*
@@ -90,7 +90,7 @@ Inline ER
 eiAlarm_stop(CELLIDX idx)
 {
 	CELLCB	*p_cellcb = GET_CELLCB(idx);
-	return(istp_alm(ATTR_id));
+	return(stp_alm(ATTR_id));
 }
 
 #endif /* TOPPERS_TALARMHANDLER_INLINE_H */

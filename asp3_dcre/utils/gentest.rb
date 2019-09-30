@@ -4,7 +4,7 @@
 #  TOPPERS Software
 #      Toyohashi Open Platform for Embedded Real-Time Systems
 # 
-#  Copyright (C) 2007-2016 by Embedded and Real-Time Systems Laboratory
+#  Copyright (C) 2007-2018 by Embedded and Real-Time Systems Laboratory
 #              Graduate School of Information Science, Nagoya Univ., JAPAN
 # 
 #  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -36,13 +36,15 @@
 #  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #  の責任を負わない．
 # 
-#  $Id$
+#  $Id: gentest.rb 1108 2018-12-02 09:30:47Z ertl-hiro $
 # 
 
 #
 #		テストプログラム生成ツール
 #
 	
+Encoding.default_external = 'utf-8'
+
 #
 #  生成動作を決めるための設定
 #
@@ -74,6 +76,7 @@ $parameterDefinition = {
   "ref_cyc" => { 2 => "T_RCYC" },
   "ref_alm" => { 2 => "T_RALM" },
   "ref_ovr" => { 2 => "T_ROVR" },
+  "ref_mem" => { 2 => "T_RMEM" },
   "get_tid" => { 1 => "ID" },
   "get_did" => { 1 => "ID" },
   "get_lod" => { 2 => "uint_t" },
@@ -85,7 +88,8 @@ $parameterDefinition = {
 }
 
 $functionParameters = {
-  "target_hrt_set_event" => "HRTCNT hrtcnt"
+  "target_hrt_set_event" => "HRTCNT hrtcnt",
+  "hook_hrt_set_event" => "HRTCNT hrtcnt"
 }
   
 $functionValue = {
@@ -97,7 +101,8 @@ $functionReturn = {
 }
   
 $functionCheckParameter = {
-  "target_hrt_set_event" => "hrtcnt"
+  "target_hrt_set_event" => "hrtcnt",
+  "hook_hrt_set_event" => "hrtcnt"
 }
 
 #

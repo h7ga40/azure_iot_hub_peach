@@ -52,9 +52,7 @@
  *  ARMコアの特殊命令のインライン関数定義
  */
 #ifndef TOPPERS_MACRO_ONLY
-#ifndef TECSGEN
-#include "arm_insn.h"				/* tecsgenが解釈できないためスキップ */
-#endif /* TECSGEN */
+#include "arm_insn.h"
 #endif /*  TOPPERS_MACRO_ONLY */
 
 /*
@@ -200,21 +198,30 @@
 #define ARM_MMU_DSCR1_TEX001		0x01000U	/* TEXビットが001 */
 #define ARM_MMU_DSCR1_TEX010		0x02000U	/* TEXビットが010 */
 #define ARM_MMU_DSCR1_TEX100		0x04000U	/* TEXビットが100 */
-#define ARM_MMU_DSCR1_AP01			0x00400U	/* APビットが01 */
-#define ARM_MMU_DSCR1_AP10			0x00800U	/* APビットが10 */
-#define ARM_MMU_DSCR1_AP11			0x00c00U	/* APビットが11 */
 #define ARM_MMU_DSCR1_CB00			0x00000U	/* Cビットが0，Bビットが0 */
 #define ARM_MMU_DSCR1_CB01			0x00004U	/* Cビットが0，Bビットが1 */
 #define ARM_MMU_DSCR1_CB10			0x00008U	/* Cビットが1，Bビットが0 */
 #define ARM_MMU_DSCR1_CB11			0x0000cU	/* Cビットが1，Bビットが1 */
 
-#if __TARGET_ARCH_ARM >= 6
+#if __TARGET_ARCH_ARM < 6
+
+#define ARMV5_MMU_DSCR1_AP01		0x00400U	/* APビットが01 */
+#define ARMV5_MMU_DSCR1_AP10		0x00800U	/* APビットが10 */
+#define ARMV5_MMU_DSCR1_AP11		0x00c00U	/* APビットが11 */
+
+#else /* __TARGET_ARCH_ARM < 6 */
+
 #define ARMV6_MMU_DSCR1_NONGLOBAL	0x20000U	/* グローバルでない */
-#define ARMV6_MMU_DSCR1_APX0		0x00000U	/* APXビットが0 */
-#define ARMV6_MMU_DSCR1_APX1		0x08000U	/* APXビットが1 */
+#define ARMV6_MMU_DSCR1_AP001		0x00400		/* APビットが001 */
+#define ARMV6_MMU_DSCR1_AP010		0x00800		/* APビットが010 */
+#define ARMV6_MMU_DSCR1_AP011		0x00c00		/* APビットが011 */
+#define ARMV6_MMU_DSCR1_AP101		0x08400		/* APビットが101 */
+#define ARMV6_MMU_DSCR1_AP110		0x08800		/* APビットが110 */
+#define ARMV6_MMU_DSCR1_AP111		0x08c00		/* APビットが111 */
 #define ARMV6_MMU_DSCR1_ECC			0x00200U	/* ECCが有効（MPCore）*/
 #define ARMV6_MMU_DSCR1_NOEXEC		0x00010U	/* 実行不可 */
-#endif /* __TARGET_ARCH_ARM >= 6 */
+
+#endif /* __TARGET_ARCH_ARM < 6 */
 
 /*
  *  第2レベルディスクリプタの設定値
@@ -244,11 +251,12 @@
 
 #define ARMV6_MMU_DSCR2_NONGLOBAL	0x0800U		/* グローバルでない */
 #define ARMV6_MMU_DSCR2_SHARED		0x0400U		/* プロセッサ間で共有 */
-#define ARMV6_MMU_DSCR2_APX0		0x0000U		/* APXビットが0 */
-#define ARMV6_MMU_DSCR2_APX1		0x0200U		/* APXビットが1 */
-#define ARMV6_MMU_DSCR2_AP01		0x0010U		/* APビットが01 */
-#define ARMV6_MMU_DSCR2_AP10		0x0020U		/* APビットが10 */
-#define ARMV6_MMU_DSCR2_AP11		0x0030U		/* APビットが11 */
+#define ARMV6_MMU_DSCR2_AP001		0x0010		/* APビットが001 */
+#define ARMV6_MMU_DSCR2_AP010		0x0020		/* APビットが010 */
+#define ARMV6_MMU_DSCR2_AP011		0x0030		/* APビットが011 */
+#define ARMV6_MMU_DSCR2_AP101		0x0210		/* APビットが101 */
+#define ARMV6_MMU_DSCR2_AP110		0x0220		/* APビットが110 */
+#define ARMV6_MMU_DSCR2_AP111		0x0230		/* APビットが111 */
 
 /* ラージページのディスクリプタ用 */
 #define ARMV6_MMU_DSCR2L_TEX000		0x0000U		/* TEXビットが000 */

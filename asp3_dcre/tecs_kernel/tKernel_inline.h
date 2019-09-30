@@ -184,8 +184,9 @@ eKernel_getLoad(PRI taskPriority, uint_t* p_load)
 Inline ER
 eKernel_getNthTask(PRI taskPriority, uint_t nth, ID* p_taskID)
 {
-	return (get_nth(taskPriority, nth, p_taskID));
+	return(get_nth(taskPriority, nth, p_taskID));
 }
+
 /*
  *  CPUロック状態への遷移
  */

@@ -1,7 +1,6 @@
 /*
- *  TOPPERS/ASP Kernel
- *      Toyohashi Open Platform for Embedded Real-Time Systems/
- *      Advanced Standard Profile Kernel
+ *  TOPPERS Software
+ *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
@@ -47,11 +46,11 @@
 #ifndef TOPPERS_SERIAL_H
 #define TOPPERS_SERIAL_H
 
-#include <kernel.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <kernel.h>
 
 /*
  *  シリアルインタフェースドライバの用いるパケット

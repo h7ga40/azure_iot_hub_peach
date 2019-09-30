@@ -4,7 +4,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2004-2011 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2004-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -274,6 +274,74 @@ sil_wrw_bem(uint32_t *mem, uint32_t data)
 #endif /* TOPPERS_OMIT_SIL_WRW_BEM */
 #endif /* SIL_ENDIAN_BIG */
 #endif /* TOPPERS_OMIT_SIL_ACCESS */
+
+#ifndef TOPPERS_OMIT_SIL_SYNC_WRITE
+
+/*
+ *  8ビット単位の同期書込み
+ */
+#ifdef UINT8_MAX
+
+Inline void
+sil_swrb_mem(uint8_t *mem, uint8_t data)
+{
+	sil_wrb_mem(mem, data);
+	TOPPERS_SIL_WRITE_SYNC();
+}
+
+#endif /* UINT8_MAX */
+
+/*
+ *  16ビット単位の同期書込み
+ */
+
+Inline void
+sil_swrh_mem(uint16_t *mem, uint16_t data)
+{
+	sil_wrh_mem(mem, data);
+	TOPPERS_SIL_WRITE_SYNC();
+}
+
+Inline void
+sil_swrh_lem(uint16_t *mem, uint16_t data)
+{
+	sil_wrh_lem(mem, data);
+	TOPPERS_SIL_WRITE_SYNC();
+}
+
+Inline void
+sil_swrh_bem(uint16_t *mem, uint16_t data)
+{
+	sil_wrh_bem(mem, data);
+	TOPPERS_SIL_WRITE_SYNC();
+}
+
+/*
+ *  32ビット単位の同期書込み
+ */
+
+Inline void
+sil_swrw_mem(uint32_t *mem, uint32_t data)
+{
+	sil_wrw_mem(mem, data);
+	TOPPERS_SIL_WRITE_SYNC();
+}
+
+Inline void
+sil_swrw_lem(uint32_t *mem, uint32_t data)
+{
+	sil_wrw_lem(mem, data);
+	TOPPERS_SIL_WRITE_SYNC();
+}
+
+Inline void
+sil_swrw_bem(uint32_t *mem, uint32_t data)
+{
+	sil_wrw_bem(mem, data);
+	TOPPERS_SIL_WRITE_SYNC();
+}
+
+#endif /* TOPPERS_OMIT_SIL_SYNC_WRITE */
 
 #endif /* TOPPERS_MACRO_ONLY */
 

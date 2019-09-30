@@ -5,7 +5,7 @@
 #       Advanced Standard Profile Kernel
 # 
 #   Copyright (C) 2015 by FUJI SOFT INCORPORATED, JAPAN
-#   Copyright (C) 2015,2016 by Embedded and Real-Time Systems Laboratory
+#   Copyright (C) 2015-2019 by Embedded and Real-Time Systems Laboratory
 #               Graduate School of Information Science, Nagoya Univ., JAPAN
 # 
 #   上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -50,18 +50,30 @@
 $kernelCfgC.comment_header("CPU Exception Management Functions")
 
 #
+#  DEF_EXCで使用できるCPU例外ハンドラ番号のデフォルト定義
+#
+if !defined?($EXCNO_DEFEXC_VALID)
+  $EXCNO_DEFEXC_VALID = $EXCNO_VALID
+end
+
+#
 #  CPU例外ハンドラに関するエラーチェック
 #
-$cfgData[:DEF_EXC].each do |key, params|
-  # excnoがCPU例外ハンドラ番号として正しくない場合（E_PAR）［NGKI3134］
-  if $EXCNO_VALID.index(params[:excno]).nil?
+$cfgData[:DEF_EXC].each do |_, params|
+  # excnoが有効範囲外の場合（E_PAR）［NGKI3134］
+  if !$EXCNO_DEFEXC_VALID.include?(params[:excno])
     error_illegal("E_PAR", params, :excno)
   end
 
-  # excatrが無効の場合（E_RSATR）［NGKI3131］
+  # excatrが無効の場合（E_RSATR）［NGKI3131］［NGKI5178］［NGKI3123］
   #（TARGET_EXCATR以外のビットがセットされている場合）
   if (params[:excatr] & ~($TARGET_EXCATR)) != 0
     error_illegal_sym("E_RSATR", params, :excatr, :excno)
+  end
+
+  # ターゲット依存のエラーチェック
+  if defined? TargetCheckDefExc()
+    TargetCheckDefExc(params)
   end
 end
 
@@ -81,7 +93,7 @@ EOS
     #
     #  CPU例外ハンドラのエントリ
     #
-    $cfgData[:DEF_EXC].each do |key, params|
+    $cfgData[:DEF_EXC].each do |_, params|
       $kernelCfgC.add("EXCHDR_ENTRY(#{params[:excno]}, " \
 						"#{params[:excno].val}, #{params[:exchdr]})")
     end
@@ -91,7 +103,7 @@ EOS
     #  CPU例外ハンドラ初期化ブロック
     #
     $kernelCfgC.add("const EXCINIB _kernel_excinib_table[TNUM_DEF_EXCNO] = {")
-    $cfgData[:DEF_EXC].each_with_index do |(key, params), index|
+    $cfgData[:DEF_EXC].each_with_index do |(_, params), index|
       $kernelCfgC.add(",") if index > 0
       $kernelCfgC.append("\t{ (#{params[:excno]}), (#{params[:excatr]}), " \
 				"(FP)(EXC_ENTRY(#{params[:excno]}, #{params[:exchdr]})) }")

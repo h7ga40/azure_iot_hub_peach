@@ -50,7 +50,7 @@ Inline ER
 eFixedSizeMemoryPool_get(CELLIDX idx, void **p_block)
 {
 	CELLCB	*p_cellcb = GET_CELLCB(idx);
-	return(get_mpf( ATTR_id, p_block));
+	return(get_mpf(ATTR_id, p_block));
 }
 
 /*

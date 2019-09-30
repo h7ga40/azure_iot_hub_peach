@@ -70,7 +70,7 @@ Inline ER
 eMutex_lockTimeout(CELLIDX idx, TMO timeout)
 {
 	CELLCB	*p_cellcb = GET_CELLCB(idx);
-	return(ploc_mtx(ATTR_id, timeout));
+	return(tloc_mtx(ATTR_id, timeout));
 }
 
 /*

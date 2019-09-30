@@ -52,6 +52,7 @@
 #include "dataqueue.h"
 #include "time_event.h"
 #include "target_timer.h"
+#include <sil.h>
 
 /*
  *  トレースログマクロのデフォルト定義
@@ -97,15 +98,20 @@ ER
 set_tim(SYSTIM systim)
 {
 	ER		ercd;
+	bool_t lock;
 
 	LOG_SET_TIM_ENTER(systim);
-	CHECK_TSKCTX_UNL();							/*［NGKI3564］［NGKI3565］*/
+	//CHECK_TSKCTX_UNL();							/*［NGKI3564］［NGKI3565］*/
+	CHECK_TSKCTX();
+	lock = sense_lock();
 
-	lock_cpu();
+	if (!lock)
+		lock_cpu();
 	update_current_evttim();					/*［ASPD1059］*/
 	systim_offset = systim - monotonic_evttim;	/*［ASPD1060］*/
 	ercd = E_OK;
-	unlock_cpu();
+	if (!lock)
+		unlock_cpu();
 
   error_exit:
 	LOG_SET_TIM_LEAVE(ercd);
@@ -123,15 +129,20 @@ ER
 get_tim(SYSTIM *p_systim)
 {
 	ER		ercd;
+	bool_t lock;
 
 	LOG_GET_TIM_ENTER(p_systim);
-	CHECK_TSKCTX_UNL();							/*［NGKI2350］［NGKI2351］*/
+	//CHECK_TSKCTX_UNL();							/*［NGKI2350］［NGKI2351］*/
+	CHECK_TSKCTX();
+	lock = sense_lock();
 
-	lock_cpu();
+	if (!lock)
+		lock_cpu();
 	update_current_evttim();					/*［ASPD1057］*/
 	*p_systim = systim_offset + monotonic_evttim;	/*［ASPD1058］*/
 	ercd = E_OK;
-	unlock_cpu();
+	if (!lock)
+		unlock_cpu();
 
   error_exit:
 	LOG_GET_TIM_LEAVE(ercd, p_systim);
@@ -175,7 +186,9 @@ adj_tim(int32_t adjtim)
 			monotonic_evttim = current_evttim;	/*［ASPD1054］*/
 		}
 
-		set_hrt_event();						/*［ASPD1056］*/
+		if (!in_signal_time) {
+			set_hrt_event();					/*［ASPD1056］*/
+		}
 		ercd = E_OK;
 	}
 	unlock_cpu();

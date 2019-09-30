@@ -1,9 +1,8 @@
 /*
- *  TOPPERS/ASP Kernel
- *      Toyohashi Open Platform for Embedded Real-Time Systems/
- *      Advanced Standard Profile Kernel
+ *  TOPPERS Software
+ *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2016-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -47,41 +46,74 @@
 #include "histogram.h"
 
 /*
+ *  実行時間分布計測IDの範囲の判定
+ */
+#define VALID_HISTID(histid)	(1 <= histid && histid <= N_CP_cHistogram)
+
+/*
  *  実行時間分布計測の初期化（サービスコール）
  */
-void
+ER
 init_hist(ID histid)
 {
-	assert(1 <= histid && histid <= N_CP_cHistogram);
-	return(cHistogram_initialize(histid - 1));
+	ER		ercd;
+
+	if (!VALID_HISTID(histid)) {
+		ercd = E_ID;
+	}
+	else {
+		ercd = cHistogram_initialize(histid - 1);
+	}
+	return(ercd);
 }
 
 /*
  *  実行時間計測の開始
  */
-void
+ER
 begin_measure(ID histid)
 {
-	assert(1 <= histid && histid <= N_CP_cHistogram);
-	return(cHistogram_beginMeasure(histid - 1));
+	ER		ercd;
+
+	if (!VALID_HISTID(histid)) {
+		ercd = E_ID;
+	}
+	else {
+		ercd = cHistogram_beginMeasure(histid - 1);
+	}
+	return(ercd);
 }
 
 /*
  *  実行時間計測の終了
  */
-void
+ER
 end_measure(ID histid)
 {
-	assert(1 <= histid && histid <= N_CP_cHistogram);
-	return(cHistogram_endMeasure(histid - 1));
+	ER		ercd;
+
+	if (!VALID_HISTID(histid)) {
+		ercd = E_ID;
+	}
+	else {
+		ercd = cHistogram_endMeasure(histid - 1);
+	}
+	return(ercd);
 }
 
 /*
  *  実行時間分布計測の表示
  */
-void
+ER
 print_hist(ID histid)
 {
-	assert(1 <= histid && histid <= N_CP_cHistogram);
-	return(cHistogram_print(histid - 1));
+	ER		ercd;
+
+	if (!VALID_HISTID(histid)) {
+		ercd = E_ID;
+	}
+	else {
+		ercd = cHistogram_print(histid - 1);
+	}
+	return(ercd);
 }

@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -441,10 +441,10 @@ tmevtb_register(TMEVTB *p_tmevtb)
  *  相対時間指定によるタイムイベントの登録
  *  
  */
-#ifdef TOPPERS_tmeenq
+#ifdef TOPPERS_tmeenqrel
 
 void
-tmevtb_enqueue(TMEVTB *p_tmevtb, RELTIM time)
+tmevtb_enqueue_reltim(TMEVTB *p_tmevtb, RELTIM time)
 {
 	/*
 	 *  現在のイベント時刻とタイムイベントの発生時刻を求める［ASPD1026］．
@@ -466,7 +466,7 @@ tmevtb_enqueue(TMEVTB *p_tmevtb, RELTIM time)
 	}
 }
 
-#endif /* TOPPERS_tmeenq */
+#endif /* TOPPERS_tmeenqrel */
 
 /*
  *  タイムイベントの登録解除
@@ -558,6 +558,9 @@ signal_time(void)
 {
 	TMEVTB	*p_tmevtb;
 	bool_t	callflag;
+#ifndef TOPPERS_OMIT_SYSLOG
+	uint_t	nocall = 0;
+#endif /* TOPPERS_OMIT_SYSLOG */
 
 	assert(sense_context());
 	assert(!sense_lock());
@@ -586,8 +589,20 @@ signal_time(void)
 			p_tmevtb = tmevtb_delete_top();
 			(*(p_tmevtb->callback))(p_tmevtb->arg);
 			callflag = true;
+#ifndef TOPPERS_OMIT_SYSLOG
+			nocall += 1;
+#endif /* TOPPERS_OMIT_SYSLOG */
 		}
 	} while (callflag);								/*［ASPD1020］*/
+
+#ifndef TOPPERS_OMIT_SYSLOG
+	/*
+	 *  タイムイベントが処理されなかった場合．
+	 */
+	if (nocall == 0) {
+		syslog_0(LOG_NOTICE, "no time event is processed in hrt interrupt.");
+	}
+#endif /* TOPPERS_OMIT_SYSLOG */
 
 	/*
 	 *  高分解能タイマ割込みの発生タイミングを設定する［ASPD1025］．

@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -78,11 +78,18 @@
 bool_t	kerflg = false;
 
 /*
+ *  カーネルメモリプール領域有効フラグ
+ */
+bool_t	mpk_valid;
+
+/*
  *  カーネルの起動
  */
 void
 sta_ker(void)
 {
+	uint_t	i;
+
 	/*
 	 *  TECSの初期化
 	 */
@@ -101,14 +108,21 @@ sta_ker(void)
 	 *  タイムイベント管理モジュールは他のモジュールより先に初期化
 	 *  する必要がある．
 	 */
-	initialize_kmm();
+	if (mpk != NULL) {
+		mpk_valid = initialize_mempool(mpk, mpksz);
+	}
+	else {
+		mpk_valid = false;
+	}
 	initialize_tmevt();								/*［ASPD1061］*/
 	initialize_object();
 
 	/*
 	 *  初期化ルーチンの実行
 	 */ 
-	call_inirtn();
+	for (i = 0; i < tnum_inirtn; i++) {
+		(*(inirtnb_table[i].inirtn))(inirtnb_table[i].exinf);
+	}
 
 	/*
 	 *  高分解能タイマの設定
@@ -171,10 +185,14 @@ ext_ker(void)
 void
 exit_kernel(void)
 {
+	uint_t	i;
+
 	/*
 	 *  終了処理ルーチンの実行
 	 */
-	call_terrtn();
+	for (i = 0; i < tnum_terrtn; i++) {
+		(*(terrtnb_table[i].terrtn))(terrtnb_table[i].exinf);
+	}
 
 	/*
 	 *  ターゲット依存の終了処理
@@ -186,28 +204,48 @@ exit_kernel(void)
 #endif /* TOPPERS_ext_ker */
 
 /*
- *  カーネルの割り付けるメモリ領域の管理
+ *  デフォルトのメモリプール管理機能
  *
- *  メモリ領域を先頭から順に割り当て，解放されたメモリ領域を再利用しな
- *  いメモリ管理モジュール．
+ *  メモリプール領域の先頭から順に割り当てを行い，すべてのメモリ領域が
+ *  解放されるまで解放されたメモリ領域を再利用しないメモリプール管理機
+ *  能．
  */
 #ifdef TOPPERS_kermem
-#ifndef OMIT_KMM_ALLOCONLY
+#ifndef OMIT_MEMPOOL_DEFAULT
 
-static void	*kmm_brk;
+typedef struct {
+	void	*brk;		/* メモリプール領域の未使用領域の先頭番地 */
+	void	*limit;		/* メモリプール領域の上限 */
+	uint_t	count;		/* 割り当てたメモリ領域の数 */
+} MEMPOOLCB;
 
-void
-initialize_kmm(void)
+bool_t
+initialize_mempool(MB_T *mempool, size_t size)
 {
-	kmm_brk = ((char *) kmm) + kmmsz;
+	MEMPOOLCB	*p_mempoolcb = ((MEMPOOLCB *) mempool);
+
+	if (size >= sizeof(MEMPOOLCB)) {
+		p_mempoolcb->brk = ((char *) mempool) + sizeof(MEMPOOLCB);
+		p_mempoolcb->limit = ((char *) mempool) + size;
+		p_mempoolcb->count = 0;
+		return(true);
+	}
+	else {
+		return(false);
+	}
 }
 
 void *
-kernel_malloc(size_t size)
+malloc_mempool(MB_T *mempool, size_t size)
 {
-	if (((char *) kmm_brk) - ((char *) kmm) >= size) {
-		kmm_brk = ((char *) kmm_brk) - size;
-		return(kmm_brk);
+	MEMPOOLCB	*p_mempoolcb = ((MEMPOOLCB *) mempool);
+	void		*brk;
+
+	brk = ((MEMPOOLCB *) mempool)->brk;
+	if (((char *)(p_mempoolcb->limit)) - ((char *) brk) >= size) {
+		p_mempoolcb->brk = ((char *) brk) + size;
+		p_mempoolcb->count += 1;
+		return(brk);
 	}
 	else {
 		return(NULL);
@@ -215,9 +253,15 @@ kernel_malloc(size_t size)
 }
 
 void
-kernel_free(void *ptr)
+free_mempool(MB_T *mempool, void *ptr)
 {
+	MEMPOOLCB	*p_mempoolcb = ((MEMPOOLCB *) mempool);
+
+	p_mempoolcb->count -= 1;
+	if (p_mempoolcb->count == 0) {
+		p_mempoolcb->brk = ((char *) mempool) + sizeof(MEMPOOLCB);
+	}
 }
 
-#endif /* OMIT_KMM_ALLOCONLY */
+#endif /* OMIT_MEMPOOL_DEFAULT */
 #endif /* TOPPERS_kermem */

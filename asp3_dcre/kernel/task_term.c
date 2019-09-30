@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2014 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2017 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -108,7 +108,6 @@
 ER
 ext_tsk(void)
 {
-	PRI		intpri;
 	ER		ercd;
 
 	LOG_EXT_TSK_ENTER();
@@ -125,8 +124,7 @@ ext_tsk(void)
 		lock_cpu();
 	}
 
-	intpri = t_get_ipm();
-	if (!enadsp || intpri != TIPM_ENAALL) {
+	if (!dspflg) {
 		if (!enadsp) {
 			/*
 			 *  ディスパッチ禁止状態でext_tskが呼ばれた場合は，ディスパッ
@@ -134,7 +132,7 @@ ext_tsk(void)
 			 */
 			enadsp = true;
 		}
-		if (intpri != TIPM_ENAALL) {
+		if (t_get_ipm() != TIPM_ENAALL) {
 			/*
 			 *  割込み優先度マスク（IPM）がTIPM_ENAALL以外の状態で
 			 *  ext_tskが呼ばれた場合は，IPMをTIPM_ENAALLにしてからタス
@@ -142,8 +140,7 @@ ext_tsk(void)
 			 */
 			t_set_ipm(TIPM_ENAALL);
 		}
-		dspflg = true;
-		p_schedtsk = search_schedtsk();
+		set_dspflg();
 	}
 
 	task_terminate(p_runtsk);				/* ［NGKI3449］*/

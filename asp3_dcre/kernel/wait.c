@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2015 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -53,8 +53,9 @@
 #ifdef TOPPERS_waimake
 
 void
-make_wait_tmout(WINFO *p_winfo, TMEVTB *p_tmevtb, TMO tmout)
+make_wait_tmout(uint_t tstat, WINFO *p_winfo, TMEVTB *p_tmevtb, TMO tmout)
 {
+	p_runtsk->tstat = tstat;
 	make_non_runnable(p_runtsk);
 	p_runtsk->p_winfo = p_winfo;
 	if (tmout == TMO_FEVR) {
@@ -65,7 +66,7 @@ make_wait_tmout(WINFO *p_winfo, TMEVTB *p_tmevtb, TMO tmout)
 		p_winfo->p_tmevtb = p_tmevtb;
 		p_tmevtb->callback = (CBACK) wait_tmout;
 		p_tmevtb->arg = (void *) p_runtsk;
-		tmevtb_enqueue(p_tmevtb, (RELTIM) tmout);
+		tmevtb_enqueue_reltim(p_tmevtb, (RELTIM) tmout);
 	}
 }
 
@@ -98,7 +99,7 @@ wait_tmout(TCB *p_tcb)
 	p_tcb->p_winfo->wercd = E_TMOUT;
 	make_non_wait(p_tcb);
 	if (p_runtsk != p_schedtsk) {
-		request_dispatch();
+		request_dispatch_retint();
 	}
 
 	/*
@@ -118,7 +119,7 @@ wait_tmout_ok(TCB *p_tcb)
 	p_tcb->p_winfo->wercd = E_OK;
 	make_non_wait(p_tcb);
 	if (p_runtsk != p_schedtsk) {
-		request_dispatch();
+		request_dispatch_retint();
 	}
 
 	/*
@@ -154,9 +155,9 @@ wobj_queue_insert(WOBJCB *p_wobjcb)
 #ifdef TOPPERS_wobjwai
 
 void
-wobj_make_wait(WOBJCB *p_wobjcb, WINFO_WOBJ *p_winfo_wobj)
+wobj_make_wait(WOBJCB *p_wobjcb, uint_t tstat, WINFO_WOBJ *p_winfo_wobj)
 {
-	make_wait(&(p_winfo_wobj->winfo));
+	make_wait(tstat, &(p_winfo_wobj->winfo));
 	wobj_queue_insert(p_wobjcb);
 	p_winfo_wobj->p_wobjcb = p_wobjcb;
 	LOG_TSKSTAT(p_runtsk);
@@ -166,10 +167,10 @@ wobj_make_wait(WOBJCB *p_wobjcb, WINFO_WOBJ *p_winfo_wobj)
 #ifdef TOPPERS_wobjwaitmo
 
 void
-wobj_make_wait_tmout(WOBJCB *p_wobjcb, WINFO_WOBJ *p_winfo_wobj,
-								TMEVTB *p_tmevtb, TMO tmout)
+wobj_make_wait_tmout(WOBJCB *p_wobjcb, uint_t tstat,
+						WINFO_WOBJ *p_winfo_wobj, TMEVTB *p_tmevtb, TMO tmout)
 {
-	make_wait_tmout(&(p_winfo_wobj->winfo), p_tmevtb, tmout);
+	make_wait_tmout(tstat, &(p_winfo_wobj->winfo), p_tmevtb, tmout);
 	wobj_queue_insert(p_wobjcb);
 	p_winfo_wobj->p_wobjcb = p_wobjcb;
 	LOG_TSKSTAT(p_runtsk);

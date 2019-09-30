@@ -7,10 +7,11 @@
  *  startup.c
  */
 #define kerflg						_kernel_kerflg
+#define mpk_valid					_kernel_mpk_valid
 #define exit_kernel					_kernel_exit_kernel
-#define initialize_kmm				_kernel_initialize_kmm
-#define kernel_malloc				_kernel_kernel_malloc
-#define kernel_free					_kernel_kernel_free
+#define initialize_mempool			_kernel_initialize_mempool
+#define malloc_mempool				_kernel_malloc_mempool
+#define free_mempool				_kernel_free_mempool
 
 /*
  *  task.c
@@ -65,7 +66,7 @@
 #define update_current_evttim		_kernel_update_current_evttim
 #define set_hrt_event				_kernel_set_hrt_event
 #define tmevtb_register				_kernel_tmevtb_register
-#define tmevtb_enqueue				_kernel_tmevtb_enqueue
+#define tmevtb_enqueue_reltim		_kernel_tmevtb_enqueue_reltim
 #define tmevtb_dequeue				_kernel_tmevtb_dequeue
 #define check_adjtim				_kernel_check_adjtim
 #define tmevt_lefttim				_kernel_tmevt_lefttim
@@ -162,8 +163,10 @@
  *  kernel_cfg.c
  */
 #define initialize_object			_kernel_initialize_object
-#define call_inirtn					_kernel_call_inirtn
-#define call_terrtn					_kernel_call_terrtn
+#define tnum_inirtn					_kernel_tnum_inirtn
+#define inirtnb_table				_kernel_inirtnb_table
+#define tnum_terrtn					_kernel_tnum_terrtn
+#define terrtnb_table				_kernel_terrtnb_table
 #define tmax_tskid					_kernel_tmax_tskid
 #define tmax_stskid					_kernel_tmax_stskid
 #define tinib_table					_kernel_tinib_table
@@ -231,8 +234,18 @@
 #define istksz						_kernel_istksz
 #define istk						_kernel_istk
 #define istkpt						_kernel_istkpt
-#define kmmsz						_kernel_kmmsz
-#define kmm							_kernel_kmm
+#define mpksz						_kernel_mpksz
+#define mpk							_kernel_mpk
+
+/*
+ *  tTraceLog.c
+ */
+#define log_dsp_enter				_kernel_log_dsp_enter
+#define log_dsp_leave				_kernel_log_dsp_leave
+#define log_inh_enter				_kernel_log_inh_enter
+#define log_inh_leave				_kernel_log_inh_leave
+#define log_exc_enter				_kernel_log_exc_enter
+#define log_exc_leave				_kernel_log_exc_leave
 
 
 #include "target_rename.h"

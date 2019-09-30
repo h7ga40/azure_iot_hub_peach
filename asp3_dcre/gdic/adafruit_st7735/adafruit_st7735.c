@@ -61,6 +61,9 @@
 #include "spi_api.h"
 #include "adafruit_st7735.h"
 
+uint16_t lcd_init_height = ST7735_TFTHEIGHT_18;
+uint16_t lcd_init_width = ST7735_TFTWIDTH;
+
 /*
  *  サービスコールのエラーのログ出力
  */
@@ -479,6 +482,7 @@ lcd_initR(LCD_Handler_t *hlcd, uint8_t options)
 		hlcd->rowstart = 1;
 	}
 	else if(options == INITR_144GREENTAB){
+		lcd_init_height = ST7735_TFTHEIGHT_144;
 		hlcd->_height = ST7735_TFTHEIGHT_144;
 		Adafruit_ST7735_commandList(hlcd, Rcmd2green144);
  		hlcd->colstart = 2;

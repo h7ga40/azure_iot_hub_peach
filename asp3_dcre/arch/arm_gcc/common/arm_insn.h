@@ -302,11 +302,11 @@ enable_fiq_irq(void)
 #define CP15_WRITE_TTBR0(reg)	Asm("mcr p15, 0, %0, c2, c0, 0"::"r"(reg))
 
 /* ドメインアクセス制御レジスタ */
-#define CP15_WRITE_DACR(reg)	Asm("mcr p15, 0, %0, c3, c0, 0":: "r"(reg))
+#define CP15_WRITE_DACR(reg)	Asm("mcr p15, 0, %0, c3, c0, 0"::"r"(reg))
 
 /* コンテキストIDレジスタ（ARMv6以降）*/
 #if __TARGET_ARCH_ARM >= 6
-#define CP15_WRITE_CONTEXTIDR(reg) Asm("mcr p15, 0, %0, c13, c0, 1" ::"r"(reg))
+#define CP15_WRITE_CONTEXTIDR(reg) Asm("mcr p15, 0, %0, c13, c0, 1"::"r"(reg))
 #endif /* __TARGET_ARCH_ARM >= 6 */
 
 /*

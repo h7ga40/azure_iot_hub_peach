@@ -4,7 +4,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -55,16 +55,16 @@
  *  トレース時刻の取り出し
  *
  *  デフォルトでは，ログ時刻として，高分解能タイマのカウント値を用いて
- *  いる．ターゲット依存で変更する場合には，SYSLOG_GET_LOGTIMに，ログ時
+ *  いる．ターゲット依存で変更する場合には，TRACE_GET_LOGTIMに，ログ時
  *  刻を取り出すマクロを定義する．
  */
-#ifndef SYSLOG_GET_LOGTIM
-#define SYSLOG_GET_LOGTIM(p_logtim) \
+#ifndef TRACE_GET_LOGTIM
+#define TRACE_GET_LOGTIM(p_logtim) \
 				(*(p_logtim) = target_hrt_get_current())
-#endif /* SYSLOG_GET_TIM */
+#endif /* TRACE_GET_TIM */
 
 /*
- *  トレースログの開始
+ *  トレースログの開始（受け口関数）
  */
 ER
 eTraceLog_start(MODE mode)
@@ -80,7 +80,7 @@ eTraceLog_start(MODE mode)
 }     
 
 /* 
- *  トレースログの書込み
+ *  トレースログの書込み（受け口関数）
  */
 ER
 eTraceLog_write(const TRACE *p_trace)
@@ -93,7 +93,7 @@ eTraceLog_write(const TRACE *p_trace)
 		/*
 		 *  トレース時刻の設定
 		 */
-		SYSLOG_GET_LOGTIM(&(((SYSLOG *) p_trace)->logtim));
+		TRACE_GET_LOGTIM(&(((SYSLOG *) p_trace)->logtim));
 
 		/*
 		 *  トレースバッファに記録
@@ -120,7 +120,7 @@ eTraceLog_write(const TRACE *p_trace)
 }
 
 /*
- *  トレースログの読出し
+ *  トレースログの読出し（受け口関数）
  */
 ER
 eTraceLog_read(TRACE* p_trace)
@@ -312,24 +312,15 @@ low_putchar(char c)
 	cPutLog_putChar(c);
 }
 
-/* 
- *  トレースログのダンプ
+/*
+ *  トレースログのダンプ（受け口関数）
  */
 void
-eTraceLog_dump(void)
+eDump_main(uintptr_t exinf)
 {
 	TRACE	trace;
 
 	while (trace_rea_log(&trace) >= 0) {
 		trace_print(&trace, low_putchar);
 	}
-}
-
-/*
- *  トレースログのダンプ（受け口関数）
- */
-void
-tTraceLog_eDump_main(uintptr_t exinf)
-{
-	eTraceLog_dump();
 }
