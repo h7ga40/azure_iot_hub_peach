@@ -5,52 +5,19 @@
             "name": "C++ Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceRoot}/Debug/${workspaceRootFolderName}.elf",
+            "program": "${workspaceRoot}/Debug/${workspaceFolderBasename}.elf",
             "args": [],
             "stopAtEntry": true,
             "cwd": "${workspaceRoot}",
             "environment": [],
             "externalConsole": false,
             "debugServerArgs": "-f interface/cmsis-dap.cfg -f target/renesas_rza1h_swd.cfg",
-            "serverLaunchTimeout": 20000,
             "filterStderr": true,
             "filterStdout": false,
-            "serverStarted": "",
+            "serverStarted": "Listening on port 4444 for telnet connections",
             "targetArchitecture": "ARM",
             "preLaunchTask": "",
-            "setupCommands": [
-                {
-                    "text": "-target-select remote localhost:3333",
-                    "description": "connect to target",
-                    "ignoreFailures": false
-                },
-                {
-                    "text": "-file-exec-and-symbols ${workspaceRoot}/Debug/${workspaceRootFolderName}.elf",
-                    "description": "load file",
-                    "ignoreFailures": false
-                },
-                {
-                    "text": "-interpreter-exec console \"monitor endian little\"",
-                    "ignoreFailures": false
-                },
-                {
-                    "text": "-interpreter-exec console \"monitor reset\"",
-                    "ignoreFailures": false
-                },
-                {
-                    "text": "-interpreter-exec console \"monitor halt\"",
-                    "ignoreFailures": false
-                },
-                {
-                    "text": "-interpreter-exec console \"monitor arm semihosting enable\"",
-                    "ignoreFailures": false
-                },
-                {
-                    "text": "-target-download",
-                    "description": "flash target",
-                    "ignoreFailures": false
-                }
-            ],
+            "MIMode": "gdb",
             "logging": {
                 "moduleLoad": true,
                 "trace": true,
@@ -121,14 +88,13 @@
                         "ignoreFailures": false
                     },
                     {
-                        "text": "symbol-file ${workspaceRootFolderName}.elf",
+                        "text": "symbol-file ${workspaceFolderBasename}.elf",
                         "description": "load file",
                         "ignoreFailures": false
                     }
                 ]
             },
             "osx": {
-                "MIMode": "gdb",
                 "MIDebuggerPath": "/usr/local/gcc-arm-none-eabi-6-2017-q2-update/bin/arm-none-eabi-gdb",
                 "debugServerPath": "/usr/local/gnu-mcu-eclipse/openocd/0.10.0-12-20190422-2015/bin/openocd",
                 "setupCommands": [
@@ -186,15 +152,13 @@
                         "ignoreFailures": false
                     },
                     {
-                        "text": "symbol-file ${workspaceRootFolderName}.elf",
+                        "text": "symbol-file ${workspaceFolderBasename}.elf",
                         "description": "load file",
                         "ignoreFailures": false
                     }
                 ]
             },
             "windows": {
-                "preLaunchTask": "",
-                "MIMode": "gdb",
                 "MIDebuggerPath": "C:\\Program Files (x86)\\GNU Tools ARM Embedded\\6 2017-q2-update\\bin\\arm-none-eabi-gdb.exe",
                 "debugServerPath": "C:\\Program Files\\GNU MCU Eclipse\\OpenOCD\\0.10.0-12-20190422-2015\\bin\\openocd.exe",
                 "setupCommands": [
@@ -256,7 +220,7 @@
                         "ignoreFailures": false
                     },
                     {
-                        "text": "symbol-file ${workspaceRootFolderName}.elf",
+                        "text": "symbol-file ${workspaceFolderBasename}.elf",
                         "description": "load file",
                         "ignoreFailures": false
                     },
