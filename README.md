@@ -75,7 +75,7 @@ VSCodeの場合は、「ファイル」メニューの「ワークスペース�
 |:heavy_multiplication_x:|HTTP|iothubtransporthttp.c→httpapi_compact.c→tlsio_mbedtls.c→socketio_berkeley.c|
 |:heavy_check_mark:|HTTP|iothubtransporthttp.c→httpapi_curl.c→Curl＋WolfSSL|
 |:heavy_multiplication_x:|HTTP|iothubtransporthttp.c→httpapi_curl.c→Curl＋mbedSSL|
-|:heavy_multiplication_x:|MQTT|iothubtransportmqtt.c→wsio.c→umqtt→tlsio_wolfssl.c→socketio_berkeley.c|
+|:heavy_check_mark:|MQTT|iothubtransportmqtt.c→wsio.c→umqtt→tlsio_wolfssl.c→socketio_berkeley.c|
 |:heavy_check_mark:|MQTT|iothubtransportmqtt.c→wsio.c→umqtt→tlsio_mbedtls.c→socketio_berkeley.c|
 |:heavy_multiplication_x:|MQTT over WebSocket|iothubtransportmqtt_websockets.c→wsio.c→umqtt→tlsio_wolfssl.c→socketio_berkeley.c|
 |:heavy_check_mark:|MQTT over WebSocket|iothubtransportmqtt_websockets.c→wsio.c→umqtt→tlsio_mbedtls.c→socketio_berkeley.c|
