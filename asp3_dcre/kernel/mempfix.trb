@@ -5,7 +5,7 @@
 #       Advanced Standard Profile Kernel
 # 
 #   Copyright (C) 2015 by FUJI SOFT INCORPORATED, JAPAN
-#   Copyright (C) 2015,2016 by Embedded and Real-Time Systems Laboratory
+#   Copyright (C) 2015-2019 by Embedded and Real-Time Systems Laboratory
 #               Graduate School of Information Science, Nagoya Univ., JAPAN
 # 
 #   上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -54,7 +54,7 @@ class MempfixObject < KernelObject
     params[:mpf] ||= "NULL"
     params[:mpfmb] ||= "NULL"
 
-    # mpfatrが無効の場合（E_RSATR）［NGKI2225］
+    # mpfatrが無効の場合（E_RSATR）［NGKI2225］［NGKI2218］
     #（TA_TPRI以外のビットがセットされている場合）
     if (params[:mpfatr] & ~($TA_TPRI)) != 0
       error_illegal_id("E_RSATR", params, :mpfatr, :mpfid)

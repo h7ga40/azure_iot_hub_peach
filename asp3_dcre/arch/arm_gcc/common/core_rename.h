@@ -30,12 +30,29 @@
  */
 #define excpt_nest_count			_kernel_excpt_nest_count
 #define arm_mmu_initialize			_kernel_arm_mmu_initialize
+#define arm_fpu_initialize			_kernel_arm_fpu_initialize
 #define core_initialize				_kernel_core_initialize
 #define core_terminate				_kernel_core_terminate
 #define xlog_sys					_kernel_xlog_sys
 #define xlog_fsr					_kernel_xlog_fsr
 #define default_int_handler			_kernel_default_int_handler
 #define default_exc_handler			_kernel_default_exc_handler
+
+/*
+ *  mpcore_kernel_impl.c
+ */
+#define mpcore_initialize			_kernel_mpcore_initialize
+#define mpcore_terminate			_kernel_mpcore_terminate
+
+/*
+ *  mpcore_timer.c
+ */
+#define target_hrt_initialize		_kernel_target_hrt_initialize
+#define target_hrt_terminate		_kernel_target_hrt_terminate
+#define target_hrt_handler			_kernel_target_hrt_handler
+#define target_ovrtimer_initialize	_kernel_target_ovrtimer_initialize
+#define target_ovrtimer_terminate	_kernel_target_ovrtimer_terminate
+#define target_ovrtimer_handler		_kernel_target_ovrtimer_handler
 
 /*
  *  gic_kernel_impl.c
@@ -55,18 +72,12 @@
 #define irc_end_exc					_kernel_irc_end_exc
 
 /*
- *  core_pl310.c
+ *  pl310.c
  */
 #define pl310_initialize			_kernel_pl310_initialize
 #define pl310_disable				_kernel_pl310_disable
 #define pl310_invalidate_all		_kernel_pl310_invalidate_all
 #define pl310_clean_and_invalidate_all	_kernel_pl310_clean_and_invalidate_all
-
-/*
- *  target_kernel_impl.c
- */
-#define arm_tnum_memory_area		_kernel_arm_tnum_memory_area
-#define arm_memory_area				_kernel_arm_memory_area
 
 
 #endif /* TOPPERS_CORE_RENAME_H */

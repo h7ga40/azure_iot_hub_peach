@@ -2,7 +2,7 @@
 # 
 #		パス3の生成スクリプトのコア依存部（ARM用）
 # 
-#  $Id$
+#  $Id: core_check.trb 730 2016-04-03 02:04:52Z ertl-hiro $
 #
 
 #
@@ -19,7 +19,7 @@ IncludeTrb("kernel/kernel_check.trb")
 #
 inhTable = SYMBOL("_kernel_inh_table")
 offset = SYMBOL("__etext") - SYMBOL("__data_start__")
-$cfgData[:DEF_INH].each do |key, params|
+$cfgData[:DEF_INH].each do |_, params|
   inthdr = PEEK(inhTable + offset + params[:inhno] * $sizeof_FP, $sizeof_FP)
 
   #	割込みハンドラの先頭番地のチェック［NGKI3056］
@@ -38,7 +38,7 @@ end
 # default_exc_handlerのチェックは行わない．
 #
 excTable = SYMBOL("_kernel_exc_table")
-$cfgData[:DEF_EXC].each do |key, params|
+$cfgData[:DEF_EXC].each do |_, params|
   exchdr = PEEK(excTable + params[:excno] * $sizeof_FP, $sizeof_FP)
 
   # CPU例外ハンドラの先頭番地のチェック［NGKI3135］

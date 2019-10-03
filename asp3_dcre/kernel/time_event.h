@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2015 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -161,6 +161,10 @@ extern void		set_hrt_event(void);
  *  p_tmevtbで指定したタイムイベントブロックを登録する．タイムイベント
  *  の発生時刻，コールバック関数，コールバック関数へ渡す引数は，
  *  p_tmevtbが指すタイムイベントブロック中に設定しておく．
+ *
+ *  高分解能タイマ割込みの発生タイミングの設定を行わないため，カーネル
+ *  の初期化時か，高分解能タイマ割込みの処理中で，それが必要ない場合に
+ *  のみ使用する．
  */
 extern void		tmevtb_register(TMEVTB *p_tmevtb);
 
@@ -172,7 +176,7 @@ extern void		tmevtb_register(TMEVTB *p_tmevtb);
  *  バック関数，コールバック関数へ渡す引数は，p_tmevtbが指すタイムイベ
  *  ントブロック中に設定しておく．
  */
-extern void		tmevtb_enqueue(TMEVTB *p_tmevtb, RELTIM time);
+extern void		tmevtb_enqueue_reltim(TMEVTB *p_tmevtb, RELTIM time);
 
 /*
  *  タイムイベントの登録解除

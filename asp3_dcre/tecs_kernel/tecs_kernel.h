@@ -46,13 +46,9 @@
 
 #include <kernel.h>
 
-extern void	tTask_start(intptr_t exinf);
-
-extern void tTimeEventHandler_start(intptr_t exinf);
+extern void tTask_start(intptr_t exinf);
 
 extern void tISR_start(intptr_t exinf);
-extern void tInterruptHandler_start(void);
-extern void tCpuExceptionHandler_start(void *p_excinf);
 
 extern void tInitializeRoutine_start(intptr_t exinf);
 extern void tTerminateRoutine_start(intptr_t exinf);

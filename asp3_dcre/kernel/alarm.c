@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -163,19 +163,17 @@ acre_alm(const T_CALM *pk_calm)
 	ALMCB		*p_almcb;
 	ALMINIB		*p_alminib;
 	ATR			almatr;
-	T_NFYINFO	nfyinfo, *p_nfyinfo;
-	ER			ercd, rercd;
+	T_NFYINFO	*p_nfyinfo;
+	ER			ercd;
 
 	LOG_ACRE_ALM_ENTER(pk_calm);
 	CHECK_TSKCTX_UNL();
 
 	almatr = pk_calm->almatr;
-	nfyinfo = pk_calm->nfyinfo;
 
-	CHECK_RSATR(almatr, TA_NULL);
-	rercd = check_nfyinfo(&nfyinfo);
-	if (rercd != E_OK) {
-		ercd = rercd;
+	CHECK_VALIDATR(almatr, TA_NULL);
+	ercd = check_nfyinfo(&(pk_calm->nfyinfo));
+	if (ercd != E_OK) {
 		goto error_exit;
 	}
 
@@ -188,13 +186,13 @@ acre_alm(const T_CALM *pk_calm)
 												- offsetof(ALMCB, tmevtb)));
 		p_alminib = (ALMINIB *)(p_almcb->p_alminib);
 		p_alminib->almatr = almatr;
-		if (nfyinfo.nfymode == TNFY_HANDLER) {
-			p_alminib->exinf = nfyinfo.nfy.handler.exinf;
-			p_alminib->nfyhdr = (NFYHDR)(nfyinfo.nfy.handler.tmehdr);
+		if (pk_calm->nfyinfo.nfymode == TNFY_HANDLER) {
+			p_alminib->exinf = pk_calm->nfyinfo.nfy.handler.exinf;
+			p_alminib->nfyhdr = (NFYHDR)(pk_calm->nfyinfo.nfy.handler.tmehdr);
 		}
 		else {
 			p_nfyinfo = &aalm_nfyinfo_table[p_alminib - aalminib_table];
-			*p_nfyinfo = nfyinfo;
+			*p_nfyinfo = pk_calm->nfyinfo;
 			p_alminib->exinf = (intptr_t) p_nfyinfo;
 			p_alminib->nfyhdr = notify_handler;
 		}
@@ -282,7 +280,7 @@ sta_alm(ID almid, RELTIM almtim)
 		else {
 			p_almcb->almsta = true;
 		}
-		tmevtb_enqueue(&(p_almcb->tmevtb), almtim);
+		tmevtb_enqueue_reltim(&(p_almcb->tmevtb), almtim);
 		ercd = E_OK;
 	}
 	unlock_cpu();
@@ -384,6 +382,9 @@ call_alarm(ALMCB *p_almcb)
 
 	/*
 	 *  通知ハンドラを，CPUロック解除状態で呼び出す．
+	 *
+	 *  アラーム通知の生成／削除はタスクからしか行えないため，アラーム
+	 *  通知初期化ブロックをCPUロック解除状態で参照しても問題ない．
 	 */
 	unlock_cpu();
 

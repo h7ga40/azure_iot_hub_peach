@@ -3,7 +3,7 @@
 #  TOPPERS Configurator by Ruby
 #
 #  Copyright (C) 2015 by FUJI SOFT INCORPORATED, JAPAN
-#  Copyright (C) 2015-2017 by Embedded and Real-Time Systems Laboratory
+#  Copyright (C) 2015-2018 by Embedded and Real-Time Systems Laboratory
 #              Graduate School of Information Science, Nagoya Univ., JAPAN
 #
 #  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -35,7 +35,7 @@
 #  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #  の責任を負わない．
 #
-#  $Id$
+#  $Id: pass2.rb 175 2019-06-19 01:51:58Z ertl-hiro $
 #
 
 #
@@ -58,6 +58,19 @@ module Cfg1Out
   end
 
   #
+  #  Sレコードファイルからシンボルの文字列を取り出す
+  #
+  def self.GetSymbolString(symbol)
+    if @symbolAddress.has_key?(symbol) \
+			&& !(address = @cfg1SRec.get_value(@symbolAddress[symbol], \
+												$sizeOfCharPtr, false)).nil?
+      return(@cfg1SRec.get_string(address))
+    else
+      return(nil)
+    end
+  end
+
+  #
   #  パス1の生成物の読み込み（メインの処理）
   #
   def self.Read
@@ -71,7 +84,7 @@ module Cfg1Out
       abort(ex.message)
     end
 
-    # マジックナンバーの取得
+    # マジックナンバーの取得とエンディアンの設定
     if @symbolAddress.has_key?(CFG1_MAGIC_NUM)
       $asmLabel = ""
       $cfg1_prefix = CFG1_PREFIX
@@ -94,6 +107,8 @@ module Cfg1Out
 
     # 固定出力した変数の取得
     $sizeOfSigned = GetSymbolValue($asmLabel + CFG1_SIZEOF_SIGNED, 4, false)
+    $sizeOfIntptr = GetSymbolValue($asmLabel + CFG1_SIZEOF_INTPTR, 4, false)
+    $sizeOfCharPtr = GetSymbolValue($asmLabel + CFG1_SIZEOF_CHARPTR, 4, false)
 
     # 値取得シンボルの取得
     $symbolValueTable.each do |symbolName, symbolData|
@@ -105,11 +120,35 @@ module Cfg1Out
           symbolData[:VALUE] = (value != 0)
         end
       else
-        value = GetSymbolValue(symbol, $sizeOfSigned, \
+        if symbolData.has_key?(:INTPTR)
+          value = GetSymbolValue(symbol, $sizeOfIntptr, \
 										symbolData.has_key?(:SIGNED))
+        else
+          value = GetSymbolValue(symbol, $sizeOfSigned, \
+										symbolData.has_key?(:SIGNED))
+        end
         if !value.nil?
           symbolData[:VALUE] = value
         end
+      end
+    end
+
+    # SILによるエンディアン定義のチェック
+    if $symbolValueTable["SIL_ENDIAN_BIG"].has_key?(:VALUE)
+      if $symbolValueTable["SIL_ENDIAN_LITTLE"].has_key?(:VALUE)
+        error_exit("Both SIL_ENDIAN_BIG and SIL_ENDIAN_LITTLE are defined.")
+      else
+        if $endianLittle
+          error_exit("Definition of SIL_ENDIAN_BIG seems to be wrong.")
+        end
+      end
+    else
+      if $symbolValueTable["SIL_ENDIAN_LITTLE"].has_key?(:VALUE)
+        if !$endianLittle
+          error_exit("Definition of SIL_ENDIAN_LITTLE seems to be wrong.")
+        end
+      else
+        # 両方が未定義の場合のエラーチェックは，sil.hで実施する
       end
     end
 
@@ -132,12 +171,15 @@ module Cfg1Out
     end
 
     #
-    #  ドメイン生成データをコンフィギュレーションデータ（$cfgData）に格納
+    #  ドメインデータ（$domData）を生成
     #
-    $cfgData[:CRE_DOM] = {}
-    $domainId.each do |domainName, domainVal|
-      domid = NumStr.new(domainVal, domainName)
-      $cfgData[:CRE_DOM][domainVal] = { :domid => domid }
+    if $supportDomain
+      $domData = {}
+      $domainId.each do |domainName, domainVal|
+        domid = NumStr.new(domainVal, domainName)
+        $domData[domainVal] = { :domid => domid }
+      end
+      $globalVars.push("domData")
     end
 
     ReadPhase(nil)
@@ -145,6 +187,8 @@ module Cfg1Out
 
   #
   #  パラメータの値を取り出す
+  #
+  #  生成スクリプト内で追加された静的APIの場合には，apiIndexがnilになる．
   #
   def self.GetParamValue(paramName, param, apiIndex, index, apiParam, cfgInfo)
     if apiParam.has_key?(:ID_DEF)				# オブジェクト識別名（定義）
@@ -159,19 +203,31 @@ module Cfg1Out
 					"#{cfgInfo[:_FILE_]}:#{cfgInfo[:_LINE_]}:")
         value = nil
       end
+    elsif apiParam.has_key?(:STRING)			# 文字列パラメータ
+      if !apiIndex.nil?
+        symbol = "#{$cfg1_prefix}valueof_#{paramName}_#{apiIndex}#{index}"
+        return(GetSymbolString(symbol))
+      else
+        return(param)
+      end
     elsif apiParam.has_key?(:EXPTYPE)			# 整数定数式パラメータ
-      if apiIndex.nil?
+      if !apiIndex.nil?
+        symbol = "#{$cfg1_prefix}valueof_#{paramName}_#{apiIndex}#{index}"
+        if apiParam.has_key?(:INTPTR)
+          value = GetSymbolValue(symbol, $sizeOfIntptr, \
+										apiParam.has_key?(:SIGNED))
+        else
+          value = GetSymbolValue(symbol, $sizeOfSigned, \
+										apiParam.has_key?(:SIGNED))
+        end
+      else
         if param.is_a?(NumStr)
           return(param)
         else
           return(NumStr.new(param))
         end
-      else
-        symbol = "#{$cfg1_prefix}valueof_#{paramName}_#{apiIndex}#{index}"
-        value = GetSymbolValue(symbol, $sizeOfSigned, \
-									apiParam.has_key?(:SIGNED))
       end
-    else										# 一般定数式／文字列パラメータ
+    else										# 一般定数式パラメータ
       return(param)
     end
     return(NumStr.new(value, param))
@@ -200,7 +256,6 @@ module Cfg1Out
     #
 
     # ID番号割り当ての前処理
-    objidParamNameList = []
     $cfgFileInfo.each do |cfgInfo|
       # プリプロセッサディレクティブは読み飛ばす
       next if cfgInfo.has_key?(:DIRECTIVE)
@@ -227,15 +282,12 @@ module Cfg1Out
           else
             @objidValues[objidParamName][objName] = nil
           end
-          objidParamNameList.push(objidParamName)
         end
       end
     end
 
     # ID番号の割当て処理
-    objidParamNameList.each do |objidParamName|
-      objidList = @objidValues[objidParamName]
-
+    @objidValues.each do |objidParamName, objidList|
       # 未使用のID番号のリスト（使用したものから消していく）
       unusedObjidList = (1.upto(objidList.keys.size)).to_a
 
@@ -310,12 +362,12 @@ module Cfg1Out
 
       # クラスIDを追加
       if cfgInfo.has_key?(:CLASS)
-        if apiIndex.nil?
-          params[:class] = cfgInfo[:CLASS]
-        else
+        if !apiIndex.nil?
           symbol = "#{$cfg1_prefix}valueof_CLASS_#{apiIndex}"
           value = GetSymbolValue(symbol, $sizeOfSigned, true)
           params[:class] = NumStr.new(value, cfgInfo[:CLASS])
+        else
+          params[:class] = cfgInfo[:CLASS]
         end
       end
 
@@ -342,6 +394,13 @@ module Cfg1Out
   end
 
   #
+  #  ID番号の割当て結果の上書き
+  #
+  def self.SetObjidList(objidParamName, objidList)
+    @objidValues[objidParamName] = objidList
+  end
+
+  #
   #  ID番号出力ファイルの生成
   #
   def self.OutputId(fileName)
@@ -363,13 +422,21 @@ def Pass2
   #
   db = PStore.new(CFG1_OUT_DB)
   db.transaction(true) do
-    $apiDefinition = db[:apiDefinition]
-    $symbolValueTable = db[:symbolValueTable]
-    $cfgFileInfo = db[:cfgFileInfo]
-    $includeFiles = db[:includeFiles]
-    $domainId = db[:domainId]
+    db.roots.each do |var|
+      eval("$#{var} = db[:#{var}]")
+    end
   end
-  $cfg2Data = {}
+
+  #
+  #  パス3以降に引き渡す情報の定義
+  #
+  $globalVars = [ "globalVars",
+                  "apiDefinition",
+                  "symbolValueTable",
+                  "cfgFileInfo",
+                  "cfgData",
+                  "asmLabel",
+                  "endianLittle" ]
 
   #
   #  パス1の生成物を読み込む
@@ -403,17 +470,12 @@ def Pass2
   #
   #  パス3に引き渡す情報をファイルに生成
   #
-  if $omitOutputDb.nil?
+  if !$omitOutputDb
     db = PStore.new(CFG2_OUT_DB)
     db.transaction do
-      db[:apiDefinition] = $apiDefinition
-      db[:symbolValueTable] = $symbolValueTable
-      db[:cfgFileInfo] = $cfgFileInfo
-      db[:includeFiles] = $includeFiles
-      db[:cfgData] = $cfgData
-      db[:asmLabel] = $asmLabel
-      db[:endianLittle] = $endianLittle
-      db[:cfg2Data] = $cfg2Data
+      $globalVars.each do |var|
+        eval("db[:#{var}] = $#{var}")
+      end
     end
   end
 end

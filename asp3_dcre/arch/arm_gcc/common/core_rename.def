@@ -19,12 +19,25 @@ fiq_handler
 # core_kernel_impl.c
 excpt_nest_count
 arm_mmu_initialize
+arm_fpu_initialize
 core_initialize
 core_terminate
 xlog_sys
 xlog_fsr
 default_int_handler
 default_exc_handler
+
+# mpcore_kernel_impl.c
+mpcore_initialize
+mpcore_terminate
+
+# mpcore_timer.c
+target_hrt_initialize
+target_hrt_terminate
+target_hrt_handler
+target_ovrtimer_initialize
+target_ovrtimer_terminate
+target_ovrtimer_handler
 
 # gic_kernel_impl.c
 gicc_initialize
@@ -44,7 +57,3 @@ pl310_initialize
 pl310_disable
 pl310_invalidate_all
 pl310_clean_and_invalidate_all
-
-# target_kernel_impl.c
-arm_tnum_memory_area
-arm_memory_area

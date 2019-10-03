@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-# 
+#
 #   TOPPERS/ASP Kernel
 #       Toyohashi Open Platform for Embedded Real-Time Systems/
 #       Advanced Standard Profile Kernel
 # 
 #   Copyright (C) 2015 by FUJI SOFT INCORPORATED, JAPAN
-#   Copyright (C) 2015,2016 by Embedded and Real-Time Systems Laboratory
+#   Copyright (C) 2015-2019 by Embedded and Real-Time Systems Laboratory
 #               Graduate School of Information Science, Nagoya Univ., JAPAN
 #  
 #   上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,22 +37,22 @@
 #   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #   の責任を負わない．
 # 
-#   $Id$
+#   $Id: kernel_check.trb 1167 2019-02-03 17:06:17Z ertl-hiro $
 #  
 
 #
 #		コンフィギュレータのパス3の生成スクリプト
 #
 
-# 
+#
 #  タイムスタンプファイルの指定
-# 
+#
 $timeStampFileName = "check.timestamp"
 
 #
 #  データセクションのLMAからVMAへのコピー
 #
-if !$lmaList.nil?
+if defined?($lmaList)
   $lmaList.each do |lma|
     startData = SYMBOL(lma[:START_DATA])
     endData = SYMBOL(lma[:END_DATA])
@@ -98,7 +98,8 @@ def checkNotifyHandler(key, params, objid, exinf, nfyhdr)
     epar2 = params[:par3]
   end
 
-  #	タイムイベントハンドラの先頭番地のチェック［NGKI3693］
+  # タイムイベントハンドラの先頭番地が，プログラムの先頭番地として正し
+  # くない場合（E_PAR）［NGKI3693］
   if nfymode == $TNFY_HANDLER
     tmehdr = nfyhdr
     params1 = params.dup
@@ -111,14 +112,15 @@ def checkNotifyHandler(key, params, objid, exinf, nfyhdr)
     end
   end
 
-  #	イベント通知処理の変数の番地とオブジェクトIDのチェック
+  # イベント通知処理の変数の番地とオブジェクトIDのチェック
   if nfymode1 == $TNFY_SETVAR || nfymode1 == $TNFY_INCVAR
     # 変数の設定／インクリメントによるタイムイベントの通知
 	p_var = exinf
     params1 = params.dup
     params1[:p_var] = par1
 
-    # 変数の番地のチェック［NGKI3699］［NGKI3897］
+    # 通知方法中の変数の番地が，intptr_t型の変数の番地として正しくない
+    # 場合（E_PAR）［NGKI3699］［NGKI3897］
     if (p_var & ($CHECK_INTPTR_ALIGN - 1)) != 0
       error_wrong_id("E_PAR", params1, :p_var, objid, "not aligned")
     end
@@ -131,7 +133,7 @@ def checkNotifyHandler(key, params, objid, exinf, nfyhdr)
     params1 = params.dup
     params1[:tskid] = par1
 
-    # タスクIDのチェック［NGKI3704］
+    # 通知方法中のタスクIDが有効範囲外の場合（E_ID）［NGKI3704］
     if !($TMIN_TSKID <= tskid && tskid <= $tmax_tskid)
       error_illegal_id("E_ID", params1, :tskid, objid)
     end
@@ -141,7 +143,7 @@ def checkNotifyHandler(key, params, objid, exinf, nfyhdr)
     params1 = params.dup
     params1[:semid] = par1
 
-    # セマフォIDのチェック［NGKI3707］
+    # 通知方法中のセマフォIDが有効範囲外の場合（E_ID）［NGKI3707］
     if !($TMIN_SEMID <= semid && semid <= $tmax_semid)
       error_illegal_id("E_ID", params1, :semid, objid)
     end
@@ -151,7 +153,7 @@ def checkNotifyHandler(key, params, objid, exinf, nfyhdr)
     params1 = params.dup
     params1[:flgid] = par1
 
-    # イベントフラグIDのチェック［NGKI3710］
+    # 通知方法中のイベントフラグIDが有効範囲外の場合（E_ID）［NGKI3710］
     if !($TMIN_FLGID <= flgid && flgid <= $tmax_flgid)
       error_illegal_id("E_ID", params1, :flgid, objid)
     end
@@ -161,7 +163,7 @@ def checkNotifyHandler(key, params, objid, exinf, nfyhdr)
     params1 = params.dup
     params1[:dtqid] = par1
 
-    # データキューIDのチェック［NGKI3713］
+    # 通知方法中のデータキューIDが有効範囲外の場合（E_ID）［NGKI3713］
     if !($TMIN_DTQID <= dtqid && dtqid <= $tmax_dtqid)
       error_illegal_id("E_ID", params1, :dtqid, objid)
     end
@@ -174,7 +176,8 @@ def checkNotifyHandler(key, params, objid, exinf, nfyhdr)
     params1 = params.dup
     params1[:p_var] = epar1
 
-    # 変数の番地のチェック［NGKI3701］［NGKI3897］
+    # 通知方法中の変数の番地が，intptr_t型の変数の番地として正しくない
+    # 場合（E_PAR）［NGKI3701］［NGKI3897］
     if (p_var & ($CHECK_INTPTR_ALIGN - 1)) != 0
       error_wrong_id("E_PAR", params1, :p_var, objid, "not aligned")
     end
@@ -187,7 +190,7 @@ def checkNotifyHandler(key, params, objid, exinf, nfyhdr)
     params1 = params.dup
     params1[:tskid] = epar1
 
-    # タスクIDのチェック［NGKI3704］
+    # 通知方法中のタスクIDが有効範囲外の場合（E_ID）［NGKI3704］
     if !($TMIN_TSKID <= tskid && tskid <= $tmax_tskid)
       error_illegal_id("E_ID", params1, :tskid, objid)
     end
@@ -197,7 +200,7 @@ def checkNotifyHandler(key, params, objid, exinf, nfyhdr)
     params1 = params.dup
     params1[:semid] = epar1
 
-    # セマフォIDのチェック［NGKI3707］
+    # 通知方法中のセマフォIDが有効範囲外の場合（E_ID）［NGKI3707］
     if !($TMIN_SEMID <= semid && semid <= $tmax_semid)
       error_illegal_id("E_ID", params1, :semid, objid)
     end
@@ -207,7 +210,7 @@ def checkNotifyHandler(key, params, objid, exinf, nfyhdr)
     params1 = params.dup
     params1[:flgid] = epar1
 
-    # イベントフラグIDのチェック［NGKI3710］
+    # 通知方法中のイベントフラグIDが有効範囲外の場合（E_ID）［NGKI3710］
     if !($TMIN_FLGID <= flgid && flgid <= $tmax_flgid)
       error_illegal_id("E_ID", params1, :flgid, objid)
     end
@@ -217,21 +220,20 @@ def checkNotifyHandler(key, params, objid, exinf, nfyhdr)
     params1 = params.dup
     params1[:dtqid] = epar1
 
-    # データキューIDのチェック［NGKI3715］
+    # 通知方法中のデータキューIDが有効範囲外の場合（E_ID）［NGKI3715］
     if !($TMIN_DTQID <= dtqid && dtqid <= $tmax_dtqid)
       error_illegal_id("E_ID", params1, :dtqid, objid)
     end
   end
 end
 
-# 
+#
 #  タスクに関するチェック
-# 
+#
 tinib = SYMBOL("_kernel_tinib_table")
 $cfgData[:CRE_TSK].sort.each do |key, params|
+  # taskがプログラムの先頭番地として正しくない場合（E_PAR）［NGKI1033］
   task = PEEK(tinib + $offsetof_TINIB_task, $sizeof_TASK)
-
-  # タスクの先頭番地のチェック［NGKI1033］
   if (task & ($CHECK_FUNC_ALIGN - 1)) != 0
     error_wrong_id("E_PAR", params, :task, :tskid, "not aligned")
   end
@@ -239,7 +241,7 @@ $cfgData[:CRE_TSK].sort.each do |key, params|
     error_wrong_id("E_PAR", params, :task, :tskid, "null")
   end
 
-  # タスクのスタック領域の先頭番地のチェック［NGKI1056］
+  # stkがターゲット定義の制約に合致しない場合（E_PAR）［NGKI1056］
   if $USE_TSKINICTXB
     stk = GetStackTskinictxb(key, params, tinib)
   else
@@ -255,14 +257,14 @@ $cfgData[:CRE_TSK].sort.each do |key, params|
   tinib += $sizeof_TINIB
 end
 
-# 
+#
 #  固定長メモリプールに関するチェック
-# 
+#
 mpfinib = SYMBOL("_kernel_mpfinib_table")
-$cfgData[:CRE_MPF].sort.each do |key, params|
+$cfgData[:CRE_MPF].sort.each do |_, params|
   mpf = PEEK(mpfinib + $offsetof_MPFINIB_mpf, $sizeof_void_ptr)
 
-  # 固定長メモリプール領域の先頭番地のチェック［NGKI2249］
+  # mpfがターゲット定義の制約に合致しない場合（E_PAR）［NGKI2249］
   if (mpf & ($CHECK_MPF_ALIGN - 1)) != 0
     error_wrong_id("E_PAR", params, :mpf, :mpfid, "not aligned")
   end
@@ -273,29 +275,29 @@ $cfgData[:CRE_MPF].sort.each do |key, params|
   mpfinib += $sizeof_MPFINIB
 end
 
-# 
+#
 #  周期通知に関するチェック
-# 
+#
 cycinib = SYMBOL("_kernel_cycinib_table")
 $cfgData[:CRE_CYC].sort.each do |key, params|
   exinf = PEEK(cycinib + $offsetof_CYCINIB_exinf, $sizeof_intptr_t)
   nfyhdr = PEEK(cycinib + $offsetof_CYCINIB_nfyhdr, $sizeof_NFYHDR)
 
-  #	通知情報のチェック
+  # 通知情報のチェック
   checkNotifyHandler(key, params, :cycid, exinf, nfyhdr)
 
   cycinib += $sizeof_CYCINIB
 end
 
-# 
+#
 #  アラーム通知に関するチェック
-# 
+#
 alminib = SYMBOL("_kernel_alminib_table")
 $cfgData[:CRE_ALM].sort.each do |key, params|
   exinf = PEEK(alminib + $offsetof_ALMINIB_exinf, $sizeof_intptr_t)
   nfyhdr = PEEK(alminib + $offsetof_ALMINIB_nfyhdr, $sizeof_NFYHDR)
 
-  #	通知情報のチェック
+  # 通知情報のチェック
   checkNotifyHandler(key, params, :almid, exinf, nfyhdr)
 
   alminib += $sizeof_ALMINIB
@@ -305,10 +307,10 @@ end
 #  割込みサービスルーチンに関するチェック
 #
 isrinib = SYMBOL("_kernel_isrinib_table")
-$cfgData[:CRE_ISR].sort.each do |key, params|
+$cfgData[:CRE_ISR].sort.each do |_, params|
   isr = PEEK(isrinib + $offsetof_ISRINIB_isr, $sizeof_ISR)
 
-  # 割込みサービスルーチンの先頭番地のチェック［NGKI3004］
+  # isrがプログラムの先頭番地として正しくない場合［NGKI3004］
   if (isr & ($CHECK_FUNC_ALIGN - 1)) != 0
     error_wrong_id("E_PAR", params, :isr, :isrid, "not aligned")
   end
@@ -319,31 +321,70 @@ $cfgData[:CRE_ISR].sort.each do |key, params|
   isrinib += $sizeof_ISRINIB
 end
 
-# 
+#
 #  非タスクコンテキスト用のスタック領域に関するチェック
-# 
-istkAddr = SYMBOL("_kernel_istk")
-if !istkAddr.nil?
-  istk = PEEK(istkAddr, $sizeof_void_ptr)
+#
+if $cfgData[:DEF_ICS].size > 0
+  params0 = $cfgData[:DEF_ICS][1]
+  istk = PEEK(SYMBOL("_kernel_istk"), $sizeof_void_ptr)
 
-  # 非タスクコンテキスト用のスタック領域の先頭番地のチェック［NGKI3222］
+  # istkszがターゲット定義の制約に合致しない場合（E_PAR）［NGKI3222］
   if (istk & ($CHECK_STACK_ALIGN - 1)) != 0
-    error_wrong("E_PAR", $cfgData[:DEF_ICS][1], :istk, "not aligned")
+    error_wrong("E_PAR", params0, :istk, "not aligned")
   end
   if $CHECK_STACK_NONNULL && istk == 0
-    error_wrong("E_PAR", $cfgData[:DEF_ICS][1], :istk, "null")
+    error_wrong("E_PAR", params0, :istk, "null")
   end
 end
 
-# 
-#  カーネルが割り付けるメモリ領域に関するチェック
-# 
-kmmAddr = SYMBOL("_kernel_kmm")
-if !kmmAddr.nil?
-  kmm = PEEK(kmmAddr, $sizeof_void_ptr)
+#
+#  カーネルメモリプール領域に関するチェック
+#
+if $cfgData[:DEF_MPK].size > 0
+  params0 = $cfgData[:DEF_MPK][1]
+  mpk = PEEK(SYMBOL("_kernel_mpk"), $sizeof_void_ptr)
 
-  # カーネルが割り付けるメモリ領域の先頭番地のチェック
-  if (kmm & ($CHECK_MB_ALIGN - 1)) != 0
-    error_wrong("E_PAR", $cfgData[:DEF_KMM][1], :kmm, "not aligned")
+  # mpkがターゲット定義の制約に合致しない場合（E_PAR）［NGKI5083］
+  if (mpk & ($CHECK_MPK_ALIGN - 1)) != 0
+    error_wrong("E_PAR", params0, :mpk, "not aligned")
   end
+  if $CHECK_MPK_NONNULL && mpk == 0
+    error_wrong("E_PAR", params0, :mpk, "null")
+  end
+end
+
+#
+#  初期化ルーチンに関するチェック
+#
+inirtnb = SYMBOL("_kernel_inirtnb_table")
+$cfgData[:ATT_INI].each do |_, params|
+  inirtn = PEEK(inirtnb + $offsetof_INIRTNB_inirtn, $sizeof_INIRTN)
+
+  # inirtnがプログラムの先頭番地として正しくない場合（E_PAR）［NGKI3243］
+  if (inirtn & ($CHECK_FUNC_ALIGN - 1)) != 0
+    error_wrong("E_PAR", params, :inirtn, "not aligned")
+  end
+  if $CHECK_FUNC_NONNULL && inirtn == 0
+    error_wrong("E_PAR", params, :inirtn, "null")
+  end
+
+  inirtnb += $sizeof_INIRTNB
+end
+
+#
+#  終了処理ルーチンに関するチェック
+#
+terrtnb = SYMBOL("_kernel_terrtnb_table")
+$cfgData[:ATT_TER].each do |_, params|
+  terrtn = PEEK(terrtnb + $offsetof_TERRTNB_terrtn, $sizeof_TERRTN)
+
+  # terrtnがプログラムの先頭番地として正しくない場合（E_PAR）［NGKI3250］
+  if (terrtn & ($CHECK_FUNC_ALIGN - 1)) != 0
+    error_wrong("E_PAR", params, :terrtn, "not aligned")
+  end
+  if $CHECK_FUNC_NONNULL && terrtn == 0
+    error_wrong("E_PAR", params, :terrtn, "null")
+  end
+
+  terrtnb += $sizeof_TERRTNB
 end

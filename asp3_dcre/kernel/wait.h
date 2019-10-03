@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2014 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -76,13 +76,14 @@ queue_insert_tpri(QUEUE *p_queue, TCB *p_tcb)
 /*
  *  待ち状態への遷移
  *
- *  実行中のタスクを待ち状態に遷移させる．具体的には，実行中のタスクを
- *  レディキューから削除し，TCBのp_winfoフィールド，WINFOのp_tmevtbフィー
- *  ルドを設定する．
+ *  実行中のタスクを待ち状態に遷移させる．具体的には，実行中のタスクの
+ *  タスク状態をtstatにしてレディキューから削除し，TCBのp_winfoフィー
+ *  ルド，WINFOのp_tmevtbフィールドを設定する．
  */
 Inline void
-make_wait(WINFO *p_winfo)
+make_wait(uint_t tstat, WINFO *p_winfo)
 {
+	p_runtsk->tstat = tstat;
 	make_non_runnable(p_runtsk);
 	p_runtsk->p_winfo = p_winfo;
 	p_winfo->p_tmevtb = NULL;
@@ -92,11 +93,12 @@ make_wait(WINFO *p_winfo)
  *  待ち状態への遷移（タイムアウト指定）
  *
  *  実行中のタスクを，タイムアウト指定付きで待ち状態に遷移させる．具体
- *  的には，実行中のタスクをレディキューから削除し，TCBのp_winfoフィー
- *  ルド，WINFOのp_tmevtbフィールドを設定する．また，タイムイベントブ
- *  ロックを登録する．
+ *  的には，実行中のタスクのタスク状態をtstatにしてレディキューから削
+ *  除し，TCBのp_winfoフィールド，WINFOのp_tmevtbフィールドを設定する．
+ *  また，タイムイベントブロックを登録する．
  */
-extern void	make_wait_tmout(WINFO *p_winfo, TMEVTB *p_tmevtb, TMO tmout);
+extern void	make_wait_tmout(uint_t tstat, WINFO *p_winfo,
+									TMEVTB *p_tmevtb, TMO tmout);
 
 /*
  *  待ち解除のためのタスク状態の更新
@@ -245,9 +247,10 @@ typedef struct wait_object_waiting_information {
  *  につなぐ．また，待ち情報ブロック（WINFO）のp_wobjcbを設定する．
  *  wobj_make_wait_tmoutは，タイムイベントブロックの登録も行う．
  */
-extern void	wobj_make_wait(WOBJCB *p_wobjcb, WINFO_WOBJ *p_winfo);
-extern void	wobj_make_wait_tmout(WOBJCB *p_wobjcb, WINFO_WOBJ *p_winfo,
-											TMEVTB *p_tmevtb, TMO tmout);
+extern void	wobj_make_wait(WOBJCB *p_wobjcb, uint_t tstat,
+				 							WINFO_WOBJ *p_winfo_wobj);
+extern void	wobj_make_wait_tmout(WOBJCB *p_wobjcb, uint_t tstat,
+						WINFO_WOBJ *p_winfo_wobj, TMEVTB *p_tmevtb, TMO tmout);
 
 /*
  *  タスク優先度変更時の処理

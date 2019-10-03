@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -185,7 +185,7 @@ acre_sem(const T_CSEM *pk_csem)
 	isemcnt = pk_csem->isemcnt;
 	maxsem = pk_csem->maxsem;
 
-	CHECK_RSATR(sematr, TA_TPRI);
+	CHECK_VALIDATR(sematr, TA_TPRI);
 	CHECK_PAR(0 <= isemcnt && isemcnt <= maxsem);
 	CHECK_PAR(1 <= maxsem && maxsem <= TMAX_MAXSEM);
 
@@ -285,7 +285,7 @@ sig_sem(ID semid)
 				dispatch();
 			}
 			else {
-				request_dispatch();
+				request_dispatch_retint();
 			}
 		}
 		ercd = E_OK;
@@ -314,9 +314,9 @@ sig_sem(ID semid)
 ER
 wai_sem(ID semid)
 {
-	SEMCB	*p_semcb;
-	WINFO_SEM winfo_sem;
-	ER		ercd;
+	SEMCB		*p_semcb;
+	WINFO_SEM	winfo_sem;
+	ER			ercd;
 
 	LOG_WAI_SEM_ENTER(semid);
 	CHECK_DISPATCH();
@@ -335,8 +335,8 @@ wai_sem(ID semid)
 		ercd = E_OK;
 	}
 	else {
-		p_runtsk->tstat = TS_WAITING_SEM;
-		wobj_make_wait((WOBJCB *) p_semcb, (WINFO_WOBJ *) &winfo_sem);
+		wobj_make_wait((WOBJCB *) p_semcb, TS_WAITING_SEM,
+				 							(WINFO_WOBJ *) &winfo_sem);
 		dispatch();
 		ercd = winfo_sem.winfo.wercd;
 	}
@@ -393,10 +393,10 @@ pol_sem(ID semid)
 ER
 twai_sem(ID semid, TMO tmout)
 {
-	SEMCB	*p_semcb;
-	WINFO_SEM winfo_sem;
-	TMEVTB	tmevtb;
-	ER		ercd;
+	SEMCB		*p_semcb;
+	WINFO_SEM	winfo_sem;
+	TMEVTB		tmevtb;
+	ER			ercd;
 
 	LOG_TWAI_SEM_ENTER(semid, tmout);
 	CHECK_DISPATCH();
@@ -419,9 +419,8 @@ twai_sem(ID semid, TMO tmout)
 		ercd = E_TMOUT;
 	}
 	else {
-		p_runtsk->tstat = TS_WAITING_SEM;
-		wobj_make_wait_tmout((WOBJCB *) p_semcb, (WINFO_WOBJ *) &winfo_sem,
-														&tmevtb, tmout);
+		wobj_make_wait_tmout((WOBJCB *) p_semcb, TS_WAITING_SEM,
+								(WINFO_WOBJ *) &winfo_sem, &tmevtb, tmout);
 		dispatch();
 		ercd = winfo_sem.winfo.wercd;
 	}

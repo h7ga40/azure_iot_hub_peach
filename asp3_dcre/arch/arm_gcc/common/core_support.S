@@ -324,7 +324,7 @@ ALABEL(irq_handler)
 	push	{r0-r5,r12,lr,pc}		/* pcはスペース確保のため */
 
 	/*
-	 *  IRQモードに戻して，戻り番地（lr−4）と戻り先のcpsr（spsr）を取
+	 *  IRQモードに戻して，戻り番地（lr-4）と戻り先のcpsr（spsr）を取
 	 *  得する．
 	 */
 	msr		cpsr_c, #(CPSR_IRQ_MODE AOR CPSR_IRQ_BIT)

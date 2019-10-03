@@ -2,12 +2,12 @@
  *  TOPPERS/ASP Kernel
  *      Toyohashi Open Platform for Embedded Real-Time Systems/
  *      Advanced Standard Profile Kernel
- *
+ * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2006-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
- *
+ * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
  *  ア（本ソフトウェアを改変したものを含む．以下同じ）を使用・複製・改
  *  変・再配布（以下，利用と呼ぶ）することを無償で許諾する．
@@ -30,13 +30,13 @@
  *      また，本ソフトウェアのユーザまたはエンドユーザからのいかなる理
  *      由に基づく請求からも，上記著作権者およびTOPPERSプロジェクトを
  *      免責すること．
- *
+ * 
  *  本ソフトウェアは，無保証で提供されているものである．上記著作権者お
  *  よびTOPPERSプロジェクトは，本ソフトウェアに関して，特定の使用目的
  *  に対する適合性も含めて，いかなる保証も行わない．また，本ソフトウェ
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
- *
+ * 
  *  $Id$
  */
 
@@ -45,7 +45,9 @@
  */
 
 #include "kernel_impl.h"
+#include <sil.h>
 #include "interrupt.h"
+#include "pl310.h"
 
 /*
  *  チップ依存の初期化
@@ -54,69 +56,26 @@ void
 chip_initialize(void)
 {
 	/*
-	 *  キャッシュをディスエーブル
+	 *  MPCore依存の初期化
 	 */
-	arm_disable_cache();
+	mpcore_initialize();
 
 	/*
-	 *  コア依存の初期化
+	 *  L2キャッシュコントローラ（PL310）の初期化
 	 */
-	core_initialize();
-
-	/*
-	 *  キャッシュをイネーブル
-	 */
-	arm_enable_cache();
-
-	/*
-	 *  GICのディストリビュータの初期化
-	 */
-	gicd_initialize();
-
-	/*
-	 *  GICのCPUインタフェースの初期化
-	 */
-	gicc_initialize();
-
-	/*
-	 *  分岐予測の無効化とイネーブル
-	 */
-	arm_invalidate_bp();
-	arm_enable_bp();
+	pl310_initialize(0x0U, ~0x0U);
 }
 
 /*
- *  チップ依存部の終了処理
+ *  チップ依存の終了処理
  */
 void
 chip_terminate(void)
 {
-	extern void    software_term_hook(void);
-	void (*volatile fp)(void) = software_term_hook;
-
 	/*
-	 *  software_term_hookへのポインタを，一旦volatile指定のあるfpに代
-	 *  入してから使うのは，0との比較が最適化で削除されないようにするた
-	 *  めである．
+	 *  MPCore依存の終了処理
 	 */
-	if (fp != 0) {
-		(*fp)();
-	}
-
-	/*
-	 *  GICのCPUインタフェースの終了処理
-	 */
-	gicc_terminate();
-
-	/*
-	 *  GICのディストリビュータの終了処理
-	 */
-	gicd_terminate();
-
-	/*
-	 *  コア依存の終了処理
-	 */
-	core_terminate();
+	mpcore_terminate();
 }
 
 /*

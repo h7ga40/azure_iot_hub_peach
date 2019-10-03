@@ -34,7 +34,6 @@
 #   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #   の責任を負わない．
 #  
-#   $Id$
 #++
 
 require_tecsgen_lib "HRP2KernelObjectPlugin.rb"

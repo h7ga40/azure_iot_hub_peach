@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2004-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2004-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -68,6 +68,13 @@
  *  システムログ機能のための定義
  */
 #include <t_syslog.h>
+
+/*
+ *  トレースログに関する設定
+ */
+#ifdef TOPPERS_ENABLE_TRACE
+#include "arch/tracelog/trace_log.h"
+#endif /* TOPPERS_ENABLE_TRACE */
 
 /*
  *  ターゲット依存情報の定義
@@ -149,6 +156,10 @@
 #define TARGET_ISRATR		0U		/* ターゲット定義のISR属性 */
 #endif /* TARGET_ISRATR */
 
+#ifndef TARGET_MIN_STKSZ			/* タスクのスタックサイズの最小値 */
+#define TARGET_MIN_STKSZ	1U		/* 未定義の場合は0でないことをチェック */
+#endif /* TARGET_MIN_STKSZ */
+
 /*
  *  ヘッダファイルを持たないモジュールの関数・変数の宣言
  */
@@ -165,14 +176,28 @@ extern void initialize_tecs(void);
 extern void	initialize_object(void);
 
 /*
- *  初期化ルーチンの実行（kernel_cfg.c）
+ *  初期化ルーチン関係の定義（kernel_cfg.c）
  */
-extern void	call_inirtn(void);
+typedef struct initialization_routine_block {
+	INIRTN		inirtn;					/* 初期化ルーチンの先頭番地 */
+	intptr_t	exinf;					/* 初期化ルーチンの拡張情報 */
+} INIRTNB;
+
+extern const uint_t	tnum_inirtn;		/* 初期化ルーチンの数 */
+
+extern const INIRTNB inirtnb_table[];	/* 初期化ルーチンブロックテーブル */
 
 /*
- *  終了処理ルーチンの実行（kernel_cfg.c）
+ *  終了処理ルーチン関係の定義（kernel_cfg.c）
  */
-extern void	call_terrtn(void);
+typedef struct termination_routine_block {
+	TERRTN		terrtn;					/* 終了処理ルーチンの先頭番地 */
+	intptr_t	exinf;					/* 終了処理ルーチンの拡張情報 */
+} TERRTNB;
+
+extern const uint_t	tnum_terrtn;		/* 終了処理ルーチンの数 */
+
+extern const TERRTNB terrtnb_table[];	/* 終了処理ルーチンブロックテーブル */
 
 /*
  *  非タスクコンテキスト用のスタック領域（kernel_cfg.c）
@@ -184,15 +209,20 @@ extern STK_T *const	istkpt;		/* スタックポインタの初期値 */
 #endif /* TOPPERS_ISTKPT */
 
 /*
- *  カーネルが割り付けるメモリ領域（kernel_cfg.c）
+ *  カーネルメモリプール領域（kernel_cfg.c）
  */
-extern const size_t	kmmsz;		/* カーネルが割り付けるメモリ領域のサイズ */
-extern MB_T *const	kmm;		/* カーネルが割り付けるメモリ領域の先頭番地 */
+extern const size_t	mpksz;		/* カーネルメモリプール領域のサイズ */
+extern MB_T *const	mpk;		/* カーネルメモリプール領域の先頭番地 */
 
 /*
  *  カーネル動作状態フラグ（startup.c）
  */
 extern bool_t	kerflg;
+
+/*
+ *  カーネルメモリプール領域有効フラグ（startup.c）
+ */
+extern bool_t	mpk_valid;
 
 /*
  *  カーネルの起動（startup.c）
@@ -205,11 +235,33 @@ extern void	sta_ker(void);
 extern void	exit_kernel(void);
 
 /*
- *  カーネルの割り付けるメモリ領域の管理（startup.c）
+ *  メモリプール領域の管理（startup.c）
  */
-extern void initialize_kmm(void);
-extern void *kernel_malloc(size_t size);
-extern void kernel_free(void *ptr);
+extern bool_t initialize_mempool(MB_T *mempool, size_t size);
+extern void *malloc_mempool(MB_T *mempool, size_t size);
+extern void free_mempool(MB_T *mempool, void *ptr);
+
+/*
+ *  カーネルメモリプール領域からのメモリ獲得／解放
+ */
+Inline void *
+malloc_mpk(size_t size)
+{
+	if (mpk_valid) {
+		return(malloc_mempool(mpk, size));
+	}
+	else {
+		return(NULL);
+	}
+}
+
+Inline void
+free_mpk(void *ptr)
+{
+	if (mpk_valid) {
+		free_mempool(mpk, ptr);
+	}
+}
 
 /*
  *  通知ハンドラの型定義
@@ -217,12 +269,12 @@ extern void kernel_free(void *ptr);
 typedef void	(*NFYHDR)(intptr_t exinf);
 
 /*
- *  通知方法のエラーチェック
+ *  通知方法のエラーチェック（time_manage.c）
  */
 extern ER check_nfyinfo(const T_NFYINFO *p_nfyinfo);
 
 /*
- *  通知ハンドラ
+ *  通知ハンドラ（time_manage.c）
  */
 extern void notify_handler(intptr_t exinf);
 

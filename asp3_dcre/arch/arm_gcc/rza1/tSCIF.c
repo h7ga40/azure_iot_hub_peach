@@ -1,9 +1,8 @@
 /*
- *  TOPPERS/ASP Kernel
- *      Toyohashi Open Platform for Embedded Real-Time Systems/
- *      Advanced Standard Profile Kernel
+ *  TOPPERS Software
+ *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2006-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2019 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -132,39 +131,40 @@ eSIOPort_open(CELLIDX idx)
 	CELLCB	*p_cellcb = GET_CELLCB(idx);
 	uint_t	brr;
 
-	if (VAR_initialized) {
+	if (!VAR_opened) {
 		/*
-		 *  既に初期化している場合は、二重に初期化しない．
+		 *  既にオープンしている場合は、二重にオープンしない．
 		 */
-		return;
-	}
+		brr = SCIF_CLK / (32 * ATTR_baudRate) - 1;
+		assert(brr <= 255);
 
-	brr = SCIF_CLK / (32 * ATTR_baudRate) - 1;
-	assert(brr <= 255);
-
-	sil_wrh_mem(SCIF_SCSCR(ATTR_baseAddress), 0U);
-	sil_wrh_mem(SCIF_SCFCR(ATTR_baseAddress),
+		sil_wrh_mem(SCIF_SCSCR(ATTR_baseAddress), 0U);
+		sil_wrh_mem(SCIF_SCFCR(ATTR_baseAddress),
 							SCIF_SCFCR_TFRST|SCIF_SCFCR_RFRST);
-	(void) sil_reh_mem(SCIF_SCFSR(ATTR_baseAddress));
-	(void) sil_reh_mem(SCIF_SCLSR(ATTR_baseAddress));
-	sil_wrh_mem(SCIF_SCFSR(ATTR_baseAddress), 0U);
-	sil_wrh_mem(SCIF_SCLSR(ATTR_baseAddress), 0U);
-	sil_wrh_mem(SCIF_SCSCR(ATTR_baseAddress), SCIF_SCSCR_INTCLK);
-	sil_wrh_mem(SCIF_SCSMR(ATTR_baseAddress), SCIF_SCSMR_CKS1);
-	sil_wrh_mem(SCIF_SCEMR(ATTR_baseAddress), 0U);
-	sil_wrb_mem(SCIF_SCBRR(ATTR_baseAddress), (uint8_t) brr);
-	sil_wrh_mem(SCIF_SCFCR(ATTR_baseAddress),
+		(void) sil_reh_mem(SCIF_SCFSR(ATTR_baseAddress));
+		(void) sil_reh_mem(SCIF_SCLSR(ATTR_baseAddress));
+		sil_wrh_mem(SCIF_SCFSR(ATTR_baseAddress), 0U);
+		sil_wrh_mem(SCIF_SCLSR(ATTR_baseAddress), 0U);
+		sil_wrh_mem(SCIF_SCSCR(ATTR_baseAddress), SCIF_SCSCR_INTCLK);
+		sil_wrh_mem(SCIF_SCSMR(ATTR_baseAddress),
+							SCIF_SCSMR_ASYNC|ATTR_mode|SCIF_SCSMR_CKS1);
+		sil_wrh_mem(SCIF_SCEMR(ATTR_baseAddress), 0U);
+		sil_wrb_mem(SCIF_SCBRR(ATTR_baseAddress), (uint8_t) brr);
+		sil_wrh_mem(SCIF_SCFCR(ATTR_baseAddress),
 					SCIF_SCFCR_RSTRG_15|SCIF_SCFCR_RTRG_1|SCIF_SCFCR_TTRG_8);
-	sil_wrh_mem(SCIF_SCSCR(ATTR_baseAddress),
+		sil_wrh_mem(SCIF_SCSCR(ATTR_baseAddress),
 					SCIF_SCSCR_TE|SCIF_SCSCR_RE|SCIF_SCSCR_INTCLK);
 
-	while ((sil_reh_mem(SCIF_SCFSR(ATTR_baseAddress)) & SCIF_SCFSR_RDF) != 0U) {
-		(void) sil_reb_mem(SCIF_SCFRDR(ATTR_baseAddress));
-		sil_wrh_mem(SCIF_SCFSR(ATTR_baseAddress), (uint16_t) ~(SCIF_SCFSR_RDF));
-	}
-	sil_wrh_mem(SCIF_SCFSR(ATTR_baseAddress), 0U);
+		while ((sil_reh_mem(SCIF_SCFSR(ATTR_baseAddress)) & SCIF_SCFSR_RDF)
+																	!= 0U) {
+			(void) sil_reb_mem(SCIF_SCFRDR(ATTR_baseAddress));
+			sil_wrh_mem(SCIF_SCFSR(ATTR_baseAddress),
+							(uint16_t) ~(SCIF_SCFSR_RDF));
+		}
+		sil_wrh_mem(SCIF_SCFSR(ATTR_baseAddress), 0U);
 
-	VAR_initialized = true;
+		VAR_opened = true;
+	}
 }
 
 /*
@@ -175,7 +175,11 @@ eSIOPort_close(CELLIDX idx)
 {
 	CELLCB	*p_cellcb = GET_CELLCB(idx);
 
-	sil_wrh_mem(SCIF_SCSCR(ATTR_baseAddress), 0U);
+	if (VAR_opened) {
+		sil_wrh_mem(SCIF_SCSCR(ATTR_baseAddress), 0U);
+
+		VAR_opened = false;
+	}
 }
 
 /*
@@ -281,5 +285,26 @@ eiTxISR_main(CELLIDX idx)
 		 *  送信可能コールバックルーチンを呼び出す．
 		 */
 		ciSIOCBR_readySend();
+	}
+}
+
+/*
+ *  SIOドライバの終了処理
+ */
+void
+eTerminate_main(CELLIDX idx)
+{
+	CELLCB	*p_cellcb = GET_CELLCB(idx);
+
+	if (VAR_opened) {
+		/*
+		 *  送信FIFOが空になるまで待つ
+		 */
+		while ((sil_reh_mem(SCIF_SCFSR(ATTR_baseAddress))
+											& SCIF_SCFSR_TEND) == 0U) ;
+		/*
+		 *  ポートのクローズ
+		 */
+		eSIOPort_close(idx);
 	}
 }

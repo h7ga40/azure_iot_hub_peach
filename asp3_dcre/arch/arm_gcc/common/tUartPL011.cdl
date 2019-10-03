@@ -1,11 +1,10 @@
 /*
- *  TOPPERS/ASP Kernel
- *      Toyohashi Open Platform for Embedded Real-Time Systems/
- *      Advanced Standard Profile Kernel
+ *  TOPPERS Software
+ *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
  *  Copyright (C) 2015 by Ushio Laboratory
  *              Graduate School of Engineering Science, Osaka Univ., JAPAN
- *  Copyright (C) 2015,2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2015-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -57,11 +56,15 @@ celltype tUartPL011 {
 	call	siSIOCBR	ciSIOCBR;
 
 	entry	siHandlerBody	eiISR;
+	entry	sRoutineBody	eTerminate;
 
 	attr {
 		uintptr_t	baseAddress;	/* UARTレジスタのベースアドレス */
 		uint8_t		ibrd;			/* ボーレート（整数部）レジスタの設定値 */
 		uint8_t		fbrd;			/* ボーレート（小数部）レジスタの設定値 */
 		uint8_t		lcr_h;			/* ライン制御レジスタの設定値 */
+	};
+	var {
+		bool_t		opened = false;	/* オープン済み */
 	};
 };

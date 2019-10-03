@@ -1,10 +1,10 @@
-#!/usr/bin/env ruby
+#!/usr/bin/env ruby -Eutf-8
 # -*- coding: utf-8 -*-
 #
 #  TOPPERS Software
 #      Toyohashi Open Platform for Embedded Real-Time Systems
 # 
-#  Copyright (C) 2006-2016 by Embedded and Real-Time Systems Laboratory
+#  Copyright (C) 2006-2019 by Embedded and Real-Time Systems Laboratory
 #              Graduate School of Information Science, Nagoya Univ., JAPAN
 # 
 #  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -36,10 +36,28 @@
 #  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #  の責任を負わない．
 # 
-#  $Id$
+#  $Id: makerelease.rb 1155 2019-01-14 13:24:01Z ertl-hiro $
 # 
 
+require "optparse"
+require "fileutils"
 require "shell"
+
+#
+#  オプションの定義
+#
+#  -e <dirname>			アーカイブファイルを展開して削除する．dirname
+#						は展開するディレクトリ名（省略可能）．
+
+#
+#  オプションの処理
+#
+OptionParser.new("Usage: makerelease.rb [options] MANIFEST-FILE") do |opt|
+  opt.on("-e [dirname]",	"expand archive file and delete") do |val|
+    $expandDirname = val
+  end
+  opt.parse!(ARGV)
+end
 
 #
 #  ".."を含むパスの整形
@@ -166,6 +184,25 @@ end
 #
 archiveName = $package + "-" + $version + ".tar.gz"
 fileListStr = $fileList.join(" ")
-command = "tar cvfz RELEASE/#{archiveName} -C .. #{fileListStr}\n";
+command = "tar cvfz RELEASE/#{archiveName} -C .. #{fileListStr}";
 system(command)
-puts("== RELEASE/#{archiveName} is generated. ==\n")
+puts("== RELEASE/#{archiveName} is generated. ==")
+
+#
+#  アーカイブファイルの展開と削除
+#
+if defined?($expandDirname)
+  command = "tar xf RELEASE/#{archiveName}; rm RELEASE/#{archiveName}";
+  system(command)
+
+  dirname = $expandDirname || $prefix
+  if File.exist?(dirname)
+    File.rename(dirname, dirname + ".bak")
+    puts("== '#{dirname}' is renamed to '#{dirname}.bak'. ==")
+  end
+  if !$expandDirname.nil?
+    File.rename($prefix, $expandDirname)
+  end
+  puts("== RELEASE/#{archiveName} is expanded to '#{dirname}'. ==")
+  puts("== RELEASE/#{archiveName} is deleted. ==")
+end

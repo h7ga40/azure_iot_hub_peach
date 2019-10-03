@@ -1,7 +1,6 @@
 /*
- *  TOPPERS/ASP Kernel
- *      Toyohashi Open Platform for Embedded Real-Time Systems/
- *      Advanced Standard Profile Kernel
+ *  TOPPERS Software
+ *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
  *  Copyright (C) 2015 by Ushio Laboratory
  *              Graduate School of Engineering Science, Osaka Univ., JAPAN
@@ -45,9 +44,9 @@
  */
 
 /*
- *  システムログ出力に関する定義
+ *  システムログ機能に関する定義
  */
-import_C("t_syslog.h");
+import_C("syssvc/syslog.h");
 
 /*
  *  低レベル出力のシグニチャ

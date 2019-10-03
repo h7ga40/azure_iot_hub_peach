@@ -3,16 +3,18 @@
  *
  *  $Id$
  */
+
 /*
  *  カーネルオブジェクトの定義
  */
-import("kernel.cdl");
+import(<kernel.cdl>);
 
 /*
  *  ターゲット非依存のセルタイプの定義
  */
 import("syssvc/tSerialPort.cdl");
 import("syssvc/tSysLog.cdl");
+import("syssvc/tSysLogAdapter.cdl");
 import("syssvc/tLogTask.cdl");
 import("syssvc/tBanner.cdl");
 
@@ -22,12 +24,29 @@ import("syssvc/tBanner.cdl");
 import("target.cdl");
 
 /*
+ *  サンプルプログラムのC言語ヘッダファイルの取り込み
+ */
+import_C("tSample2.h");
+
+/*
  *  「セルの組上げ記述」とは，"cell"で始まる行から，それに対応する"};"
  *  の行までのことを言う．
  */
 
 /*
- *  システムログ機能の組上げ記述
+ *		システムログ機能のアダプタの組上げ記述
+ *
+ *  システムログ機能のアダプタは，C言語で記述されたコードから，TECSベー
+ *  スのシステムログ機能を呼び出すためのセルである．システムログ機能の
+ *  サービスコール（syslog，syslog_0～syslog_5，t_perrorを含む）を呼び
+ *  出さない場合には，以下のセルの組上げ記述を削除してよい．
+ */
+cell tSysLogAdapter SysLogAdapter {
+	cSysLog = SysLog.eSysLog;
+};
+
+/*
+ *		システムログ機能の組上げ記述
  *
  *  システムログ機能を外す場合には，以下のセルの組上げ記述を削除し，コ
  *  ンパイルオプションに-DTOPPERS_OMIT_SYSLOGを追加すればよい．ただし，
@@ -41,13 +60,12 @@ cell tSysLog SysLog {
 										/* ログバッファに記録すべき重要度 */
 	initLowMask = C_EXP("LOG_UPTO(LOG_EMERG)");
 									   	/* 低レベル出力すべき重要度 */
-
 	/* 低レベル出力との結合 */
 	cPutLog = PutLogTarget.ePutLog;
 };
 
 /*
- *  シリアルインタフェースドライバの組上げ記述
+ *		シリアルインタフェースドライバの組上げ記述
  *
  *  シリアルインタフェースドライバを外す場合には，以下のセルの組上げ記
  *  述を削除すればよい．ただし，システムログタスクはシリアルインタフェー
@@ -64,7 +82,7 @@ cell tSerialPort SerialPort1 {
 };
 
 /*
- *  システムログタスクの組上げ記述
+ *		システムログタスクの組上げ記述
  *
  *  システムログタスクを外す場合には，以下のセルの組上げ記述を削除すれ
  *  ばよい．
@@ -85,7 +103,7 @@ cell tLogTask LogTask {
 };
 
 /*
- *  カーネル起動メッセージ出力の組上げ記述
+ *		カーネル起動メッセージ出力の組上げ記述
  *
  *  カーネル起動メッセージの出力を外す場合には，以下のセルの組上げ記述
  *  を削除すればよい．
@@ -97,7 +115,7 @@ cell tBanner Banner {
 };
 
 /*
- *  サンプルプログラムの定義
+ *		サンプルプログラムのセルタイプの定義
  */
 [singleton]
 celltype tSample2 {
@@ -110,25 +128,27 @@ celltype tSample2 {
 	call sCyclic        cCyclic;
 	call sAlarm         cAlarm;
 
-	[optional] call sSerialPort	cSerialPort;/* シリアルドライバとの接続 */
+	call sSerialPort	cSerialPort;	/* シリアルドライバとの接続 */
 	call sSysLog		cSysLog;		/* システムログ機能との接続 */
 	
 	entry sTaskBody		eMainTask;	  	/* Mainタスク */
 	entry sTaskBody		eSampleTask[3];	/* 並行実行されるタスク */
 	entry sTaskBody		eExceptionTask;	/* 例外処理タスク */
 	
-	entry siHandlerBody eiCyclicHandler;/* 周期ハンドラ*/
-	entry siHandlerBody eiAlarmHandler; /* アラームハンドラ */
+	entry siHandlerBody eiCyclicHandler;	/* 周期ハンドラ*/
+	entry siHandlerBody eiAlarmHandler;		/* アラームハンドラ */
+
+	entry siHandlerBody	eiISR;				/* 割込みサービスルーチン */
+
+	entry siCpuExceptionHandlerBody	eiCpuExceptionHandler;
+											/* CPU例外ハンドラ */
 };
 
 /*
- *  組み上げ記述
+ *		組み上げ記述
  */
 
-/* Sample2のプロトタイプ宣言 */
-cell tSample2 Sample2;
-
-cell tKernel ASPKernel{
+cell tKernel ASPKernel {
 };
 
 cell tTask MainTask {
@@ -180,15 +200,38 @@ cell tCyclicHandler CyclicHandler {
 };
 
 cell tAlarmHandler AlarmHandler {
+	/* 呼び口の結合 */
 	ciHandlerBody = Sample2.eiAlarmHandler;
+};
+
+cell tInterruptRequest InterruptRequest {
+	/* 属性の設定 */
+	interruptNumber = C_EXP("INTNO1");
+	attribute = C_EXP("INTNO1_INTATR");
+	interruptPriority = C_EXP("INTNO1_INTPRI");
+};
+
+cell tISR InterruptServiceRoutine {
+	/* 呼び口の結合 */
+	ciISRBody = Sample2.eiISR;
+	/* 属性の設定 */
+	attribute = C_EXP("TA_NULL");
+	interruptNumber = C_EXP("INTNO1");
+};
+
+cell tCpuExceptionHandler CpuExceptionHandler {
+	/* 呼び口の結合 */
+	ciCpuExceptionHandlerBody = Sample2.eiCpuExceptionHandler;
+	/* 属性の設定 */
+	cpuExceptionHandlerNumber = C_EXP("CPUEXC1");
 };
 
 cell tSample2 Sample2 {
 	/* 呼び口の結合 */
-	cTask[ 0 ] = MainTask.eTask;
-	cTask[ 1 ] = Task1.eTask;
-	cTask[ 2 ] = Task2.eTask;
-	cTask[ 3 ] = Task3.eTask;
+	cTask[0] = MainTask.eTask;
+	cTask[1] = Task1.eTask;
+	cTask[2] = Task2.eTask;
+	cTask[3] = Task3.eTask;
 
 	cExceptionTask = ExceptionTask.eTask;
 

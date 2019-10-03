@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2017 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2019 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -320,7 +320,7 @@ acre_isr(const T_CISR *pk_cisr)
 	isr = pk_cisr->isr;
 	isrpri = pk_cisr->isrpri;
 
-	CHECK_RSATR(isratr, TARGET_ISRATR);
+	CHECK_VALIDATR(isratr, TARGET_ISRATR);
 	CHECK_PAR(VALID_INTNO_CREISR(intno));
 	CHECK_PAR(FUNC_ALIGN(isr));
 	CHECK_PAR(FUNC_NONNULL(isr));
@@ -581,7 +581,7 @@ ER_BOOL
 prb_int(INTNO intno)
 {
 	bool_t	locked;
-	ER		ercd;
+	ER_BOOL	ercd;
 
 	LOG_PRB_INT_ENTER(intno);
 	CHECK_PAR(VALID_INTNO_PRBINT(intno));		/*［NGKI3945］［NGKI3952］*/
@@ -625,8 +625,7 @@ chg_ipm(PRI intpri)
 	lock_cpu();
 	t_set_ipm(intpri);							/*［NGKI3111］*/
 	if (intpri == TIPM_ENAALL && enadsp) {
-		dspflg = true;
-		p_schedtsk = search_schedtsk();
+		set_dspflg();
 		if (p_runtsk->raster && p_runtsk->enater) {
 			task_terminate(p_runtsk);
 			exit_and_dispatch();

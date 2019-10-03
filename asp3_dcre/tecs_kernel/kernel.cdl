@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2015,2016 by Ushio Laboratory
  *              Graduate School of Engineering Science, Osaka Univ., JAPAN
- *  Copyright (C) 2015-2017 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2015-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -298,7 +298,7 @@ signature sDataqueue {
 	ER 		sendTimeout([in] intptr_t data, [in] TMO timeout);
 	ER 		sendForce([in] intptr_t data);
 	ER 		receive([out] intptr_t *p_data);
-	ER 		receivePolling([out] intptr_t *p_Data);
+	ER 		receivePolling([out] intptr_t *p_data);
 	ER 		receiveTimeout([out] intptr_t *p_data, [in] TMO timeout);
 	ER 		initialize(void);
 	ER 		refer([out] T_RDTQ *pk_dataqueueStatus);
@@ -396,7 +396,7 @@ signature sMutex {
 	ER		lockTimeout([in] TMO timeout);
 	ER		unlock(void);
 	ER		initialize(void);
-	ER		refer([out] T_RSEM *pk_mutexStatus);
+	ER		refer([out] T_RMTX *pk_mutexStatus);
 };
 
 /*
@@ -500,7 +500,7 @@ celltype tCyclicNotifier {
 	[optional] call siNotificationHandler	ciErrorNotificationHandler;
 
 	attr {
-		ID				id = C_EXP("ALMID_$id$");
+		ID				id = C_EXP("CYCID_$id$");
 		[omit] ATR		attribute = C_EXP("TA_NULL");
 		[omit] bool_t	ignoreErrors = false;
 		[omit] RELTIM	cycleTime;
@@ -535,7 +535,7 @@ celltype tCyclicNotifier {
 };
 
 /*
- *  周期通知にユーザーハンドラを指定するための複合セルタイプ
+ *  周期通知にタイムイベントハンドラを指定するための複合セルタイプ
  */
 [active]
 composite tCyclicHandler {
@@ -543,7 +543,7 @@ composite tCyclicHandler {
 	[omit] call	siHandlerBody	ciHandlerBody;
 
 	attr {
-		ID				id = C_EXP("ALMID_$id$");
+		ID				id = C_EXP("CYCID_$id$");
 		[omit] ATR		attribute = C_EXP("TA_NULL");
 		[omit] RELTIM	cycleTime;
 		[omit] RELTIM	cyclePhase = 0;
@@ -629,7 +629,7 @@ celltype tAlarmNotifier {
 };
 
 /*
- *  アラーム通知にユーザーハンドラを指定するための複合セルタイプ
+ *  アラーム通知にタイムイベントハンドラを指定するための複合セルタイプ
  */
 [active]
 composite tAlarmHandler {
@@ -717,17 +717,36 @@ celltype tInterruptHandler {
 	call	siHandlerBody	ciInterruptHandlerBody;
 
 	attr {
-		INHNO			interruptHandlerNumber;
+		[omit] INHNO	interruptHandlerNumber;
 		[omit] ATR		attribute = C_EXP("TA_NULL");
 	};
 
 	factory {
-		write("tecsgen.cfg",
-				"DEF_INH(%s, { %s, tInterruptHandler_start });", attribute);
+		write("tecsgen.cfg", "DEF_INH(%s, { %s, $id$_start });",
+									interruptHandlerNumber, attribute);
+		write("$ct$_tecsgen.h",
+				"#ifndef TOPPERS_MACRO_ONLY\n"
+				"extern void $id$_start(void);\n"
+				"#endif /* TOPPERS_MACRO_ONLY */\n");
+		write("$ct$.c",
+				"void $id$_start()\n"
+				"{\n"
+				"    CELLCB *p_cellcb = $cbp$;\n"
+				"    ciInterruptHandlerBody_main();\n"
+				"}\n");
 	};
 	FACTORY {
 		write("tecsgen.cfg", "#include \"$ct$_tecsgen.h\"");
+		write("$ct$.c", "#include \"$ct$_tecsgen.h\"");
 	};
+};
+
+/*
+ *  CPU例外ハンドラ本体のシグニチャ
+ */
+[context("non-task")]
+signature siCpuExceptionHandlerBody {
+	void	main([in] const void *p_excinf);
 };
 
 /*
@@ -735,19 +754,30 @@ celltype tInterruptHandler {
  */
 [active]
 celltype tCpuExceptionHandler {
-	call	siHandlerBody	ciCpuExceptionHandlerBody;
+	call	siCpuExceptionHandlerBody	ciCpuExceptionHandlerBody;
 
 	attr {
-		EXCNO			cpuExceptionHandlerNumber;
+		[omit] EXCNO	cpuExceptionHandlerNumber;
 		[omit] ATR		attribute = C_EXP("TA_NULL");
 	};
 
 	factory {
-		write("tecsgen.cfg",
-				"DEF_EXC(%s, { %s, tCpuExceptionHandler_start });", attribute);
+		write("tecsgen.cfg", "DEF_EXC(%s, { %s, $id$_start });",
+									cpuExceptionHandlerNumber, attribute);
+		write("$ct$_tecsgen.h",
+				"#ifndef TOPPERS_MACRO_ONLY\n"
+				"extern void $id$_start(void *p_excinf);\n"
+				"#endif /* TOPPERS_MACRO_ONLY */\n");
+		write("$ct$.c",
+				"void $id$_start(void *p_excinf)\n"
+				"{\n"
+				"    CELLCB *p_cellcb = $cbp$;\n"
+				"    ciCpuExceptionHandlerBody_main(p_excinf);\n"
+				"}\n");
 	};
 	FACTORY {
 		write("tecsgen.cfg", "#include \"$ct$_tecsgen.h\"");
+		write("$ct$.c", "#include \"$ct$_tecsgen.h\"");
 	};
 };
 

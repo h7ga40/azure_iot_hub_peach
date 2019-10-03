@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -225,7 +225,7 @@ acre_mpf(const T_CMPF *pk_cmpf)
 	mpf = pk_cmpf->mpf;
 	p_mpfmb = pk_cmpf->mpfmb;
 
-	CHECK_RSATR(mpfatr, TA_TPRI);
+	CHECK_VALIDATR(mpfatr, TA_TPRI);
 	CHECK_PAR(blkcnt != 0);
 	CHECK_PAR(blksz != 0);
 	if (mpf != NULL) {
@@ -241,7 +241,7 @@ acre_mpf(const T_CMPF *pk_cmpf)
 	}
 	else {
 		if (mpf == NULL) {
-			mpf = kernel_malloc(ROUND_MPF_T(blksz) * blkcnt);
+			mpf = malloc_mpk(ROUND_MPF_T(blksz) * blkcnt);
 			mpfatr |= TA_MEMALLOC;
 		}
 		if (mpf == NULL) {
@@ -249,12 +249,12 @@ acre_mpf(const T_CMPF *pk_cmpf)
 		}
 		else {
 			if (p_mpfmb == NULL) {
-				p_mpfmb = kernel_malloc(sizeof(MPFMB) * blkcnt);
+				p_mpfmb = malloc_mpk(sizeof(MPFMB) * blkcnt);
 				mpfatr |= TA_MBALLOC;
 			}
 			if (p_mpfmb == NULL) {
-				if (mpf == NULL) {
-					kernel_free(mpf);
+				if (pk_cmpf->mpf == NULL) {
+					free_mpk(mpf);
 				}
 				ercd = E_NOMEM;
 			}
@@ -312,10 +312,10 @@ del_mpf(ID mpfid)
 		init_wait_queue(&(p_mpfcb->wait_queue));
 		p_mpfinib = (MPFINIB *)(p_mpfcb->p_mpfinib);
 		if ((p_mpfinib->mpfatr & TA_MEMALLOC) != 0U) {
-			kernel_free(p_mpfinib->mpf);
+			free_mpk(p_mpfinib->mpf);
 		}
 		if ((p_mpfinib->mpfatr & TA_MBALLOC) != 0U) {
-			kernel_free(p_mpfinib->p_mpfmb);
+			free_mpk(p_mpfinib->p_mpfmb);
 		}
 		p_mpfinib->mpfatr = TA_NOEXS;
 		queue_insert_prev(&free_mpfcb, &(p_mpfcb->wait_queue));
@@ -341,9 +341,9 @@ del_mpf(ID mpfid)
 ER
 get_mpf(ID mpfid, void **p_blk)
 {
-	MPFCB	*p_mpfcb;
-	WINFO_MPF winfo_mpf;
-	ER		ercd;
+	MPFCB		*p_mpfcb;
+	WINFO_MPF	winfo_mpf;
+	ER			ercd;
 
 	LOG_GET_MPF_ENTER(mpfid, p_blk);
 	CHECK_DISPATCH();
@@ -362,8 +362,8 @@ get_mpf(ID mpfid, void **p_blk)
 		ercd = E_OK;
 	}
 	else {
-		p_runtsk->tstat = TS_WAITING_MPF;
-		wobj_make_wait((WOBJCB *) p_mpfcb, (WINFO_WOBJ *) &winfo_mpf);
+		wobj_make_wait((WOBJCB *) p_mpfcb, TS_WAITING_MPF,
+											(WINFO_WOBJ *) &winfo_mpf);
 		dispatch();
 		ercd = winfo_mpf.winfo.wercd;
 		if (ercd == E_OK) {
@@ -423,10 +423,10 @@ pget_mpf(ID mpfid, void **p_blk)
 ER
 tget_mpf(ID mpfid, void **p_blk, TMO tmout)
 {
-	MPFCB	*p_mpfcb;
-	WINFO_MPF winfo_mpf;
-	TMEVTB	tmevtb;
-	ER		ercd;
+	MPFCB		*p_mpfcb;
+	WINFO_MPF	winfo_mpf;
+	TMEVTB		tmevtb;
+	ER			ercd;
 
 	LOG_TGET_MPF_ENTER(mpfid, p_blk, tmout);
 	CHECK_DISPATCH();
@@ -449,9 +449,8 @@ tget_mpf(ID mpfid, void **p_blk, TMO tmout)
 		ercd = E_TMOUT;
 	}
 	else {
-		p_runtsk->tstat = TS_WAITING_MPF;
-		wobj_make_wait_tmout((WOBJCB *) p_mpfcb, (WINFO_WOBJ *) &winfo_mpf,
-														&tmevtb, tmout);
+		wobj_make_wait_tmout((WOBJCB *) p_mpfcb, TS_WAITING_MPF,
+								(WINFO_WOBJ *) &winfo_mpf, &tmevtb, tmout);
 		dispatch();
 		ercd = winfo_mpf.winfo.wercd;
 		if (ercd == E_OK) {

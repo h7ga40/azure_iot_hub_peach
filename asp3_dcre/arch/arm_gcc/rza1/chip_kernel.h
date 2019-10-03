@@ -2,10 +2,10 @@
  *  TOPPERS/ASP Kernel
  *      Toyohashi Open Platform for Embedded Real-Time Systems/
  *      Advanced Standard Profile Kernel
- *
- *  Copyright (C) 2006-2017 by Embedded and Real-Time Systems Laboratory
+ * 
+ *  Copyright (C) 2006-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
- *
+ * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
  *  ア（本ソフトウェアを改変したものを含む．以下同じ）を使用・複製・改
  *  変・再配布（以下，利用と呼ぶ）することを無償で許諾する．
@@ -28,22 +28,22 @@
  *      また，本ソフトウェアのユーザまたはエンドユーザからのいかなる理
  *      由に基づく請求からも，上記著作権者およびTOPPERSプロジェクトを
  *      免責すること．
- *
+ * 
  *  本ソフトウェアは，無保証で提供されているものである．上記著作権者お
  *  よびTOPPERSプロジェクトは，本ソフトウェアに関して，特定の使用目的
  *  に対する適合性も含めて，いかなる保証も行わない．また，本ソフトウェ
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
- *
+ * 
  *  $Id$
  */
 
 /*
  *		kernel.hのターゲット依存部（RZ/A1用）
  *
- *  このヘッダファイルは，kernel.hからインクルードされる．他のファイル
- *  から直接インクルードすることはない．このファイルをインクルードする
- *  前に，t_stddef.hがインクルードされるので，それに依存してもよい．
+ *  このヘッダファイルは，target_kernel.h（または，そこからインクルー
+ *  ドされるファイル）のみからインクルードされる．他のファイルから直接
+ *  インクルードしてはならない．
  */
 
 #ifndef TOPPERS_CHIP_KERNEL_H
@@ -74,29 +74,6 @@
 #define TOPPERS_TARGET_SUPPORT_RAS_INT		/* ras_int */
 #define TOPPERS_TARGET_SUPPORT_PRB_INT		/* prb_int */
 #define TOPPERS_TARGET_SUPPORT_OVRHDR
-
-/*
- *  高分解能タイマのタイマ周期
- *
- *  2^32 / 33.33…を丸めた値とする．
- */
-#define TCYC_HRTCNT		128849019U
-
-/*
- *  高分解能タイマのカウント値の進み幅
- */
-#define TSTEP_HRTCNT	1U
-
-/*
- *  オーバランハンドラの残りプロセッサ時間に指定できる最大値
- *
- *  この値をOSタイマへの設定値に変換してタイマに設定した後，タイマの現
- *  在値を読み出してμ秒単位に変換できる値としている．タイマの現在値を
- *  μ秒単位に変換する時に34を加えるため，以下の条件を満たす最大の値と
- *  する．
- *		(TMAX_OVRTIM * 33 + TMAX_OVRTIM / 3 + 1) + 34 < 2^32
- */
-#define TMAX_OVRTIM		128849017U
 
 /*
  *  コアで共通な定義

@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
+#
+#   TOPPERS Software
+#       Toyohashi Open Platform for Embedded Real-Time Systems
 # 
-#   TOPPERS/ASP Kernel
-#       Toyohashi Open Platform for Embedded Real-Time Systems/
-#       Advanced Standard Profile Kernel
-# 
-#   Copyright (C) 2011-2016 by Embedded and Real-Time Systems Laboratory
+#   Copyright (C) 2011-2018 by Embedded and Real-Time Systems Laboratory
 #               Graduate School of Information Science, Nagoya Univ., JAPAN
 #  
 #   上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -36,34 +35,27 @@
 #   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #   の責任を負わない．
 # 
-#   $Id$
+#   $Id: genoffset.trb 936 2018-04-07 09:46:42Z ertl-hiro $
 # 
 
 #
 #		オフセットファイル生成用の生成スクリプト
 #
 
-# 
+#
 #  タイムスタンプファイルの指定
-# 
+#
 $timeStampFileName = "offset.timestamp"
 
-# 
+#
 #  offset.hの先頭部分の生成
-# 
+#
 $offsetH = GenFile.new("offset.h")
 $offsetH.add2("/* offset.h */")
 
-# 
-#  #defineディレクティブの生成
-# 
-def GenerateDefine(symbol, value)
-  $offsetH.add("#define #{symbol}\t#{value}")
-end
-
-# 
+#
 #  ビットのサーチ
-# 
+#
 def SearchBit(val)
   (0..7).each do |valBit|
     if (val & 1) != 0
@@ -73,10 +65,10 @@ def SearchBit(val)
   end
 end
 
-# 
-#  ビットフィールドのオフセットとビット位置の定義の生成
-# 
-def GenerateDefineBit(label, structSize, outputSize)
+#
+#  ビットフィールドのオフセットとビット位置の算出
+#
+def BitOffsetPosition(label, structSize, outputSize)
   top = SYMBOL(label)
   if top.nil?
     error_exit("label `#{label}' not found")
@@ -95,53 +87,45 @@ def GenerateDefineBit(label, structSize, outputSize)
     if val == 0
       error_exit("bit not found in `#{label}'")
     else
-      valBit = SearchBit(val)
+      position = SearchBit(val)
       case outputSize
-      when "W"
-        if $SIL_ENDIAN_BIG
-          valBit = valBit + 24 - ((offset & 0x03) << 3)
+      when 4, "W"
+        if $endianLittle
+          position = position + ((offset & 0x03) << 3)
         else
-          valBit = valBit + ((offset & 0x03) << 3)
+          position = position + 24 - ((offset & 0x03) << 3)
         end
         offset &= ~0x03
-      when "H"
-        if $SIL_ENDIAN_BIG
-          valBit = valBit + 8 - ((offset & 0x01) << 3)
+      when 2, "H"
+        if $endianLittle
+          position = position + ((offset & 0x01) << 3)
         else
-          valBit = valBit + ((offset & 0x01) << 3)
+          position = position + 8 - ((offset & 0x01) << 3)
         end
         offset &= ~0x01
       end
     end
-
-    $offsetH.add("#define #{label}\t#{offset}")
-    $offsetH.add("#define #{label}_bit\t#{valBit}")
-    $offsetH.add("#define #{label}_mask\t#{sprintf("0x%x", 1 << valBit)}")
+    return offset, position
   end
 end
 
-# 
-#  バイト配置のチェック
-# 
-def magicCheck(size, check)
-  label = "MAGIC_#{size}"
-  top = SYMBOL(label)
-  if top.nil?
-    error_exit("label `#{label}' not found")
-  else
-    1.upto(size).each do |offset|
-      if $SIL_ENDIAN_BIG
-        val = PEEK(top + offset - 1, 1)
-      else
-        val = PEEK(top + size - offset, 1)
-      end
-      if val != check.at(offset - 1)
-        error_exit("value check of `#{label}' failed")
-      end
-    end
-  end
+# 以下の定義は，過去のバージョンとの互換性のために残している．
+
+#
+#  #defineディレクティブの生成
+#
+def GenerateDefine(symbol, value)
+  $offsetH.add("#define #{symbol}\t#{value}")
 end
 
-magicCheck(1, [ 0x12 ])
-magicCheck(2, [ 0x12, 0x34 ])
-magicCheck(4, [ 0x12, 0x34, 0x56, 0x78 ])
+#
+#  ビットフィールドのオフセットとビット位置の定義の生成
+#
+def GenerateDefineBit(label, structSize, outputSize)
+  offset, position = BitOffsetPosition(label, structSize, outputSize)
+  if !offset.nil?
+    GenerateDefine(label, offset)
+    GenerateDefine("#{label}_bit", position)
+    GenerateDefine("#{label}_mask", sprintf("0x%x", 1 << position))
+  end
+end

@@ -2,7 +2,7 @@
  *  TOPPERS Software
  *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
- *  Copyright (C) 2006-2017 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -125,7 +125,7 @@
 #define GICC_IAR		GIC_REG(GICC_BASE, 0x0C)
 #define GICC_EOIR		GIC_REG(GICC_BASE, 0x10)
 #define GICC_RPR		GIC_REG(GICC_BASE, 0x14)
-#define GICC_HPIR		GIC_REG(GICC_BASE, 0x18)
+#define GICC_HPPIR		GIC_REG(GICC_BASE, 0x18)
 
 /*
  *  CPUインタフェース制御レジスタ（GICC_CTLR）の設定値（GICv1でセキュリ
@@ -197,7 +197,7 @@
 Inline void
 gicc_set_priority(uint_t pri)
 {
-	sil_wrw_mem(GICC_PMR, pri);
+	sil_swrw_mem(GICC_PMR, pri);
 }
 
 /*
@@ -229,7 +229,7 @@ extern void gicc_terminate(void);
 Inline void
 gicd_disable_int(INTNO intno)
 {
-	sil_wrw_mem(GICD_ICENABLER(intno / 32), (1U << (intno % 32)));
+	sil_swrw_mem(GICD_ICENABLER(intno / 32), (1U << (intno % 32)));
 }
 
 /*
@@ -238,7 +238,7 @@ gicd_disable_int(INTNO intno)
 Inline void
 gicd_enable_int(INTNO intno)
 {
-	sil_wrw_mem(GICD_ISENABLER(intno / 32), (1U << (intno % 32)));
+	sil_swrw_mem(GICD_ISENABLER(intno / 32), (1U << (intno % 32)));
 }
 
 /*
@@ -247,7 +247,7 @@ gicd_enable_int(INTNO intno)
 Inline void
 gicd_clear_pending(INTNO intno)
 {
-	sil_wrw_mem(GICD_ICPENDR(intno / 32), (1U << (intno % 32)));
+	sil_swrw_mem(GICD_ICPENDR(intno / 32), (1U << (intno % 32)));
 }
 
 /*
@@ -256,7 +256,7 @@ gicd_clear_pending(INTNO intno)
 Inline void
 gicd_set_pending(INTNO intno)
 {
-	sil_wrw_mem(GICD_ISPENDR(intno / 32), (1U << (intno % 32)));
+	sil_swrw_mem(GICD_ISPENDR(intno / 32), (1U << (intno % 32)));
 }
 
 /*
@@ -275,7 +275,7 @@ gicd_probe_pending(INTNO intno)
 Inline void
 gicd_raise_sgi(INTNO intno)
 {
-	sil_wrw_mem(GICD_SGIR, (0x02000000 | intno));
+	sil_swrw_mem(GICD_SGIR, (0x02000000 | intno));
 }
 
 /*
@@ -410,6 +410,16 @@ t_get_ipm(void)
 {
 	return(EXT_IPM(gicc_get_priority()));
 }
+
+/*
+ *  割込み要求禁止フラグが操作できる割込み番号の範囲の判定
+ */
+#ifdef GIC_SUPPORT_DISABLE_SGI
+#define VALID_INTNO_DISINT(intno)	VALID_INTNO(intno)
+#else /* GIC_SUPPORT_DISABLE_SGI */
+#define VALID_INTNO_DISINT(intno) \
+				(GIC_INTNO_PPI0 <= (intno) && (intno) <= TMAX_INTNO)
+#endif /* GIC_SUPPORT_DISABLE_SGI */
 
 /*
  *  割込み要求禁止フラグのセット

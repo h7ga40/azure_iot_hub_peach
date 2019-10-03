@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2015 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -117,7 +117,7 @@
 #endif /* LOG_DLY_TSK_LEAVE */
 
 /*
- *  起床待ち
+ *  起床待ち［NGKI1252］
  */
 #ifdef TOPPERS_slp_tsk
 
@@ -128,19 +128,18 @@ slp_tsk(void)
 	ER		ercd;
 
 	LOG_SLP_TSK_ENTER();
-	CHECK_DISPATCH();
+	CHECK_DISPATCH();							/*［NGKI1254］*/
 
 	lock_cpu_dsp();
 	if (p_runtsk->raster) {
-		ercd = E_RASTER;
+		ercd = E_RASTER;						/*［NGKI3455］*/
 	}
 	else if (p_runtsk->wupque) {
-		p_runtsk->wupque = false;
+		p_runtsk->wupque = false;				/*［NGKI1259］*/
 		ercd = E_OK;
 	}
 	else {
-		p_runtsk->tstat = TS_WAITING_SLP;
-		make_wait(&winfo);
+		make_wait(TS_WAITING_SLP, &winfo);		/*［NGKI1260］*/
 		LOG_TSKSTAT(p_runtsk);
 		dispatch();
 		ercd = winfo.wercd;
@@ -155,7 +154,7 @@ slp_tsk(void)
 #endif /* TOPPERS_slp_tsk */
 
 /*
- *  起床待ち（タイムアウトあり）
+ *  起床待ち（タイムアウトあり）［NGKI1253］
  */
 #ifdef TOPPERS_tslp_tsk
 
@@ -167,23 +166,22 @@ tslp_tsk(TMO tmout)
 	ER		ercd;
 
 	LOG_TSLP_TSK_ENTER(tmout);
-	CHECK_DISPATCH();
-	CHECK_PAR(VALID_TMOUT(tmout));
+	CHECK_DISPATCH();							/*［NGKI1254］*/
+	CHECK_PAR(VALID_TMOUT(tmout));				/*［NGKI1256］*/
 
 	lock_cpu_dsp();
 	if (p_runtsk->raster) {
-		ercd = E_RASTER;
+		ercd = E_RASTER;						/*［NGKI3455］*/
 	}
 	else if (p_runtsk->wupque) {
-		p_runtsk->wupque = false;
+		p_runtsk->wupque = false;				/*［NGKI1259］*/
 		ercd = E_OK;
 	}
 	else if (tmout == TMO_POL) {
-		ercd = E_TMOUT;
+		ercd = E_TMOUT;							/*［NGKI1257］*/
 	}
-	else {
-		p_runtsk->tstat = TS_WAITING_SLP;
-		make_wait_tmout(&winfo, &tmevtb, tmout);
+	else {										/*［NGKI1260］*/
+		make_wait_tmout(TS_WAITING_SLP, &winfo, &tmevtb, tmout);
 		LOG_TSKSTAT(p_runtsk);
 		dispatch();
 		ercd = winfo.wercd;
@@ -198,7 +196,7 @@ tslp_tsk(TMO tmout)
 #endif /* TOPPERS_tslp_tsk */
 
 /*
- *  タスクの起床
+ *  タスクの起床［NGKI3531］
  */
 #ifdef TOPPERS_wup_tsk
 
@@ -209,40 +207,40 @@ wup_tsk(ID tskid)
 	ER		ercd;
 
 	LOG_WUP_TSK_ENTER(tskid);
-	CHECK_UNL();
+	CHECK_UNL();								/*［NGKI1265］*/
 	if (tskid == TSK_SELF && !sense_context()) {
-		p_tcb = p_runtsk;
+		p_tcb = p_runtsk;						/*［NGKI1275］*/
 	}
 	else {
-		CHECK_ID(VALID_TSKID(tskid));
+		CHECK_ID(VALID_TSKID(tskid));			/*［NGKI1267］*/
 		p_tcb = get_tcb(tskid);
 	}
 
 	lock_cpu();
 	if (p_tcb->p_tinib->tskatr == TA_NOEXS) {
-		ercd = E_NOEXS;
+		ercd = E_NOEXS;							/*［NGKI1268］*/
 	}
 	else if (TSTAT_DORMANT(p_tcb->tstat)) {
-		ercd = E_OBJ;
+		ercd = E_OBJ;							/*［NGKI1270］*/
 	}
 	else if (TSTAT_WAIT_SLP(p_tcb->tstat)) {
-		wait_complete(p_tcb);
+		wait_complete(p_tcb);					/*［NGKI1271］*/
 		if (p_runtsk != p_schedtsk) {
 			if (!sense_context()) {
 				dispatch();
 			}
 			else {
-				request_dispatch();
+				request_dispatch_retint();
 			}
 		}
 		ercd = E_OK;
 	}
 	else if (!(p_tcb->wupque)) {
-		p_tcb->wupque = true;
+		p_tcb->wupque = true;					/*［NGKI1273］*/
 		ercd = E_OK;
 	}
 	else {
-		ercd = E_QOVR;
+		ercd = E_QOVR;							/*［NGKI1274］*/
 	}
 	unlock_cpu();
 
@@ -254,7 +252,7 @@ wup_tsk(ID tskid)
 #endif /* TOPPERS_wup_tsk */
 
 /*
- *  タスク起床要求のキャンセル
+ *  タスク起床要求のキャンセル［NGKI1276］
  */
 #ifdef TOPPERS_can_wup
 
@@ -265,25 +263,25 @@ can_wup(ID tskid)
 	ER_UINT	ercd;
 
 	LOG_CAN_WUP_ENTER(tskid);
-	CHECK_TSKCTX_UNL();
+	CHECK_TSKCTX_UNL();							/*［NGKI1277］［NGKI1278］*/
 	if (tskid == TSK_SELF) {
-		p_tcb = p_runtsk;
+		p_tcb = p_runtsk;						/*［NGKI1285］*/
 	}
 	else {
-		CHECK_ID(VALID_TSKID(tskid));
+		CHECK_ID(VALID_TSKID(tskid));			/*［NGKI1280］*/
 		p_tcb = get_tcb(tskid);
 	}
 
 	lock_cpu();
 	if (p_tcb->p_tinib->tskatr == TA_NOEXS) {
-		ercd = E_NOEXS;
+		ercd = E_NOEXS;							/*［NGKI1281］*/
 	}
 	else if (TSTAT_DORMANT(p_tcb->tstat)) {
-		ercd = E_OBJ;
+		ercd = E_OBJ;							/*［NGKI1283］*/
 	}
 	else {
-		ercd = p_tcb->wupque ? 1 : 0;
-		p_tcb->wupque = false;
+		ercd = p_tcb->wupque ? 1 : 0;			/*［NGKI1284］*/
+		p_tcb->wupque = false;					/*［NGKI1284］*/
 	}
 	unlock_cpu();
 
@@ -295,7 +293,7 @@ can_wup(ID tskid)
 #endif /* TOPPERS_can_wup */
 
 /*
- *  待ち状態の強制解除
+ *  待ち状態の強制解除［NGKI3532］
  */
 #ifdef TOPPERS_rel_wai
 
@@ -306,28 +304,28 @@ rel_wai(ID tskid)
 	ER		ercd;
 
 	LOG_REL_WAI_ENTER(tskid);
-	CHECK_UNL();
-	CHECK_ID(VALID_TSKID(tskid));
+	CHECK_UNL();								/*［NGKI1290］*/
+	CHECK_ID(VALID_TSKID(tskid));				/*［NGKI1292］*/
 	p_tcb = get_tcb(tskid);
 
 	lock_cpu();
 	if (p_tcb->p_tinib->tskatr == TA_NOEXS) {
-		ercd = E_NOEXS;
+		ercd = E_NOEXS;							/*［NGKI1293］*/
 	}
 	else if (!TSTAT_WAITING(p_tcb->tstat)) {
-		ercd = E_OBJ;
+		ercd = E_OBJ;							/*［NGKI1295］*/
 	}
 	else {
-		wait_dequeue_wobj(p_tcb);
+		wait_dequeue_wobj(p_tcb);				/*［NGKI1296］*/
 		wait_dequeue_tmevtb(p_tcb);
-		p_tcb->p_winfo->wercd = E_RLWAI;
+		p_tcb->p_winfo->wercd = E_RLWAI;		/*［NGKI1297］*/
 		make_non_wait(p_tcb);
 		if (p_runtsk != p_schedtsk) {
 			if (!sense_context()) {
 				dispatch();
 			}
 			else {
-				request_dispatch();
+				request_dispatch_retint();
 			}
 		}
 		ercd = E_OK;
@@ -408,7 +406,7 @@ sus_tsk(ID tskid)
 #endif /* TOPPERS_sus_tsk */
 
 /*
- *  強制待ち状態からの再開
+ *  強制待ち状態からの再開［NGKI1312］
  */
 #ifdef TOPPERS_rsm_tsk
 
@@ -419,35 +417,33 @@ rsm_tsk(ID tskid)
 	ER		ercd;
 
 	LOG_RSM_TSK_ENTER(tskid);
-	CHECK_TSKCTX_UNL();
-	CHECK_ID(VALID_TSKID(tskid));
+	CHECK_TSKCTX_UNL();							/*［NGKI1313］［NGKI1314］*/
+	CHECK_ID(VALID_TSKID(tskid));				/*［NGKI1316］*/
 	p_tcb = get_tcb(tskid);
 
 	lock_cpu();
 	if (p_tcb->p_tinib->tskatr == TA_NOEXS) {
-		ercd = E_NOEXS;
+		ercd = E_NOEXS;							/*［NGKI1317］*/
 	}
 	else if (!TSTAT_SUSPENDED(p_tcb->tstat)) {
-		ercd = E_OBJ;
-	}
-	else if (!TSTAT_WAITING(p_tcb->tstat)) {
-		/*
-		 *  強制待ち状態から実行できる状態への遷移
-		 */
-		p_tcb->tstat = TS_RUNNABLE;
-		LOG_TSKSTAT(p_tcb);
-		make_runnable(p_tcb);
-		if (p_runtsk != p_schedtsk) {
-			dispatch();
-		}
-		ercd = E_OK;
+		ercd = E_OBJ;							/*［NGKI1319］*/
 	}
 	else {
 		/*
-		 *  二重待ち状態から待ち状態への遷移
+		 *  強制待ちからの再開［NGKI1320］
 		 */
-		p_tcb->tstat &= ~TS_SUSPENDED;
-		LOG_TSKSTAT(p_tcb);
+		if (!TSTAT_WAITING(p_tcb->tstat)) {
+			p_tcb->tstat = TS_RUNNABLE;
+			LOG_TSKSTAT(p_tcb);
+			make_runnable(p_tcb);
+			if (p_runtsk != p_schedtsk) {
+				dispatch();
+			}
+		}
+		else {
+			p_tcb->tstat &= ~TS_SUSPENDED;
+			LOG_TSKSTAT(p_tcb);
+		}
 		ercd = E_OK;
 	}
 	unlock_cpu();
@@ -460,7 +456,7 @@ rsm_tsk(ID tskid)
 #endif /* TOPPERS_rsm_tsk */
 
 /*
- *  自タスクの遅延
+ *  自タスクの遅延［NGKI1348］
  */
 #ifdef TOPPERS_dly_tsk
 
@@ -472,21 +468,21 @@ dly_tsk(RELTIM dlytim)
 	ER		ercd;
 
 	LOG_DLY_TSK_ENTER(dlytim);
-	CHECK_DISPATCH();
-	CHECK_PAR(VALID_RELTIM(dlytim));
+	CHECK_DISPATCH();							/*［NGKI1349］*/
+	CHECK_PAR(VALID_RELTIM(dlytim));			/*［NGKI1351］*/
 
 	lock_cpu_dsp();
 	if (p_runtsk->raster) {
-		ercd = E_RASTER;
+		ercd = E_RASTER;						/*［NGKI3456］*/
 	}
 	else {
-		p_runtsk->tstat = TS_WAITING_DLY;
+		p_runtsk->tstat = TS_WAITING_DLY;		/*［NGKI1353］*/
 		make_non_runnable(p_runtsk);
 		p_runtsk->p_winfo = &winfo;
 		winfo.p_tmevtb = &tmevtb;
 		tmevtb.callback = (CBACK) wait_tmout_ok;
 		tmevtb.arg = (void *) p_runtsk;
-		tmevtb_enqueue(&tmevtb, dlytim);
+		tmevtb_enqueue_reltim(&tmevtb, dlytim);
 		LOG_TSKSTAT(p_runtsk);
 		dispatch();
 		ercd = winfo.wercd;

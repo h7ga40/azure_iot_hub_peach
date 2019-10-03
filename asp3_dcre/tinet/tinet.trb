@@ -142,9 +142,7 @@ $tinetCfgC.add("/*")
 $tinetCfgC.add(" *  Include Directives (#include)")
 $tinetCfgC.add(" */")
 $tinetCfgC.add()
-$includeFiles.each do |file|
-  $tinetCfgC.add("#include #{file}")
-end
+GenerateIncludes($tinetCfgC)
 
 $tinetCfgC.add()
 $tinetCfgC.add("const ID tmax_tcp_repid = (TMIN_TCP_REPID + TNUM_TCP6_REPID + TNUM_TCP4_REPID - 1);")

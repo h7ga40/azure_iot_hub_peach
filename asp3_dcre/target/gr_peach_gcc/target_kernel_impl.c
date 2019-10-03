@@ -2,10 +2,10 @@
  *  TOPPERS/ASP Kernel
  *      Toyohashi Open Platform for Embedded Real-Time Systems/
  *      Advanced Standard Profile Kernel
- *
- *  Copyright (C) 2007-2016 by Embedded and Real-Time Systems Laboratory
+ * 
+ *  Copyright (C) 2007-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
- *
+ * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
  *  ア（本ソフトウェアを改変したものを含む．以下同じ）を使用・複製・改
  *  変・再配布（以下，利用と呼ぶ）することを無償で許諾する．
@@ -28,13 +28,13 @@
  *      また，本ソフトウェアのユーザまたはエンドユーザからのいかなる理
  *      由に基づく請求からも，上記著作権者およびTOPPERSプロジェクトを
  *      免責すること．
- *
+ * 
  *  本ソフトウェアは，無保証で提供されているものである．上記著作権者お
  *  よびTOPPERSプロジェクトは，本ソフトウェアに関して，特定の使用目的
  *  に対する適合性も含めて，いかなる保証も行わない．また，本ソフトウェ
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
- *
+ * 
  *  $Id$
  */
 
@@ -46,6 +46,7 @@
 #include <sil.h>
 #include "arm.h"
 #include "rza1.h"
+#include "scif.h"
 
 /*
  * C++のグローバルコンストラクタ呼び出し
@@ -68,12 +69,11 @@ void __libc_init_array()
 /*
  *  MMUへの設定属性（第1レベルディスクリプタ）
  */
-#define MMU_ATTR_RAM	(ARM_MMU_DSCR1_SHARED|ARMV6_MMU_DSCR1_APX0 \
-							|ARM_MMU_DSCR1_TEX001|ARM_MMU_DSCR1_AP11 \
-							|ARM_MMU_DSCR1_CB11)
-#define MMU_ATTR_IODEV	(ARM_MMU_DSCR1_SHARED|ARMV6_MMU_DSCR1_APX0 \
-							|ARM_MMU_DSCR1_TEX000|ARM_MMU_DSCR1_AP11 \
-							|ARM_MMU_DSCR1_CB01|ARMV6_MMU_DSCR1_NOEXEC)
+#define MMU_ATTR_RAM	(ARM_MMU_DSCR1_SHARED|ARM_MMU_DSCR1_TEX001 \
+							|ARMV6_MMU_DSCR1_AP011|ARM_MMU_DSCR1_CB11)
+#define MMU_ATTR_IODEV	(ARM_MMU_DSCR1_SHARED|ARM_MMU_DSCR1_TEX000 \
+							|ARMV6_MMU_DSCR1_AP011|ARM_MMU_DSCR1_CB01 \
+							|ARMV6_MMU_DSCR1_NOEXEC)
 
 /*
  *  MMUの設定情報（メモリエリアの情報）
@@ -212,9 +212,9 @@ port_initialize(void)
 /*
  *  システムログの低レベル出力のための初期化
  *
- *  セルタイプtPutLogGRPeach内に実装されている関数を直接呼び出す．
+ *  セルタイプtPutLogSIOPort内に実装されている関数を直接呼び出す．
  */
-extern void tPutLogGRPeach_initialize(void);
+extern void	tPutLogSIOPort_initialize(void);
 
 /*
  *  ターゲット依存の初期化
@@ -250,17 +250,12 @@ target_initialize(void)
 	/*CP15_WRITE_VBAR((uint32_t) &vector_table);*/
 
 	/*
-	 *  L2キャッシュコントローラ（PL310）の初期化
-	 */
-	/*pl310_initialize(0x0U, ~0x0U);*/
-
-	/*
 	 *  LEDを青色に点灯させる
 	 */
 	gr_peach_set_led(GR_PEACH_LED_BLUE, 1);
 
 	/*
-	 *  低レベル出力用にSIOを初期化
+	 *  SIOを初期化
 	 */
 #ifndef TOPPERS_OMIT_TECS
 	tPutLogSIOPort_initialize();

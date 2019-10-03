@@ -1,8 +1,8 @@
 /*
- *  $Id$
+ *  $Id: gr_peach_rom.ld 720 2016-04-01 22:16:17Z ertl-hiro $
  */
 
-OUTPUT_FORMAT("elf32-littlearm", "elf32-bigarm","elf32-littlearm") 
+OUTPUT_FORMAT("elf32-littlearm", "elf32-bigarm", "elf32-littlearm") 
 OUTPUT_ARCH(arm)
 ENTRY(start);
 

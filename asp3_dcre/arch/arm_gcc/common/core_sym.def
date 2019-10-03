@@ -1,5 +1,8 @@
 TARGET_ARCH_ARM,__TARGET_ARCH_ARM
-USE_INTCFG_TABLE,true,bool,defined(USE_INTCFG_TABLE)
+USE_ARM_FPU,true,bool,defined(USE_ARM_FPU),false
+USE_ARM_FPU_D32,true,bool,defined(USE_ARM_FPU_D32),false
+USE_INTCFG_TABLE,true,bool,defined(USE_INTCFG_TABLE),false
+TA_FPU
 sizeof_TCB,sizeof(TCB)
 offsetof_TCB_p_tinib,"offsetof(TCB,p_tinib)"
 offsetof_TCB_sp,"offsetof(TCB,tskctxb.sp)"

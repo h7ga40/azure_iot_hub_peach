@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2017 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -125,10 +125,6 @@
  */
 #ifdef TOPPERS_acre_tsk
 
-#ifndef TARGET_MIN_STKSZ
-#define TARGET_MIN_STKSZ	1U		/* 未定義の場合は0でないことをチェック */
-#endif /* TARGET_MIN_STKSZ */
-
 ER_UINT
 acre_tsk(const T_CTSK *pk_ctsk)
 {
@@ -150,7 +146,7 @@ acre_tsk(const T_CTSK *pk_ctsk)
 	stksz = pk_ctsk->stksz;
 	stk = pk_ctsk->stk;
 
-	CHECK_RSATR(tskatr, TA_ACT|TA_NOACTQUE|TARGET_TSKATR);
+	CHECK_VALIDATR(tskatr, TA_ACT|TA_NOACTQUE|TARGET_TSKATR);
 	CHECK_PAR(FUNC_ALIGN(task));
 	CHECK_PAR(FUNC_NONNULL(task));
 	CHECK_PAR(VALID_TPRI(itskpri));
@@ -167,7 +163,7 @@ acre_tsk(const T_CTSK *pk_ctsk)
 	else {
 		if (stk == NULL) {
 			stksz = ROUND_STK_T(stksz);
-			stk = kernel_malloc(stksz);
+			stk = malloc_mpk(stksz);
 			tskatr |= TA_MEMALLOC;
 		}
 		if (stk == NULL) {
@@ -188,6 +184,7 @@ acre_tsk(const T_CTSK *pk_ctsk)
 #endif /* USE_TSKINICTXB */
 
 			p_tcb->actque = false;
+			p_tcb->p_lastmtx = NULL;
 			make_dormant(p_tcb);
 			if ((p_tcb->p_tinib->tskatr & TA_ACT) != 0U) {
 				make_active(p_tcb);
@@ -237,7 +234,7 @@ del_tsk(ID tskid)
 		term_tskinictxb(&(p_tinib->tskinictxb));
 #else /* USE_TSKINICTXB */
 		if ((p_tinib->tskatr & TA_MEMALLOC) != 0U) {	/*［NGKI1109］*/
-			kernel_free(p_tinib->stk);
+			free_mpk(p_tinib->stk);
 		}
 #endif /* USE_TSKINICTXB */
 		p_tinib->tskatr = TA_NOEXS;				/*［NGKI1108］*/
@@ -285,7 +282,7 @@ act_tsk(ID tskid)
 				dispatch();
 			}
 			else {
-				request_dispatch();
+				request_dispatch_retint();
 			}
 		}
 		ercd = E_OK;
@@ -425,6 +422,11 @@ chg_pri(ID tskid, PRI tskpri)
 		p_tcb = get_tcb(tskid);
 	}
 	if (tskpri == TPRI_INI) {
+		/*
+		 *  以下の代入文は，対象タスクが未登録の場合に無効なフィールド
+		 *  を参照するが，その場合はnewbpriの値を使わないので，問題な
+		 *  い．
+		 */
 		newbpri = p_tcb->p_tinib->ipriority;	/*［NGKI1199］*/
 	}
 	else {

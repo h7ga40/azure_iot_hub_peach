@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2004-2017 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2004-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -206,7 +206,7 @@ typedef struct t_ctsk {
 	TASK		task;		/* タスクのメインルーチンの先頭番地 */
 	PRI			itskpri;	/* タスクの起動時優先度 */
 	size_t		stksz;		/* タスクのスタック領域のサイズ */
-	STK_T 		*stk;		/* タスクのスタック領域の先頭番地 */
+	STK_T		*stk;		/* タスクのスタック領域の先頭番地 */
 } T_CTSK;
 
 typedef struct t_rtsk {
@@ -246,7 +246,7 @@ typedef struct t_rflg {
 typedef struct t_cdtq {
 	ATR		dtqatr;		/* データキュー属性 */
 	uint_t	dtqcnt;		/* データキュー管理領域に格納できるデータ数 */
-	void 	*dtqmb;		/* データキュー管理領域の先頭番地 */
+	void	*dtqmb;		/* データキュー管理領域の先頭番地 */
 } T_CDTQ;
 
 typedef struct t_rdtq {
@@ -260,7 +260,7 @@ typedef struct t_cpdq {
 	uint_t	pdqcnt;		/* 優先度データキュー管理領域に格納できるデータ数 */
 	PRI		maxdpri;	/* 優先度データキューに送信できるデータ優先度の最
 						   大値 */
-	void 	*pdqmb;		/* 優先度データキュー管理領域の先頭番地 */
+	void	*pdqmb;		/* 優先度データキュー管理領域の先頭番地 */
 } T_CPDQ;
 
 typedef struct t_rpdq {
@@ -286,8 +286,8 @@ typedef struct t_cmpf {
 	ATR		mpfatr;		/* 固定長メモリプール属性 */
 	uint_t	blkcnt;		/* 獲得できる固定長メモリブロックの数 */
 	uint_t	blksz;		/* 固定長メモリブロックのサイズ */
-	MPF_T 	*mpf;		/* 固定長メモリプール領域の先頭番地 */
-	void 	*mpfmb;		/* 固定長メモリプール管理領域の先頭番地 */
+	MPF_T	*mpf;		/* 固定長メモリプール領域の先頭番地 */
+	void	*mpfmb;		/* 固定長メモリプール管理領域の先頭番地 */
 } T_CMPF;
 
 typedef struct t_rmpf {
@@ -630,8 +630,8 @@ extern bool_t	xsns_dpn(void *p_excinf) throw();
  */
 #define TKERNEL_MAKER	UINT_C(0x0118)	/* カーネルのメーカーコード */
 #define TKERNEL_PRID	UINT_C(0x0007)	/* カーネルの識別番号 */
-#define TKERNEL_SPVER	UINT_C(0xf631)	/* カーネル仕様のバージョン番号 */
-#define TKERNEL_PRVER	UINT_C(0x3020)	/* カーネルのバージョン番号 */
+#define TKERNEL_SPVER	UINT_C(0xf633)	/* カーネル仕様のバージョン番号 */
+#define TKERNEL_PRVER	UINT_C(0x3040)	/* カーネルのバージョン番号 */
 
 /*
  *  キューイング回数の最大値
@@ -649,7 +649,7 @@ extern bool_t	xsns_dpn(void *p_excinf) throw();
 /*
  *  システム時刻の調整できる範囲（単位：μ秒）
  */
-#define TMIN_ADJTIM		-1000000		/* システム時刻の最小調整時間 */
+#define TMIN_ADJTIM		(-1000000)		/* システム時刻の最小調整時間 */
 #define TMAX_ADJTIM		1000000			/* システム時刻の最大調整時間 */
 
 /*
@@ -671,16 +671,19 @@ extern bool_t	xsns_dpn(void *p_excinf) throw();
 #define COUNT_MPF_T(blksz)	TOPPERS_COUNT_SZ(blksz, sizeof(MPF_T))
 #define ROUND_MPF_T(blksz)	TOPPERS_ROUND_SZ(blksz, sizeof(MPF_T))
 
+#define COUNT_MB_T(sz)		TOPPERS_COUNT_SZ(sz, sizeof(MB_T))
+#define ROUND_MB_T(sz)		TOPPERS_ROUND_SZ(sz, sizeof(MB_T))
+
 #define TSZ_DTQMB(dtqcnt)	(sizeof(intptr_t) * (dtqcnt))
-#define TCNT_DTQMB(dtqcnt)	TOPPERS_COUNT_SZ(TSZ_DTQMB(dtqcnt), sizeof(MB_T))
+#define TCNT_DTQMB(dtqcnt)	COUNT_MB_T(TSZ_DTQMB(dtqcnt))
 
 #ifndef TSZ_PDQMB
 #define TSZ_PDQMB(pdqcnt)	(sizeof(intptr_t) * 3 * (pdqcnt))
 #endif /* TSZ_PDQMB */
-#define TCNT_PDQMB(pdqcnt)	TOPPERS_COUNT_SZ(TSZ_PDQMB(pdqcnt), sizeof(MB_T))
+#define TCNT_PDQMB(pdqcnt)	COUNT_MB_T(TSZ_PDQMB(pdqcnt))
 
 #define TSZ_MPFMB(blkcnt)	(sizeof(uint_t) * (blkcnt))
-#define TCNT_MPFMB(blkcnt)	TOPPERS_COUNT_SZ(TSZ_MPFMB(blkcnt), sizeof(MB_T))
+#define TCNT_MPFMB(blkcnt)	COUNT_MB_T(TSZ_MPFMB(blkcnt))
 
 /*
  *  その他の構成定数

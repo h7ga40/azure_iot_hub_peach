@@ -1,13 +1,12 @@
 /*
- *  TOPPERS/ASP Kernel
- *      Toyohashi Open Platform for Embedded Real-Time Systems/
- *      Advanced Standard Profile Kernel
- *
+ *  TOPPERS Software
+ *      Toyohashi Open Platform for Embedded Real-Time Systems
+ * 
  *  Copyright (C) 2001-2011 by Industrial Technology Institute,
  *                              Miyagi Prefectural Government, JAPAN
  *  Copyright (C) 2007-2016 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
- *
+ * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
  *  ア（本ソフトウェアを改変したものを含む．以下同じ）を使用・複製・改
  *  変・再配布（以下，利用と呼ぶ）することを無償で許諾する．
@@ -30,13 +29,13 @@
  *      また，本ソフトウェアのユーザまたはエンドユーザからのいかなる理
  *      由に基づく請求からも，上記著作権者およびTOPPERSプロジェクトを
  *      免責すること．
- *
+ * 
  *  本ソフトウェアは，無保証で提供されているものである．上記著作権者お
  *  よびTOPPERSプロジェクトは，本ソフトウェアに関して，特定の使用目的
  *  に対する適合性も含めて，いかなる保証も行わない．また，本ソフトウェ
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
- *
+ * 
  *  $Id$
  */
 
@@ -65,10 +64,15 @@
 /*
  *  シリアルモードレジスタ（SCIF_SCSMR）の設定値
  */
+#define SCIF_SCSMR_ASYNC	0x0000U		/* 調歩同期式モード */
 #define SCIF_SCSMR_SYNC		0x0080U		/* クロック同期式モード */
+#define SCIF_SCSMR_8BIT		0x0000U		/* 8ビットデータ */
 #define SCIF_SCSMR_7BIT		0x0040U		/* 7ビットデータ */
-#define SCIF_SCSMR_PARITY	0x0020U		/* パリティビットの付加 */
+#define SCIF_SCSMR_NOPARITY	0x0000U		/* パリティビットなし */
+#define SCIF_SCSMR_PARITY	0x0020U		/* パリティビット付加 */
+#define SCIF_SCSMR_EVEN		0x0000U		/* 偶数パリティ */
 #define SCIF_SCSMR_ODD		0x0010U		/* 奇数パリティ */
+#define SCIF_SCSMR_1STOP	0x0000U		/* 1ストッピビット */
 #define SCIF_SCSMR_2STOP	0x0008U		/* 2ストッピビット */
 #define SCIF_SCSMR_CKS1		0x0000U		/* P1φクロック1 */
 #define SCIF_SCSMR_CKS4		0x0001U		/* P1φ/4クロック */

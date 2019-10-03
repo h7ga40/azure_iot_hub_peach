@@ -1,11 +1,10 @@
 /*
- *  TOPPERS/ASP Kernel
- *      Toyohashi Open Platform for Embedded Real-Time Systems/
- *      Advanced Standard Profile Kernel
+ *  TOPPERS Software
+ *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -81,7 +80,7 @@ eLogTask_flush(uint_t count)
 		ercd = E_CTX;
 	}
 	else {
-		for (;;) {
+		while (true) {
 			if (cSysLog_refer(&rlog) < 0) {
 				ercd = E_SYS;
 				goto error_exit;
@@ -112,7 +111,7 @@ eLogTask_flush(uint_t count)
 			 */
 			rercd = dly_tsk(ATTR_flushWait);
 			if (rercd < 0) {
-				ercd = (rercd == E_RLWAI) ? rercd : E_SYS;
+				ercd = (MERCD(rercd) == E_RLWAI) ? rercd : E_SYS;
 				goto error_exit;
 			}
 		}
@@ -129,27 +128,19 @@ void
 eLogTaskBody_main(void)
 {
 	SYSLOG	syslog;
-	uint_t	lost;
 	ER_UINT	rercd;
 
 	cSerialPort_open();
 	syslog_0(LOG_NOTICE, "System logging task is started.");
 
-	for (;;) {
-		lost = 0U;
+	while (true) {
 		while ((rercd = cSysLog_read(&syslog)) >= 0) {
-			lost += (uint_t) rercd;
-			if (lost > 0U) {
-				syslog_lostmsg(lost, logtask_putc);
-				lost = 0U;
+			if (((uint_t) rercd) > 0U) {
+				syslog_lostmsg((uint_t) rercd, logtask_putc);
 			}
 			syslog_print(&syslog, logtask_putc);
-			logtask_putc('\n');
 		}
-		if (lost > 0U) {
-			syslog_lostmsg(lost, logtask_putc);
-		}
-		dly_tsk(ATTR_interval);
+		(void) dly_tsk(ATTR_interval);
 	}
 }
 
@@ -188,9 +179,6 @@ eLogTaskTerminate_main(intptr_t exinf)
 		if (rercd > 0) {
 			syslog_lostmsg((uint_t) rercd, target_fput_log);
 		}
-		if (syslog.logtype >= LOG_TYPE_COMMENT) {
-			syslog_print(&syslog, target_fput_log);
-			target_fput_log('\n');
-		}
+		syslog_print(&syslog, target_fput_log);
 	}
 }

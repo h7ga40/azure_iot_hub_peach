@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2006-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -79,6 +79,9 @@ config_section_entry(ARM_MMU_CONFIG *p_ammuc)
 	uint32_t	size = p_ammuc->size;
 	uint_t		i;
 
+	assert(vaddr % ARM_SECTION_SIZE == 0);
+	assert(paddr % ARM_SECTION_SIZE == 0);
+	assert(size % ARM_SECTION_SIZE == 0);
 	while (size > 0) {
 #ifdef USE_ARM_SSECTION
 		if (size >= ARM_SSECTION_SIZE && (vaddr % ARM_SSECTION_SIZE) == 0) {

@@ -45,8 +45,8 @@
 /*
  *  終了処理ルーチン本体の呼出し
  */
-
-void  tTerminateRoutine_start(intptr_t exinf)
+void
+tTerminateRoutine_start(intptr_t exinf)
 {
 	CELLCB	*p_cellcb = (CELLCB *) exinf;
 

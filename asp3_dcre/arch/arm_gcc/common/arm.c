@@ -136,30 +136,42 @@ armv5_clean_and_invalidate_dcache(void)
 /*
  *  ARMv7におけるデータキャッシュの無効化
  *
- *  レベル0のキャッシュのみを無効化する．
+ *  バリアを2か所に入れているのは，ARMアーキテクチャリファレンスマニュ
+ *  アルのサンプルコードを踏襲した．
  */
 #if __TARGET_ARCH_ARM == 7
 
 void
 armv7_invalidate_dcache(void)
 {
-	uint32_t	reg;
+	uint32_t	clidr, ccsidr;
+	uint32_t	level, no_levels;
 	uint32_t	way, no_ways, shift_way;
 	uint32_t	set, no_sets, shift_set;
+	uint32_t	waylevel, setwaylevel;
 
-	CP15_WRITE_CSSELR(0U);
-	CP15_READ_CCSIDR(reg);
-	no_sets = ((reg >> 13) & 0x7fffU) + 1;
-	shift_set = (reg & 0x07U) + 4;
-	no_ways = ((reg >> 3) & 0x3ffU) + 1;
-	shift_way = count_leading_zero(no_ways);
+	CP15_READ_CLIDR(clidr);
+	no_levels = (clidr >> 24) & 0x07U;
+	for (level = 0; level < no_levels; level++) {
+		if (((clidr >> (level * 3)) & 0x07U) >= 0x02U) {
+			CP15_WRITE_CSSELR(level << 1);
+			inst_sync_barrier();
+			CP15_READ_CCSIDR(ccsidr);
+			no_sets = ((ccsidr >> 13) & 0x7fffU) + 1;
+			shift_set = (ccsidr & 0x07U) + 4;
+			no_ways = ((ccsidr >> 3) & 0x3ffU) + 1;
+			shift_way = count_leading_zero(no_ways - 1);
 
-	for (way = 0; way < no_ways; way++){
-		for (set = 0; set < no_sets; set++) {
-			reg = (way << shift_way) | (set << shift_set);
-			CP15_WRITE_DCISW(reg);
+			for (way = 0; way < no_ways; way++) {
+				waylevel = (way << shift_way) | (level << 1);
+				for (set = 0; set < no_sets; set++) {
+					setwaylevel = waylevel | (set << shift_set);
+					CP15_WRITE_DCISW(setwaylevel);
+				}
+			}
 		}
 	}
+	data_sync_barrier();
 }
 
 #endif /* __TARGET_ARCH_ARM == 7 */
@@ -167,30 +179,42 @@ armv7_invalidate_dcache(void)
 /*
  *  ARMv7におけるデータキャッシュのクリーンと無効化
  *
- *  レベル0のキャッシュのみをクリーンと無効化する．
+ *  バリアを2か所に入れているのは，ARMアーキテクチャリファレンスマニュ
+ *  アルのサンプルコードを踏襲した．
  */
 #if __TARGET_ARCH_ARM == 7
 
 void
 armv7_clean_and_invalidate_dcache(void)
 {
-	uint32_t	reg;
+	uint32_t	clidr, ccsidr;
+	uint32_t	level, no_levels;
 	uint32_t	way, no_ways, shift_way;
 	uint32_t	set, no_sets, shift_set;
+	uint32_t	waylevel, setwaylevel;
 
-	CP15_WRITE_CSSELR(0U);
-	CP15_READ_CCSIDR(reg);
-	no_sets = ((reg >> 13) & 0x7fffU) + 1;
-	shift_set = (reg & 0x07U) + 4;
-	no_ways = ((reg >> 3) & 0x3ffU) + 1;
-	shift_way = count_leading_zero(no_ways);
+	CP15_READ_CLIDR(clidr);
+	no_levels = (clidr >> 24) & 0x07U;
+	for (level = 0; level < no_levels; level++) {
+		if (((clidr >> (level * 3)) & 0x07U) >= 0x02U) {
+			CP15_WRITE_CSSELR(level << 1);
+			inst_sync_barrier();
+			CP15_READ_CCSIDR(ccsidr);
+			no_sets = ((ccsidr >> 13) & 0x7fffU) + 1;
+			shift_set = (ccsidr & 0x07U) + 4;
+			no_ways = ((ccsidr >> 3) & 0x3ffU) + 1;
+			shift_way = count_leading_zero(no_ways - 1);
 
-	for (way = 0; way < no_ways; way++){
-		for (set = 0; set < no_sets; set++) {
-			reg = (way << shift_way) | (set << shift_set);
-			CP15_WRITE_DCCISW(reg);
+			for (way = 0; way < no_ways; way++) {
+				waylevel = (way << shift_way) | (level << 1);
+				for (set = 0; set < no_sets; set++) {
+					setwaylevel = waylevel | (set << shift_set);
+					CP15_WRITE_DCCISW(setwaylevel);
+				}
+			}
 		}
 	}
+	data_sync_barrier();
 }
 
 #endif /* __TARGET_ARCH_ARM == 7 */

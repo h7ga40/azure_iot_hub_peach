@@ -4,7 +4,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2004-2011 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2004-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -89,8 +89,8 @@
  *  ンに当てはまる場合に，stdint.hの代用となる定義を与える．
  *
  *  TOPPERS_STDINT_TYPE1: char/short/int/long longのビット長がそれぞれ
- *                        8/16/32/64ビットで，ポインタのビット長がlong
- *                        のビット長と一致する場合
+ *                        8/16/32/64ビットで，size_tとポインタのビット
+ *                        長がlongのビット長と一致する場合
  */
 #ifdef TOPPERS_STDINT_TYPE1
 
@@ -176,6 +176,8 @@ typedef unsigned long		uintptr_t;	/* ポインタを格納できる符号無し�
 #define INT_LEAST8_MAX		INT8_MAX
 #define INT_LEAST8_MIN		INT8_MIN
 #define UINT_LEAST8_MAX		INT8_MAX
+
+#define SIZE_MAX			ULONG_MAX
 
 #endif /* TOPPERS_STDINT_TYPE1 */
 

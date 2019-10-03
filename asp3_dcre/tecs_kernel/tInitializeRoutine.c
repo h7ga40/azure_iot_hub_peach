@@ -45,7 +45,8 @@
 /*
  *  初期化ルーチン本体の呼出し
  */
-void  tInitializeRoutine_start(intptr_t exinf)
+void
+tInitializeRoutine_start(intptr_t exinf)
 {
 	CELLCB	*p_cellcb = (CELLCB *) exinf;
 

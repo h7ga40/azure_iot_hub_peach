@@ -22,6 +22,6 @@ AID_ISR .noisr
 DEF_INH .inhno* { .inhatr &inthdr }
 DEF_EXC .excno* { .excatr &exchdr }
 DEF_ICS { .istksz &istk? }
-DEF_KMM { .kmmsz &kmm? }
+DEF_MPK { .mpksz &mpk? }
 ATT_INI { .iniatr &exinf &inirtn }
 ATT_TER { .teratr &exinf &terrtn }

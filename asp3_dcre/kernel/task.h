@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2015 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2017 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -185,9 +185,6 @@ typedef struct mutex_control_block MTXCB;
  *  TCBを指すポインタを入れる方法の方が，RAMの節約の観点からは望ましい
  *  が，実行効率が悪くなるために採用していない．他のオブジェクトについ
  *  ても同様に扱う．
- *
- *  タスク初期化ブロックには，DEF_TEXで定義されるタスク例外処理ルーチ
- *  ンに関する情報も含む．
  */
 typedef struct task_initialization_block {
 	ATR			tskatr;			/* タスク属性 */
@@ -379,9 +376,8 @@ extern TCB	*search_schedtsk(void);
 /*
  *  実行できる状態への遷移
  *
- *  p_tcbで指定されるタスクをレディキューに挿入する．レディキューに挿入
- *  したタスクの優先度が，実行すべきタスクの優先度よりも高い場合は，実
- *  行すべきタスクを更新する．
+ *  p_tcbで指定されるタスクをレディキューに挿入する．また，必要な場合
+ *  には，実行すべきタスクを更新する．
  */
 extern void	make_runnable(TCB *p_tcb);
 
@@ -393,6 +389,19 @@ extern void	make_runnable(TCB *p_tcb);
  *  る．
  */
 extern void	make_non_runnable(TCB *p_tcb);
+
+/*
+ *  タスクディスパッチ可能状態への遷移
+ *
+ *  タスクディスパッチ可能状態であることを示すフラグ（dspflg）をtrueに
+ *  し，実行すべきタスクを更新する．
+ */
+Inline void
+set_dspflg(void)
+{
+	dspflg = true;
+	p_schedtsk = search_schedtsk();
+}
 
 /*
  *  休止状態への遷移
@@ -416,16 +425,17 @@ extern void	make_active(TCB *p_tcb);
  *  p_tcbで指定されるタスクの優先度をnewpri（内部表現）に変更する．また，
  *  必要な場合には，実行すべきタスクを更新する．
  *
- *  p_tcbで指定されるタスクの優先順位は，優先度が同じタスクの中で，
- *  mtxmodeがfalseの時は最低，mtxmodeがtrueの時は最高とする．
+ *  p_tcbで指定されるタスクが実行できる状態である場合，その優先順位は，
+ *  優先度が同じタスクの中で，mtxmodeがfalseの時は最低，mtxmodeがtrue
+ *  の時は最高とする．
  */
 extern void	change_priority(TCB *p_tcb, uint_t newpri, bool_t mtxmode);
 
 /*
  *  レディキューの回転
  *
- *  レディキュー中の，p_queueで指定されるタスクキューを回転させる．また，
- *  必要な場合には，実行すべきタスクを更新する．
+ *  レディキュー中の，p_queueで指定されるタスクキューを回転させる．ま
+ *  た，必要な場合には，実行すべきタスクを更新する．
  */
 extern void	rotate_ready_queue(QUEUE *p_queue);
 

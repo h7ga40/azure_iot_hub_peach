@@ -7,18 +7,10 @@
 /*
  *  target_kernel_impl.c
  */
+#undef arm_tnum_memory_area
+#undef arm_memory_area
 #undef target_initialize
 #undef target_exit
-
-/*
- *  tTraceLog.c
- */
-#undef log_dsp_enter
-#undef log_dsp_leave
-#undef log_inh_enter
-#undef log_inh_leave
-#undef log_exc_enter
-#undef log_exc_leave
 
 
 #include "chip_unrename.h"

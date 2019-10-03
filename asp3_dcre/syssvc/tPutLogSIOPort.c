@@ -64,7 +64,7 @@ void
 ePutLog_putChar(char c)
 {
 	if(c == '\n'){
-		while (!cSIOPort_putChar('\r'));
+		while (!cSIOPort_putChar('\r')) ;
 	}
-	while (!cSIOPort_putChar(c));
+	while (!cSIOPort_putChar(c)) ;
 }

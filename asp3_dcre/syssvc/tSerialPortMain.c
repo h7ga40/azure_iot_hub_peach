@@ -1,11 +1,10 @@
 /*
- *  TOPPERS/ASP Kernel
- *      Toyohashi Open Platform for Embedded Real-Time Systems/
- *      Advanced Standard Profile Kernel
+ *  TOPPERS Software
+ *      Toyohashi Open Platform for Embedded Real-Time Systems
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2006-2015 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -241,12 +240,12 @@ eSerialPort_close(CELLIDX idx)
 }
 
 /*
- *  シリアルポートへの文字送信
+ *  SIOポートへの文字送信
  *
- *  p_cellcbで指定されるSIOポートに対して，文字cを送信する．文字を送信
- *  レジスタにいれた場合にはtrueを返す．そうでない場合には，送信レジス
- *  タが空いたことを通知するコールバック関数を許可し，falseを返す．この
- *  関数は，CPUロック状態で呼び出される．
+ *  p_cellcbで指定されるシリアルポートに対応するSIOポートに対して，文
+ *  字cを送信する．文字を送信レジスタにいれた場合にはtrueを返す．そう
+ *  でない場合には，送信レジスタが空いたことを通知するコールバック関数
+ *  を許可し，falseを返す．この関数は，CPUロック状態で呼び出される．
  */
 Inline bool_t
 serialPort_sendChar(CELLCB *p_cellcb, char c)
@@ -524,7 +523,7 @@ eiSIOCBR_readySend(CELLIDX idx)
 	p_cellcb = GET_CELLCB(idx);
 	if (VAR_receiveFlowControl != '\0') {
 		/*
-		 *  START/STOP を送信する．
+		 *  START/STOPを送信する．
 		 */
 		(void) cSIOPort_putChar(VAR_receiveFlowControl);
 		VAR_receiveFlowControl = '\0';
@@ -574,7 +573,7 @@ eiSIOCBR_readyReceive(CELLIDX idx)
 		 *  送信を再開する．
 		 */
 		VAR_sendStopped = false;
-		if (VAR_sendCount > 0U) {
+		while (VAR_sendCount > 0U) {
 			c = VAR_sendBuffer[VAR_sendReadPointer];
 			if (serialPort_sendChar(p_cellcb, c)) {
 				INC_PTR(VAR_sendReadPointer, ATTR_sendBufferSize);
@@ -584,6 +583,9 @@ eiSIOCBR_readyReceive(CELLIDX idx)
 					}
 				}
 				VAR_sendCount--;
+			}
+			else {
+				break;
 			}
 		}
 	}

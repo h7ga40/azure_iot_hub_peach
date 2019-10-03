@@ -1,7 +1,7 @@
 #
 #		Makefile のターゲット依存部（GR-PEACH用）
 #
-#  $Id$
+#  $Id: Makefile.target 732 2016-04-03 03:08:05Z ertl-hiro $
 # 
 
 #
@@ -36,7 +36,7 @@ endif
 #  コンベンションに応じて，-mfloat-abi=softfpまたは-mfloat-abi=hardオ
 #  プションをつける．
 #
-CDEFS := $(CDEFS) -DUSE_ARM_FPU
+#CDEFS := $(CDEFS) -DUSE_ARM_FPU
 #COPTS := $(COPTS) -mfloat-abi=softfp
 COPTS := $(COPTS) -mfloat-abi=hard
 

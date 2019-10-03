@@ -4,7 +4,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2004-2014 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2004-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -173,10 +173,12 @@ syslog_print(const SYSLOG *p_syslog, void (*putc)(char))
 	case LOG_TYPE_COMMENT:
 		syslog_printf((const char *)(p_syslog->logpar[0]),
 								&(p_syslog->logpar[1]), putc);
+		(*putc)('\n');
 		break;
 	case LOG_TYPE_ASSERT:
 		syslog_printf("%s:%u: Assertion `%s' failed.",
 								&(p_syslog->logpar[0]), putc);
+		(*putc)('\n');
 		break;
 	default:
 		/*

@@ -35,7 +35,7 @@
 #  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #  の責任を負わない．
 #
-#  $Id$
+#  $Id: SRecord.rb 161 2018-12-12 00:45:04Z ertl-hiro $
 #
 
 #
@@ -168,5 +168,17 @@ class SRecord
       end
       return(returnData)
     end
+  end
+
+  # 文字列としてのデータ取得
+  def get_string(address)
+    str = ""
+    targetChar = get_data(address, 1).hex
+    while (!targetChar.nil? && targetChar != 0)
+      str += targetChar.chr
+      address += 1
+      targetChar = get_data(address, 1).hex
+    end
+    return(str)
   end
 end

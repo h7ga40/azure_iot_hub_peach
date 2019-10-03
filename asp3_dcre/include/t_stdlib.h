@@ -60,15 +60,6 @@ extern "C" {
  */
 extern const char	*itron_strerror(ER ercd) throw();
 
-/*
- *  エラーメッセージのログ出力
- *
- *  サービスコールがエラーを返した場合に，そのファイル名，行番号，メイ
- *  ンエラーコード等を表示するための関数．
- */
-extern void		t_perror(uint_t prio, const char *file, int_t line,
-									const char *expr, ER ercd) throw();
-
 #ifdef __cplusplus
 }
 #endif

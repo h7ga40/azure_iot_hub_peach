@@ -4,7 +4,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2004-2017 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2004-2018 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -136,6 +136,18 @@ TOPPERS_set_fiq_irq(uint32_t fiq_irq_mask)
 #define SIL_PRE_LOC		uint32_t TOPPERS_fiq_irq_mask
 #define SIL_LOC_INT()	((void)(TOPPERS_fiq_irq_mask = TOPPERS_disint()))
 #define SIL_UNL_INT()	(TOPPERS_set_fiq_irq(TOPPERS_fiq_irq_mask))
+
+/*
+ *  メモリ同期バリア
+ */
+#ifdef DATA_SYNC_BARRIER
+#define TOPPERS_SIL_WRITE_SYNC()	DATA_SYNC_BARRIER()
+#elif __TARGET_ARCH_ARM <= 6
+#define TOPPERS_SIL_WRITE_SYNC() \
+						Asm("mcr p15, 0, %0, c7, c10, 4"::"r"(0):"memory")
+#else /* __TARGET_ARCH_ARM <= 6 */
+#define TOPPERS_SIL_WRITE_SYNC()	Asm("dsb":::"memory")
+#endif
 
 #endif /* TOPPERS_MACRO_ONLY */
 #endif /* TOPPERS_CORE_SIL_H */

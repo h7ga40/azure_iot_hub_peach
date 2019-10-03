@@ -3,7 +3,7 @@
 #  TOPPERS Configurator by Ruby
 #
 #  Copyright (C) 2015 by FUJI SOFT INCORPORATED, JAPAN
-#  Copyright (C) 2015-2017 by Embedded and Real-Time Systems Laboratory
+#  Copyright (C) 2015-2018 by Embedded and Real-Time Systems Laboratory
 #              Graduate School of Information Science, Nagoya Univ., JAPAN
 #
 #  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -35,7 +35,7 @@
 #  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #  の責任を負わない．
 #
-#  $Id$
+#  $Id: pass1.rb 165 2019-01-11 01:29:47Z ertl-hiro $
 #
 
 #
@@ -60,14 +60,18 @@ $symbolValueTable = {
   "UINT_MAX"  => { EXPR: "UINT_MAX" },
   "LONG_MAX"  => { EXPR: "LONG_MAX",  SIGNED: true },
   "LONG_MIN"  => { EXPR: "LONG_MIN",  SIGNED: true },
-  "ULONG_MAX" => { EXPR: "ULONG_MAX" }
+  "ULONG_MAX" => { EXPR: "ULONG_MAX" },
+  "SIL_ENDIAN_BIG" \
+	=> { EXPR: "true", BOOL: true, CONDITION: "defined(SIL_ENDIAN_BIG)" },
+  "SIL_ENDIAN_LITTLE" \
+	=> { EXPR: "true", BOOL: true, CONDITION: "defined(SIL_ENDIAN_LITTLE)" }
 }
 
 #
 #  静的APIテーブルへの固定登録
 #
 $apiDefinition = { "INCLUDE" =>
-  { :PARAM => [ { :NAME => :file, :STRING => true }]}}
+  { :PARAM => [ { :NAME => :file, :STRING_LITERAL => true }]}}
 
 #
 #  静的APIテーブルの読み込み
@@ -120,10 +124,14 @@ def ReadApiTableFile
           when "+"					# 符号付き整数定数式パラメータ
             apiParam[:EXPTYPE] = "signed_t"
             apiParam[:SIGNED] = true
+          when "^"					# ポインタ整数定数式パラメータ
+            apiParam[:EXPTYPE] = "uintptr_t"
+            apiParam[:INTPTR] = true
           when "&"					# 一般整数定数式パラメータ
             # do nothing
           when "$"					# 文字列定数式パラメータ
             apiParam[:STRING] = true
+            apiParam[:EXPTYPE] = "char *"
           else
             error_exit("`#{param}' is invalid")
           end
@@ -170,14 +178,18 @@ def ReadSymvalTable
     symvalCsv = CSV.open(symvalTableFileName,
 						{ skip_blanks: true, skip_lines: /^#/ })
     symvalCsv.each do |record|
+      symbol = {}
+
       # 変数名
       if record[0].nil?
         error_exit("invalid variable name in " \
 						"`#{symvalTableFileName}:#{symvalCsv.to_io.lineno}'")
+      elsif /^(.+)\[(.+)\]$/ =~ record[0]
+        variable = $1
+        symbol[:NUMSTRVAR] = $2
+      else
+        variable = record[0]
       end
-
-      symbol = {}
-      variable = record[0]
 
       # 式
       if record[1].nil? || record[1].empty?
@@ -191,6 +203,8 @@ def ReadSymvalTable
         case record[2]
         when /^[bB]/				# 真偽値
           symbol[:BOOL] = true
+        when /^[iI]/				# ポインタ整数値
+          symbol[:INTPTR] = true
         when /^[uU]/				# 符号無し整数値
           # 何も設定しない
         else						# 符号付き整数値
@@ -471,7 +485,7 @@ class CfgParser
       return(param)
     end
 
-    if apiParam.has_key?(:STRING)
+    if apiParam.has_key?(:STRING_LITERAL)
       return(param.unquote)
     else
       return(param)
@@ -603,10 +617,11 @@ class CfgParser
       elsif /^#/ =~ @line
         # プリプロセッサディレクティブを読む
         case @line
-        when /^#include\b(.*)$/
-          $includeFiles.push($1.strip)
-        when /^#(ifdef|ifndef|if|endif|else|elif)\b/
-          directive = { :DIRECTIVE => @line.strip }
+        when /^#(include|ifdef|ifndef|if|endif|else|elif)\b/
+          directive = {}
+          directive[:DIRECTIVE] = @line.strip
+          directive[:_FILE_] = cfgFile.getFileName
+          directive[:_LINE_] = cfgFile.getLineNo
           $cfgFileInfo.push(directive)
         else
           parse_error(cfgFile, "unknown preprocessor directive: #{@line}")
@@ -618,7 +633,7 @@ class CfgParser
 
         case apiName
         when "KERNEL_DOMAIN"
-          if $supportDomain.nil?
+          if !$supportDomain
             parse_warning(cfgFile, "`KERNEL_DOMAIN' is not supported")
           end
           if !@@currentDomain.nil?
@@ -628,7 +643,7 @@ class CfgParser
           parseOpenBrace(cfgFile)
           @@nestDC.push("domain")
         when "DOMAIN"
-          if $supportDomain.nil?
+          if !$supportDomain
             parse_warning(cfgFile, "`DOMAIN' is not supported")
           end
           if !@@currentDomain.nil?
@@ -654,7 +669,7 @@ class CfgParser
           parseOpenBrace(cfgFile)
           @@nestDC.push("domain")
         when "CLASS"
-          if $supportClass.nil?
+          if !$supportClass
             parse_warning(cfgFile, "`CLASS' is not supported")
           end
           if !@@currentClass.nil?
@@ -675,7 +690,11 @@ class CfgParser
               # INCLUDEの処理
               includeFilePath = SearchFilePath(staticApi[:file])
               if includeFilePath.nil?
-                parse_error(cfgFile, "`#{staticApi[:file]}' not found")
+                error = {}
+                error[:DIRECTIVE] = "#error '#{staticApi[:file]}' not found."
+                error[:_FILE_] = cfgFile.getFileName
+                error[:_LINE_] = cfgFile.getLineNo
+                $cfgFileInfo.push(error)
               else
                 $dependencyFiles.push(includeFilePath)
                 cfgFiles.push(ConfigFile.new(includeFilePath))
@@ -726,14 +745,14 @@ module Cfg1OutC
   #  静的APIのファイル名と行番号の出力
   #
   def self.OutLineNumber(cfgInfo)
-    @cfg1Out.add("#line #{cfgInfo[:_LINE_]} \"#{cfgInfo[:_FILE_].gsub('\\', '/')}\"")
+    @cfg1Out.add("#line #{cfgInfo[:_LINE_]} \"#{cfgInfo[:_FILE_]}\"")
   end
 
   #
   #  クラス記述のファイル名と行番号の出力
   #
   def self.OutClassLineNumber(cfgInfo)
-    @cfg1Out.add("#line #{cfgInfo[:CLASS_LINE_]} \"#{cfgInfo[:CLASS_FILE_].gsub('\\', '/')}\"")
+    @cfg1Out.add("#line #{cfgInfo[:CLASS_LINE_]} \"#{cfgInfo[:CLASS_FILE_]}\"")
   end
 
   #
@@ -762,9 +781,12 @@ module Cfg1OutC
 #include "kernel/kernel_int.h"
 EOS
 
-    # インクルードヘッダファイル
-    $includeFiles.each do |file|
-      @cfg1Out.add("#include #{file}")
+    # インクルードディレクティブ（#include）の生成
+    $cfgFileInfo.each do |cfgInfo|
+      if cfgInfo.has_key?(:DIRECTIVE)
+        OutLineNumber(cfgInfo)
+        @cfg1Out.add(cfgInfo[:DIRECTIVE])
+      end
     end
 
     @cfg1Out.add(<<EOS)
@@ -779,20 +801,19 @@ EOS
 
 #include "#{CFG1_OUT_TARGET_H}"
 
-#if defined(SIL_ENDIAN_BIG) && defined(SIL_ENDIAN_LITTLE)
-#error Both SIL_ENDIAN_BIG and SIL_ENDIAN_LITTLE are defined.
-#endif
-#if !defined(SIL_ENDIAN_BIG) && !defined(SIL_ENDIAN_LITTLE)
-#error Neither SIL_ENDIAN_BIG nor SIL_ENDIAN_LITTLE is defined.
-#endif
-
 const uint32_t #{CFG1_MAGIC_NUM} = 0x12345678;
 const uint32_t #{CFG1_SIZEOF_SIGNED} = sizeof(signed_t);
+const uint32_t #{CFG1_SIZEOF_INTPTR} = sizeof(intptr_t);
+const uint32_t #{CFG1_SIZEOF_CHARPTR} = sizeof(char *);
 EOS
 
     # 値取得シンボルの処理
     $symbolValueTable.each do |symbolName, symbolData|
-      if symbolData.has_key?(:BOOL) || symbolData.has_key?(:SIGNED)
+      if symbolData.has_key?(:BOOL)
+        type = "signed_t"
+      elsif symbolData.has_key?(:INTPTR)
+        type = "uintptr_t"
+      elsif symbolData.has_key?(:SIGNED)
         type = "signed_t"
       else
         type = "unsigned_t"
@@ -824,7 +845,11 @@ EOS
     # 静的API／プリプロセッサディレクティブの処理
     $cfgFileInfo.each do |cfgInfo|
       if cfgInfo.has_key?(:DIRECTIVE)
-        @cfg1Out.add2(cfgInfo[:DIRECTIVE])
+        # 条件ディレクティブを出力
+        if cfgInfo[:DIRECTIVE] =~ /^#(ifdef|ifndef|if|endif|else|elif)\b/
+          OutLineNumber(cfgInfo)
+          @cfg1Out.add2(cfgInfo[:DIRECTIVE])
+        end
       else
         apiDef = $apiDefinition[cfgInfo[:APINAME]]
         apiIndex = cfgInfo[:INDEX]
@@ -881,7 +906,6 @@ def Pass1
   #
   $cfgFileInfo = []
   $dependencyFiles = $configFileNames.dup
-  $includeFiles = []
   $domainId = { "TDOM_KERNEL" => -1, "TDOM_NONE" => -2 }
   $configFileNames.each do |configFileName|
     CfgParser.new.parseFile(configFileName)
@@ -938,13 +962,12 @@ def Pass1
   #
   #  パス2に引き渡す情報をファイルに生成
   #
-  if $omitOutputDb.nil?
+  if !$omitOutputDb
     db = PStore.new(CFG1_OUT_DB)
     db.transaction do
       db[:apiDefinition] = $apiDefinition
       db[:symbolValueTable] = $symbolValueTable
       db[:cfgFileInfo] = $cfgFileInfo
-      db[:includeFiles] = $includeFiles
       db[:domainId] = $domainId
     end
   end
