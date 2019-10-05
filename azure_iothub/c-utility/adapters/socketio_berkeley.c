@@ -42,6 +42,7 @@
 #include "azure_c_shared_utility/shared_util_options.h"
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_c_shared_utility/const_defines.h"
+#include "azure_c_shared_utility/dns_resolver.h"
 #include <sys/ioctl.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -49,6 +50,7 @@
 
 #define SOCKET_SUCCESS                 0
 #define INVALID_SOCKET                 -1
+#define SOCKET_SEND_FAILURE            -1
 #define MAC_ADDRESS_STRING_LENGTH      18
 
 #ifndef IFREQ_BUFFER_SIZE
@@ -82,14 +84,17 @@ typedef struct SOCKET_IO_INSTANCE_TAG
     SOCKETIO_ADDRESS_TYPE address_type;
     ON_BYTES_RECEIVED on_bytes_received;
     ON_IO_ERROR on_io_error;
+    ON_IO_OPEN_COMPLETE on_io_open_complete;
     void* on_bytes_received_context;
     void* on_io_error_context;
+    void* on_io_open_complete_context;
     char* hostname;
     int port;
     char* target_mac_address;
     IO_STATE io_state;
     SINGLYLINKEDLIST_HANDLE pending_io_list;
     unsigned char recv_bytes[RECEIVE_BYTES_VALUE];
+    DNSRESOLVER_HANDLE dns_resolver;
 } SOCKET_IO_INSTANCE;
 
 typedef struct NETWORK_INTERFACE_DESCRIPTION_TAG
@@ -251,36 +256,50 @@ static STATIC_VAR_UNUSED void signal_callback(int signum)
     LogError("Socket received signal %d.", signum);
 }
 
-static int lookup_address_and_initiate_socket_connection(SOCKET_IO_INSTANCE* socket_io_instance)
+static int lookup_address(SOCKET_IO_INSTANCE* socket_io_instance)
 {
-    int result;
-    int err;
-
-    struct addrinfo addrInfoHintIp;
-    struct sockaddr_un addrInfoUn;
-    struct sockaddr* connect_addr = NULL;
-    socklen_t connect_addr_len;
-    struct addrinfo* addrInfoIp = NULL;
+    int result = 0;
 
     if (socket_io_instance->address_type == ADDRESS_TYPE_IP)
     {
-        char portString[16];
-
-        memset(&addrInfoHintIp, 0, sizeof(addrInfoHintIp));
-        addrInfoHintIp.ai_family = AF_INET;
-        addrInfoHintIp.ai_socktype = SOCK_STREAM;
-
-        sprintf(portString, "%u", socket_io_instance->port);
-        err = getaddrinfo(socket_io_instance->hostname, portString, &addrInfoHintIp, &addrInfoIp);
-        if (err != 0)
+        if (!dns_resolver_is_lookup_complete(socket_io_instance->dns_resolver))
         {
-            LogError("Failure: getaddrinfo failure %d.", err);
+            socket_io_instance->io_state = IO_STATE_OPENING;
+        }
+        else
+        {
+            socket_io_instance->io_state = IO_STATE_OPEN;
+        }
+    }
+    else //ADDRESS_TYPE_DOMAIN_SOCKET
+    {
+        socket_io_instance->io_state = IO_STATE_OPEN;
+    }
+
+    return result;
+}
+
+static int initiate_socket_connection(SOCKET_IO_INSTANCE* socket_io_instance)
+{
+    int result;
+    int flags;
+    struct addrinfo* addr = NULL;
+    struct sockaddr* connect_addr = NULL;
+    struct sockaddr_un addrInfoUn;
+    socklen_t connect_addr_len;
+
+    if (socket_io_instance->address_type == ADDRESS_TYPE_IP)
+    {
+        if(!dns_resolver_is_lookup_complete(socket_io_instance->dns_resolver))
+        {
+            LogError("DNS did not resolve IP address");
             result = MU_FAILURE;
         }
         else
         {
-            connect_addr = addrInfoIp->ai_addr;
-            connect_addr_len = sizeof(*addrInfoIp->ai_addr);
+            addr = dns_resolver_get_addrInfo(socket_io_instance->dns_resolver);
+            connect_addr = addr->ai_addr;
+            connect_addr_len = sizeof(*addr->ai_addr);
             result = 0;
         }
     }
@@ -307,8 +326,6 @@ static int lookup_address_and_initiate_socket_connection(SOCKET_IO_INSTANCE* soc
 
     if (result == 0)
     {
-        int flags;
-
         if ((-1 == (flags = fcntl(socket_io_instance->socket, F_GETFL, 0))) ||
             (fcntl(socket_io_instance->socket, F_SETFL, flags | O_NONBLOCK) == -1))
         {
@@ -317,18 +334,37 @@ static int lookup_address_and_initiate_socket_connection(SOCKET_IO_INSTANCE* soc
         }
         else
         {
-            err = connect(socket_io_instance->socket, connect_addr, connect_addr_len);
-            if ((err != 0) && (errno != EINPROGRESS))
+            result = connect(socket_io_instance->socket, connect_addr, connect_addr_len);
+            if ((result != 0) && (errno != EINPROGRESS))
             {
                 LogError("Failure: connect failure %d.", errno);
                 result = MU_FAILURE;
             }
+            else
+            {
+                if (socket_io_instance->on_io_open_complete != NULL)
+                {
+                    socket_io_instance->on_io_open_complete(socket_io_instance->on_io_open_complete_context, IO_OPEN_OK /*: IO_OPEN_ERROR*/);
+                }
+            }
         }
     }
 
-    if (addrInfoIp != NULL)
+    return result;
+}
+
+static int lookup_address_and_initiate_socket_connection(SOCKET_IO_INSTANCE* socket_io_instance)
     {
-        freeaddrinfo(addrInfoIp);
+    int result;
+
+    result = lookup_address(socket_io_instance);
+
+    if(socket_io_instance->io_state == IO_STATE_OPEN)
+    {
+        if (result == 0)
+        {
+            initiate_socket_connection(socket_io_instance);
+        }
     }
 
     return result;
@@ -659,6 +695,8 @@ CONCRETE_IO_HANDLE socketio_create(void* io_create_parameters)
                 else
                 {
                     result->port = socket_io_config->port;
+                    result->on_io_open_complete = NULL;
+                    result->dns_resolver = dns_resolver_create(result->hostname, result->port, NULL);
                     result->target_mac_address = NULL;
                     result->on_bytes_received = NULL;
                     result->on_io_error = NULL;
@@ -706,6 +744,9 @@ void socketio_destroy(CONCRETE_IO_HANDLE socket_io)
         singlylinkedlist_destroy(socket_io_instance->pending_io_list);
         free(socket_io_instance->hostname);
         free(socket_io_instance->target_mac_address);
+
+        dns_resolver_destroy(socket_io_instance->dns_resolver);
+
         free(socket_io);
     }
 }
@@ -772,7 +813,8 @@ int socketio_open(CONCRETE_IO_HANDLE socket_io, ON_IO_OPEN_COMPLETE on_io_open_c
                 socket_io_instance->on_io_error = on_io_error;
                 socket_io_instance->on_io_error_context = on_io_error_context;
 
-                socket_io_instance->io_state = IO_STATE_OPEN;
+                socket_io_instance->on_io_open_complete = on_io_open_complete;
+                socket_io_instance->on_io_open_complete_context = on_io_open_complete_context;
             }
             else
             {
@@ -785,9 +827,12 @@ int socketio_open(CONCRETE_IO_HANDLE socket_io, ON_IO_OPEN_COMPLETE on_io_open_c
         }
     }
 
+    if (socket_io_instance->io_state != IO_STATE_OPENING)
+    {
     if (on_io_open_complete != NULL)
     {
         on_io_open_complete(on_io_open_complete_context, result == 0 ? IO_OPEN_OK : IO_OPEN_ERROR);
+    }
     }
 
     return result;
@@ -864,25 +909,20 @@ int socketio_send(CONCRETE_IO_HANDLE socket_io, const void* buffer, size_t size,
                 signal(SIGPIPE, SIG_IGN);
 
                 ssize_t send_result = send(socket_io_instance->socket, buffer, size, 0);
-                if ((send_result < 0) || ((size_t)send_result != size))
+                if ((size_t)send_result != size)
                 {
-                    if (send_result == INVALID_SOCKET)
-                    {
-                        if (errno == EAGAIN) /*send says "come back later" with EAGAIN - likely the socket buffer cannot accept more data*/
-                        {
-                            /*do nothing*/
-                            result = 0;
-                        }
-                        else
+                    if (send_result == SOCKET_SEND_FAILURE && errno != EAGAIN)
                         {
                             LogError("Failure: sending socket failed. errno=%d (%s).", errno, strerror(errno));
                             result = MU_FAILURE;
                         }
-                    }
                     else
                     {
+                        /*send says "come back later" with EAGAIN - likely the socket buffer cannot accept more data*/
                         /* queue data */
-                        if (add_pending_io(socket_io_instance, buffer + send_result, size - send_result, on_send_complete, callback_context) != 0)
+                        size_t bytes_sent = (send_result < 0 ? 0 : send_result);
+
+                        if (add_pending_io(socket_io_instance, buffer + bytes_sent, size - bytes_sent, on_send_complete, callback_context) != 0)
                         {
                             LogError("Failure: add_pending_io failed.");
                             result = MU_FAILURE;
@@ -914,6 +954,9 @@ void socketio_dowork(CONCRETE_IO_HANDLE socket_io)
     if (socket_io != NULL)
     {
         SOCKET_IO_INSTANCE* socket_io_instance = (SOCKET_IO_INSTANCE*)socket_io;
+
+        if (socket_io_instance->io_state == IO_STATE_OPEN)
+        {
         LIST_ITEM_HANDLE first_pending_io = singlylinkedlist_get_head_item(socket_io_instance->pending_io_list);
         while (first_pending_io != NULL)
         {
@@ -1000,6 +1043,26 @@ void socketio_dowork(CONCRETE_IO_HANDLE socket_io)
                 }
 
             } while (received > 0 && socket_io_instance->io_state == IO_STATE_OPEN);
+            }
+        }
+        else
+        {
+            if (socket_io_instance->io_state == IO_STATE_OPENING)
+            {
+                if(lookup_address(socket_io_instance) != 0)
+                {
+                    LogError("Socketio_Failure: lookup address failed");
+                    indicate_error(socket_io_instance);
+                }
+                else
+                {
+                    if(socket_io_instance->io_state == IO_STATE_OPEN)
+                    {
+                        initiate_socket_connection(socket_io_instance);
+                    }
+                }
+
+            }
         }
     }
 }

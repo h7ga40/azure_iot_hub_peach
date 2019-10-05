@@ -64,6 +64,7 @@ OBJECTS += c-utility/src/consolelogger.o
 OBJECTS += c-utility/src/constbuffer.o
 OBJECTS += c-utility/src/constmap.o
 OBJECTS += c-utility/src/crt_abstractions.o
+OBJECTS += c-utility/src/dns_resolver_sync.o
 OBJECTS += c-utility/src/doublylinkedlist.o
 OBJECTS += c-utility/src/gb_rand.o
 OBJECTS += c-utility/src/gb_stdio.o
