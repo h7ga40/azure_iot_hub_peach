@@ -35,10 +35,7 @@
             "windows": {
                 "command": "make.exe"
             },
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
+            "group": "build"
         },
         {
             "label": "clean asp3_dcre",
@@ -54,10 +51,7 @@
             "windows": {
                 "command": "make.exe"
             },
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
+            "group": "build"
         },
         {
             "label": "realclean asp3_dcre",
@@ -73,10 +67,7 @@
             "windows": {
                 "command": "make.exe"
             },
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
+            "group": "build"
         }
     ]
 }

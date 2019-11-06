@@ -56,10 +56,7 @@
             "windows": {
                 "command": "make.exe"
             },
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
+            "group": "build"
         },
         {
             "label": "realclean all",
@@ -76,10 +73,7 @@
             "windows": {
                 "command": "make.exe"
             },
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
+            "group": "build"
         },
         {
             "label": "build app_iothub_client",
@@ -96,10 +90,7 @@
             "windows": {
                 "command": "make.exe"
             },
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
+            "group": "build"
         },
         {
             "label": "clean app_iothub_client",
@@ -115,10 +106,7 @@
             "windows": {
                 "command": "make.exe"
             },
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
+            "group": "build"
         },
         {
             "label": "realclean app_iothub_client",
@@ -134,10 +122,7 @@
             "windows": {
                 "command": "make.exe"
             },
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
+            "group": "build"
         },
         {
             "label": "write app",
