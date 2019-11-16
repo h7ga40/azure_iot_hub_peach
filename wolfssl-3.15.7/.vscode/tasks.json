@@ -35,10 +35,7 @@
             "windows": {
                 "command": "make.exe"
             },
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
+            "group": "build"
         },
         {
             "label": "clean wolfssl",
@@ -54,10 +51,7 @@
             "windows": {
                 "command": "make.exe"
             },
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
+            "group": "build"
         }
     ]
 }

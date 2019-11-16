@@ -274,7 +274,8 @@ endif
 #
 #  システムサービスに関する定義
 #
-MALLOC_LIB = "${TCINSTALL}arm-none-eabi/lib/thumb/v7-ar/fpv3/hard/libc.a"
+GCC_PATH = $(shell which $(CC))/../../
+MALLOC_LIB = "${GCC_PATH}arm-none-eabi/lib/thumb/v7-ar/fpv3/hard/libc.a"
 MALLOC_OBJS = lib_a-reent.o lib_a-impure.o lib_a-malloc.o lib_a-mallocr.o lib_a-calloc.o lib_a-callocr.o lib_a-realloc.o lib_a-reallocr.o lib_a-sbrkr.o lib_a-freer.o
 
 SYSSVC_DIRS := $(TECSGENDIR) $(SRCDIR)/tecs_kernel \

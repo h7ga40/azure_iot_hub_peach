@@ -36,20 +36,17 @@
 			"PATH": "C:\\Program Files (x86)\\GNU Tools ARM Embedded\\6 2017-q2-update\\bin;C:\\Program Files\\GNU MCU Eclipse\\OpenOCD\\0.10.0-12-20190422-2015\\bin",
 			"CHERE_INVOKING": "1",
 			"MSYS2_PATH_TYPE": "inherit",
-			"MSYSTEM": "MINGW64",
-			"TCINSTALL": "/C:/Program Files (x86)/GNU Tools ARM Embedded/6 2017-q2-update/",
+			"MSYSTEM": "MINGW64"
 		},
 		"terminal.integrated.env.osx": {
-			"PATH": "/usr/local/gcc-arm-none-eabi-6-2017-q2-update/bin:/usr/local/gnu-mcu-eclipse/openocd/0.10.0-12-20190422-2015/bin:${env:PATH}",
-			"TCINSTALL": "/usr/local/gcc-arm-none-eabi-6-2017-q2-update/",
+			"PATH": "/usr/local/gcc-arm-none-eabi-6-2017-q2-update/bin:/usr/local/gnu-mcu-eclipse/openocd/0.10.0-12-20190422-2015/bin:${env:PATH}"
 		},
 		"terminal.integrated.shell.linux": "/bin/bash",
 		"terminal.integrated.shellArgs.linux": [
 			"-l"
 		],
 		"terminal.integrated.env.linux": {
-			"PATH": "/usr/local/gcc-arm-none-eabi-6-2017-q2-update/bin:/usr/local/gnu-mcu-eclipse/openocd/0.10.0-12-20190422-2015/bin:${env:PATH}",
-			"TCINSTALL": "/usr/local/gcc-arm-none-eabi-6-2017-q2-update/",
+			"PATH": "/usr/local/gcc-arm-none-eabi-6-2017-q2-update/bin:/usr/local/gnu-mcu-eclipse/openocd/0.10.0-12-20190422-2015/bin:${env:PATH}"
 		}
 	}
 }

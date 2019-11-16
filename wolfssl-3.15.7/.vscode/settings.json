@@ -10,7 +10,7 @@
         "PATH": "C:\\Program Files (x86)\\GNU Tools ARM Embedded\\6 2017-q2-update\\bin",
         "CHERE_INVOKING": "1",
         "MSYS2_PATH_TYPE": "inherit",
-        "MSYSTEM": "MINGW64",
+        "MSYSTEM": "MINGW64"
     },
     "C_Cpp.intelliSenseEngine": "Tag Parser",
     "C_Cpp.default.intelliSenseMode": "gcc-x64"
