@@ -5,10 +5,10 @@
             "name": "C++ Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceRoot}/Debug/${workspaceRootFolderName}.elf",
+            "program": "${workspaceFolder}/Debug/${workspaceFolderBasename}.elf",
             "args": [],
             "stopAtEntry": true,
-            "cwd": "${workspaceRoot}",
+            "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,
             "debugServerArgs": "-f interface/cmsis-dap.cfg -f target/renesas_rza1h_swd.cfg",
@@ -25,7 +25,7 @@
                     "ignoreFailures": false
                 },
                 {
-                    "text": "-file-exec-and-symbols ${workspaceRoot}/Debug/${workspaceRootFolderName}.elf",
+                    "text": "-file-exec-and-symbols ${workspaceFolder}/Debug/${workspaceFolderBasename}.elf",
                     "description": "load file",
                     "ignoreFailures": false
                 },
@@ -64,7 +64,7 @@
                 "debugServerPath": "/usr/local/gnu-mcu-eclipse/openocd/0.10.0-12-20190422-2015/bin/openocd",
                 "setupCommands": [
                     {
-                        "text": "-environment-cd ${workspaceRoot}/Debug",
+                        "text": "-environment-cd ${workspaceFolder}/Debug",
                         "description": "set cwd",
                         "ignoreFailures": false
                     },
@@ -121,7 +121,7 @@
                         "ignoreFailures": false
                     },
                     {
-                        "text": "symbol-file ${workspaceRootFolderName}.elf",
+                        "text": "symbol-file ${workspaceFolderBasename}.elf",
                         "description": "load file",
                         "ignoreFailures": false
                     }
@@ -133,7 +133,7 @@
                 "debugServerPath": "/usr/local/gnu-mcu-eclipse/openocd/0.10.0-12-20190422-2015/bin/openocd",
                 "setupCommands": [
                     {
-                        "text": "-environment-cd ${workspaceRoot}/Debug",
+                        "text": "-environment-cd ${workspaceFolder}/Debug",
                         "description": "set cwd",
                         "ignoreFailures": false
                     },
@@ -186,7 +186,7 @@
                         "ignoreFailures": false
                     },
                     {
-                        "text": "symbol-file ${workspaceRootFolderName}.elf",
+                        "text": "symbol-file ${workspaceFolderBasename}.elf",
                         "description": "load file",
                         "ignoreFailures": false
                     }
@@ -199,7 +199,7 @@
                 "debugServerPath": "C:\\Program Files\\GNU MCU Eclipse\\OpenOCD\\0.10.0-12-20190422-2015\\bin\\openocd.exe",
                 "setupCommands": [
                     {
-                        "text": "-environment-cd ${workspaceRoot}\\Debug",
+                        "text": "-environment-cd ${workspaceFolder}\\Debug",
                         "description": "set cwd",
                         "ignoreFailures": false
                     },
@@ -256,7 +256,7 @@
                         "ignoreFailures": false
                     },
                     {
-                        "text": "symbol-file ${workspaceRootFolderName}.elf",
+                        "text": "symbol-file ${workspaceFolderBasename}.elf",
                         "description": "load file",
                         "ignoreFailures": false
                     },

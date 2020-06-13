@@ -8,7 +8,7 @@
         "owner": "cpp",
         "fileLocation": [
             "relative",
-            "${workspaceRoot}/Debug"
+            "${workspaceFolder}/Debug"
         ],
         "pattern": {
             "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error|fatal error):\\s+(.*)$",
@@ -131,7 +131,7 @@
                 "args": [
                     "-av",
                     "--progress",
-                    "${workspaceRoot}/Debug/app_iothub_client.bin",
+                    "${workspaceFolder}/Debug/app_iothub_client.bin",
                     "/media/${env:USER}/MBED/"
                 ]
             },
@@ -140,15 +140,15 @@
                 "args": [
                     "-av",
                     "--progress",
-                    "${workspaceRoot}/Debug/app_iothub_client.bin",
+                    "${workspaceFolder}/Debug/app_iothub_client.bin",
                     "/Volumes/MBED/"
                 ]
             },
             "windows": {
                 "command": "C:\\Windows\\System32\\robocopy.exe",
                 "args": [
-                    "${workspaceRoot}\\Debug",
-                    "j:\\",
+                    "${workspaceFolder}\\Debug",
+                    "F:\\",
                     "app_iothub_client.bin"
                 ],
                 "options": {
