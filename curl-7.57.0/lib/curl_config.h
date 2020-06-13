@@ -762,7 +762,7 @@
 /* #undef HAVE_WOLFSSLV3_CLIENT_METHOD */
 
 /* Define to 1 if you have the `wolfSSL_CTX_UseSupportedCurve' function. */
-/* #undef HAVE_WOLFSSL_CTX_USESUPPORTEDCURVE */
+#define HAVE_WOLFSSL_CTX_USESUPPORTEDCURVE 1
 
 /* Define to 1 if you have the `wolfSSL_get_peer_certificate' function. */
 /* #undef HAVE_WOLFSSL_GET_PEER_CERTIFICATE */
@@ -927,7 +927,7 @@
 /* #undef USE_AXTLS */
 
 /* if CyaSSL/WolfSSL is enabled */
-/* #undef USE_CYASSL */
+#define USE_CYASSL 1
 
 /* to enable Apple OS native SSL/TLS support */
 /* #undef USE_DARWINSSL */
@@ -951,7 +951,7 @@
 /* #undef USE_MANUAL */
 
 /* if mbedTLS is enabled */
-#define USE_MBEDTLS 1
+/* #undef USE_MBEDTLS */
 
 /* Define to enable metalink support */
 /* #undef USE_METALINK */

@@ -82,38 +82,38 @@ VSCodeの場合は、「ファイル」メニューの「ワークスペース�
 |:heavy_minus_sign:|AMQP||
 |:heavy_minus_sign:|AMQP over WebSocket||
 
-デフォルトでは、「MQTT/mbedTLS」が有効になっています。
+デフォルトでは、「MQTT/wolfSSL」が有効になっています。
 
-### wolfSSLに変更するには
+### mbedTLSに変更するには
 
 app_iothub_client\Debug\Makefile(60)
-
-```make
-$(SRCDIR)/../mbedtls-2.16.1/Debug/libmbedtls.a \
-```
-
-を
 
 ```make
 $(SRCDIR)/../wolfssl-3.15.7/Debug/libwolfssl.a \
 ```
 
+を
+
+```make
+$(SRCDIR)/../mbedtls-2.16.1/Debug/libmbedtls.a \
+```
+
 に変更。
 
 「*azure_iothub*」プロジェクトのコンパイルオプションに、「USE_WOLFSSL=1」を指定。
-「*tlsio_mbedtls.c*」で右クリックし、「リソース構成」→「ビルドから除外」を選択し、表示された画面で、「すべて選択」ボタンを押し「OK」を押す。
-「*tlsio_wolfssl.c*」で右クリックし、「リソース構成」→「ビルドから除外」を選択し、表示された画面で、「選択をすべて解除」ボタンを押し「OK」を押す。
+「*tlsio_wolfssl.c*」で右クリックし、「リソース構成」→「ビルドから除外」を選択し、表示された画面で、「すべて選択」ボタンを押し「OK」を押す。
+「*tlsio_mbedtls.c*」で右クリックし、「リソース構成」→「ビルドから除外」を選択し、表示された画面で、「選択をすべて解除」ボタンを押し「OK」を押す。
 
 azure_iothub/c-utility/adapters/platform_toppers.c(55)
 
 ```c
-return tlsio_mbedtls_get_interface_description();
+return tlsio_wolfssl_get_interface_description();
 ```
 
 を
 
 ```c
-return tlsio_wolfssl_get_interface_description();
+return tlsio_mbedtls_get_interface_description();
 ```
 
 に変更。
@@ -121,13 +121,13 @@ return tlsio_wolfssl_get_interface_description();
 curl-7.57.0/lib/curl_config.h(930)
 
 ```c
-/* #undef USE_CYASSL */
+#define USE_CYASSL 1
 ```
 
 を
 
 ```c
-#define USE_CYASSL 1
+/* #undef USE_CYASSL */
 ```
 
 に変更。
@@ -135,13 +135,13 @@ curl-7.57.0/lib/curl_config.h(930)
 curl-7.57.0/lib/curl_config.h(954)
 
 ```c
-#define USE_MBEDTLS 1
+/* #undef USE_MBEDTLS */
 ```
 
 を
 
 ```c
-/* #undef USE_MBEDTLS */
+#define USE_MBEDTLS 1
 ```
 
 に変更。

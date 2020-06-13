@@ -57,7 +57,7 @@ SRCLANG = c
 ifeq ($(SRCLANG),c)
 	LIBS = $(SRCDIR)/../musl-1.1.18/Debug/libmusl.a \
 		$(SRCDIR)/../zlib-1.2.11/Debug/libzlib.a \
-		$(SRCDIR)/../mbedtls-2.16.1/Debug/libmbedtls.a \
+		$(SRCDIR)/../wolfssl-3.15.7/Debug/libwolfssl.a \
 		$(SRCDIR)/../curl-7.57.0/Debug/libcurl.a \
 		$(SRCDIR)/../azure_iothub/Debug/libazure_iothub.a
 endif
