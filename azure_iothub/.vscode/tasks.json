@@ -8,7 +8,7 @@
         "owner": "cpp",
         "fileLocation": [
             "relative",
-            "${workspaceRoot}/Debug"
+            "${workspaceFolder}/Debug"
         ],
         "pattern": {
             "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error|fatal error):\\s+(.*)$",

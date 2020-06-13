@@ -5,10 +5,10 @@
             "name": "C++ Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceRoot}/Debug/${workspaceFolderBasename}.elf",
+            "program": "${workspaceFolder}/Debug/${workspaceFolderBasename}.elf",
             "args": [],
             "stopAtEntry": true,
-            "cwd": "${workspaceRoot}",
+            "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,
             "debugServerArgs": "-f interface/cmsis-dap.cfg -f target/renesas_rza1h_swd.cfg",
@@ -31,7 +31,7 @@
                 "debugServerPath": "/usr/local/gnu-mcu-eclipse/openocd/0.10.0-12-20190422-2015/bin/openocd",
                 "setupCommands": [
                     {
-                        "text": "-environment-cd ${workspaceRoot}/Debug",
+                        "text": "-environment-cd ${workspaceFolder}/Debug",
                         "description": "set cwd",
                         "ignoreFailures": false
                     },
@@ -99,7 +99,7 @@
                 "debugServerPath": "/usr/local/gnu-mcu-eclipse/openocd/0.10.0-12-20190422-2015/bin/openocd",
                 "setupCommands": [
                     {
-                        "text": "-environment-cd ${workspaceRoot}/Debug",
+                        "text": "-environment-cd ${workspaceFolder}/Debug",
                         "description": "set cwd",
                         "ignoreFailures": false
                     },
@@ -163,7 +163,7 @@
                 "debugServerPath": "C:\\Program Files\\GNU MCU Eclipse\\OpenOCD\\0.10.0-12-20190422-2015\\bin\\openocd.exe",
                 "setupCommands": [
                     {
-                        "text": "-environment-cd ${workspaceRoot}\\Debug",
+                        "text": "-environment-cd ${workspaceFolder}\\Debug",
                         "description": "set cwd",
                         "ignoreFailures": false
                     },
