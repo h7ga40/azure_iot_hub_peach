@@ -4,7 +4,7 @@
 #  TOPPERS Software
 #      Toyohashi Open Platform for Embedded Real-Time Systems
 # 
-#  Copyright (C) 2007-2018 by Embedded and Real-Time Systems Laboratory
+#  Copyright (C) 2007-2019 by Embedded and Real-Time Systems Laboratory
 #              Graduate School of Information Science, Nagoya Univ., JAPAN
 # 
 #  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -36,7 +36,7 @@
 #  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #  の責任を負わない．
 # 
-#  $Id: gentest.rb 1108 2018-12-02 09:30:47Z ertl-hiro $
+#  $Id$
 # 
 
 #
@@ -44,6 +44,8 @@
 #
 	
 Encoding.default_external = 'utf-8'
+require "pp"
+require "fileutils"
 
 #
 #  生成動作を決めるための設定
@@ -68,6 +70,7 @@ $parameterDefinition = {
   "ref_pdq" => { 2 => "T_RPDQ" },
   "ref_mtx" => { 2 => "T_RMTX" },
   "ref_mbf" => { 2 => "T_RMBF" },
+  "ref_spn" => { 2 => "T_RSPN" },
   "get_mpf" => { 2 => "void *" },
   "pget_mpf" => { 2 => "void *" },
   "tget_mpf" => { 2 => "void *" },
@@ -76,13 +79,14 @@ $parameterDefinition = {
   "ref_cyc" => { 2 => "T_RCYC" },
   "ref_alm" => { 2 => "T_RALM" },
   "ref_ovr" => { 2 => "T_ROVR" },
-  "ref_mem" => { 2 => "T_RMEM" },
   "get_tid" => { 1 => "ID" },
   "get_did" => { 1 => "ID" },
+  "get_pid" => { 1 => "ID" },
   "get_lod" => { 2 => "uint_t" },
   "mget_lod" => { 3 => "uint_t" },
   "get_nth" => { 3 => "ID" },
   "mget_nth" => { 4 => "ID" },
+  "ref_mem" => { 2 => "T_RMEM" },
   "get_ipm" => { 1 => "PRI" },
   "get_som" => { 1 => "ID" }
 }
@@ -158,7 +162,7 @@ class PUCode
   def append(*lines)
     lines.each do |line|
       @code[@currentCount].push(line)
-        end
+    end
   end
 
   # 変数の追加
@@ -178,95 +182,95 @@ class PUCode
 
     # 処理カウント変数の生成
     if @countFlag
-      print("\nstatic uint_t\t#{@count_var} = 0;\n")
+      $outFile.print("\nstatic uint_t\t#{@count_var} = 0;\n")
     end
 
     # 関数ヘッダの生成
     case @puName
     when /^TASK([0-9]*)$/
-      print("\nvoid\n")
-      print("task#{$1}(intptr_t exinf)\n")
+      $outFile.print("\nvoid\n")
+      $outFile.print("task#{$1}(intptr_t exinf)\n")
     when /^CYC([0-9]*)$/
-      print("\nvoid\n")
-      print("cyclic#{$1}_handler(intptr_t exinf)\n")
+      $outFile.print("\nvoid\n")
+      $outFile.print("cyclic#{$1}_handler(intptr_t exinf)\n")
     when /^ALM([0-9]*)$/
-      print("\nvoid\n")
-      print("alarm#{$1}_handler(intptr_t exinf)\n")
+      $outFile.print("\nvoid\n")
+      $outFile.print("alarm#{$1}_handler(intptr_t exinf)\n")
     when /^OVR$/
-      print("\nvoid\n")
-      print("overrun_handler(ID tskid, intptr_t exinf)\n")
+      $outFile.print("\nvoid\n")
+      $outFile.print("overrun_handler(ID tskid, intptr_t exinf)\n")
     when /^ISR([0-9]*)$/
-      print("\nvoid\n")
-      print("isr#{$1}(intptr_t exinf)\n")
+      $outFile.print("\nvoid\n")
+      $outFile.print("isr#{$1}(intptr_t exinf)\n")
     when /^INTHDR([0-9]*)$/
-      print("\nvoid\n")
-      print("inthdr#{$1}_handler(void)\n")
+      $outFile.print("\nvoid\n")
+      $outFile.print("inthdr#{$1}_handler(void)\n")
     when /^CPUEXC([0-9]*)$/
-      print("\nvoid\n")
-      print("cpuexc#{$1}_handler(void *p_excinf)\n")
+      $outFile.print("\nvoid\n")
+      $outFile.print("cpuexc#{$1}_handler(void *p_excinf)\n")
     when /^EXTSVC([0-9]*)$/
-      print("\nER_UINT\n")
-      print("extsvc#{$1}_routine")
-      print("(intptr_t par1, intptr_t par2, intptr_t par3,\n")
-      print("\t\t\t\t\t\t\t\tintptr_t par4, intptr_t par5, ID cdmid)\n")
+      $outFile.print("\nER_UINT\n")
+      $outFile.print("extsvc#{$1}_routine")
+      $outFile.print("(intptr_t par1, intptr_t par2, intptr_t par3,\n")
+      $outFile.print("\t\t\t\t\t\t\t\tintptr_t par4, intptr_t par5, ID cdmid)\n")
     else
       if $functionValue[@puName]
-        print("\n#{$functionValue[@puName]}\n")
+        $outFile.print("\n#{$functionValue[@puName]}\n")
       else
-        print("\nvoid\n")
+        $outFile.print("\nvoid\n")
       end
-      print(@puName)
+      $outFile.print(@puName)
       if $functionParameters[@puName]
-        print("(#{$functionParameters[@puName]})\n")
+        $outFile.print("(#{$functionParameters[@puName]})\n")
       else
-        print("(void)\n")
+        $outFile.print("(void)\n")
       end
     end
 
-    print("{\n")
+    $outFile.print("{\n")
 
     @variableList.each do |varName, varType|
       if /^(.+)\w*\*$/ =~ varType
         varBaseType = $1
-        print("\t#{varBaseType}")
-        print(varBaseType.length < 4 ? "\t\t*" : "\t*")
+        $outFile.print("\t#{varBaseType}")
+        $outFile.print(varBaseType.length < 4 ? "\t\t*" : "\t*")
       else
-        print("\t#{varType}")
-        print(varType.length < 4 ? "\t\t" : "\t")
+        $outFile.print("\t#{varType}")
+        $outFile.print(varType.length < 4 ? "\t\t" : "\t")
       end
-      print("#{varName};\n")
+      $outFile.print("#{varName};\n")
     end
     if @silFlag
-      print("\tSIL_PRE_LOC;\n")
+      $outFile.print("\tSIL_PRE_LOC;\n")
     end
-    print("\n")
+    $outFile.print("\n")
 
     if @countFlag
-      print("\tswitch (++#{@count_var}) {\n")
+      $outFile.print("\tswitch (++#{@count_var}) {\n")
       @code.keys.sort_by { |c| c.to_i }.each do |count|
-        print("\tcase #{count}:\n")
+        $outFile.print("\tcase #{count}:\n")
         @code[count].each do |line|
-          print("\t",line) if line != ""
-          print("\n")
+          $outFile.print("\t",line) if line != ""
+          $outFile.print("\n")
         end
-        print("\t\tcheck_point(0);\n\n")
+        $outFile.print("\t\tcheck_assert(false);\n\n")
       end
-      print("\tdefault:\n")
-      print("\t\tcheck_point(0);\n")
-      print("\t}\n")
+      $outFile.print("\tdefault:\n")
+      $outFile.print("\t\tcheck_assert(false);\n")
+      $outFile.print("\t}\n")
     else
       @code[""].each do |line|
-        print(line,"\n")
+        $outFile.print(line,"\n")
       end
     end
 
-    print("\tcheck_point(0);\n")
+    $outFile.print("\tcheck_assert(false);\n")
     if /^EXTSVC([0-9]*)$/ =~ @puName
-      print("\treturn(E_SYS);\n")
+      $outFile.print("\treturn(E_SYS);\n")
     elsif $functionReturn[@pu_nama]
-      print("\treturn(#{$functionReturn[@puName]});\n")
+      $outFile.print("\treturn(#{$functionReturn[@puName]});\n")
     end
-    print("}\n")
+    $outFile.print("}\n")
   end
 end
 
@@ -307,16 +311,16 @@ end
 #
 def testStartCode(pu)
   # テスト開始コードは一度のみ出力する
-  if $startFlag == 0
+  if !$startFlag
     pu.append("\ttest_start(__FILE__);", "")
-    $startFlag = 1
+    $startFlag = true
   end
 end
 
 #
 #  ターゲット依存部関数の振る舞いの読み込み
 #
-def targetFunction(line, checkNum)
+def targetFunction(line, checkNum, prcid)
   if /^([a-zA-Z_]+)\s*(.*)$/ =~ line
     functionName = $1
     line = $2
@@ -337,7 +341,7 @@ def targetFunction(line, checkNum)
     line = $2
   end
 
-  pu.append("\tcheck_point(#{checkNum});");
+  pu.append("\tcheck_point#{$cpSuffix[prcid]}(#{checkNum});");
   if param && $functionCheckParameter[functionName]
     pu.append(sprintf("\tcheck_assert(%s == %s);",
 					$functionCheckParameter[functionName], param), "")
@@ -351,19 +355,33 @@ def targetFunction(line, checkNum)
 end
 
 #
+#  チェックポイント番号の処理
+#
+def procCheckPoint(prcid, originalCheckNum, oline_list)
+  checkNum = ($lastCheckPoint[prcid] += 1).to_s
+  oline_list.each do |oline|
+    oline.sub!(/#{originalCheckNum}/, "#{checkNum}:")
+  end
+  return(checkNum)
+end
+
+#
 #  テストスクリプトの読み込み
 #
-def parseLine(line)
-  if /^==\s*(([a-zA-Z_]+)[0-9]*)(.*)$/ =~ line
+def parseLine(line, prcid, oline_list)
+  if /^==\s*START(_[a-zA-Z0-9]+)?(.*)$/ =~ line
+    $procFlag = true unless $procFlagEnd
+    $cpSuffix[prcid] = $1
+  elsif /^==\s*(([a-zA-Z_]+)[0-9]*)(.*)$/ =~ line
     # 処理単位の開始
-    $procFlag = 1
+    $procFlag = true unless $procFlagEnd
     puName = $1
     line2 = $3
     if (pu = $puList[puName]).nil?
       # 新しい処理単位の生成
       pu = $puList[puName] = PUCode.new(puName)
     end
-    $currentPu = pu
+    $currentPu[prcid] = pu
 
     case line2
     when /^\-([0-9]+)(.*)$/
@@ -373,29 +391,27 @@ def parseLine(line)
     else
       pu.setCount("")
     end
-    testStartCode(pu) if /^START/ !~ puName
-  elsif $procFlag != 0
-    pu = $currentPu
+    testStartCode(pu)
+  elsif $procFlag
+    pu = $currentPu[prcid]
     if /^([0-9]+\:)\s*(.*)$/ =~ line
       # チェックポイント番号の処理
-      originalCheckNum = $1
       line = $2
-      checkNum = ($lastCheckPoint += 1).to_s
-      $outputLine.sub!(/#{originalCheckNum}/, "#{checkNum}:")
+      checkNum = procCheckPoint(prcid, $1, oline_list)
 
       case line
       when /^END$/
-        pu.append("\tcheck_finish(#{checkNum});")
-        $procFlag = 0
+        pu.append("\tcheck_finish#{$cpSuffix[prcid]}(#{checkNum});")
+        $procFlagEnd = true
         return
       when /^HOOK\((.*)\)$/
         pu.append(sprintf("\t#{$1};", checkNum))
         return
       when /^\[(.*)\]$/
-        targetFunction($1, checkNum)
+        targetFunction($1, checkNum, prcid)
         return
       else
-        pu.append("\tcheck_point(#{checkNum});")
+        pu.append("\tcheck_point#{$cpSuffix[prcid]}(#{checkNum});")
       end
     end
 
@@ -406,6 +422,8 @@ def parseLine(line)
       call_string = $2
       pu.append("\t#{call_string};", "")
       pu.useSil() if /^SIL_..._INT\(\)$/ =~ call_string
+    when /^VAR\(\s*(.*)\s+(.*)\s*\)$/
+      pu.addVariable($2, $1)
     when /^RETURN((\(.*\))?)$/
       pu.append("\treturn#{$1};", "")
       pu.incrementCount()
@@ -413,6 +431,10 @@ def parseLine(line)
       pu.append("\tgoto #{$1};", "")
     when /^LABEL\((.*)\)$/
       pu.append("#{$1}:", "")
+    when /^BARRIER\((.*)\)$/
+      pu.append("\ttest_barrier(#{$1});", "")
+    when /^((SET|RESET|WAIT|WAIT_WO_RESET|WAIT_RESET)\(.*\))$/
+      pu.append("\t#{$1};", "")
     when /^([a-z_]+\(.*\))\s*(\-\>\s*([A-Za-z0-9_]*))?\s*$/
       genServiceCall(pu, $1, $3)
     else
@@ -432,41 +454,67 @@ end
 #  初期化
 #
 inFileName = ARGV.shift
+outFileName = inFileName + ".new"
 
 #
 #  スクリプトファイル読み込み処理
 #
-$lastCheckPoint = 0		# 最後のチェックポイント番号
-$procFlag = 0				# スクリプト処理中フラグ
-$startFlag = 0			# テスト開始コードの出力フラグ
-$currentPu = nil			# 読み込み中の処理単位
-$puList = {}				# 処理単位のリスト
+$procFlag = false					# スクリプト処理中フラグ
+$procFlagEnd = false				# スクリプト処理終了フラグ
+$startFlag = false					# テスト開始コードの出力フラグ
+$currentPu = {}						# 読み込み中の処理単位
+$puList = {}						# 処理単位のリスト
+$outputLines = []					# 出力すべき行のリストのリスト
+$cpSuffix = Hash.new("")			# チェックポイント関数のサフィックス
+$lastCheckPoint = Hash.new(0)		# 最後のチェックポイント番号
 
 begin
   inFile = File.open(inFileName)
+  $outFile = File.open(outFileName, "w")
 rescue Errno::ENOENT, Errno::EACCES => ex
   abort(ex.message)
 end
 
+statements = Hash.new("")
+oline_lists = Hash.new([])
 while line = inFile.gets do
-  $outputLine = line.dup
-  line.chomp!
-  line.sub!(/^\s*\*\s*/, "")
-  line.sub!(/\s*\/\/.*$/, "")
-  line.sub!(/\s*\.\.\..*$/, "")
+  line.chomp!									# 末尾の改行の削除
+  if /DO NOT DELETE THIS LINE/ =~ line
+    $outputLines.push([ line ])
+    break
+  elsif line =~ /^(\s*\*)(.*)$/					# 行頭のスペースと "*" の削除
+    outputLine = [ $1.dup ]
+    $2.split(/｜/, -1).each_with_index do |sline, index|
+      outLine = sline.dup
+      outputLine.push(outLine)
+      sline.sub!(/^\s*/, "")					# 先頭のスペースの削除
+      sline.sub!(/\/\/.*$/, "")					# // コメントの削除
+      sline.sub!(/\.\.\..*$/, "")				# ... コメントの削除
 
-  while line.sub!(/\\$/, "") do
-    line1 = inFile.gets
-    $outputLine += line1.dup
-    line1.chomp!
-    line1.sub!(/^\s*\*\s*/, "")
-    line1.sub!(/\s*\/\/.*$/, "")
-    line1.sub!(/\s*\.\.\..*$/, "")
-    line += line1
+      prcid = index + 1
+      statements[prcid] += sline
+      oline_lists[prcid].push(outLine)
+      next if statements[prcid].sub!(/\\\s*$/, "")		# 継続行の場合
+
+      statements[prcid].sub!(/\s*$/, "")		# 末尾のスペースの削除
+      if sline !~ /^\s*$/
+        parseLine(statements[prcid], prcid, oline_lists[prcid])
+      end
+      statements[prcid] = ""
+      oline_lists[prcid] = []
+    end
+    $outputLines.push(outputLine)
+    $procFlag = false if $procFlagEnd
+  else
+    $outputLines.push([ line ])
   end
-  parseLine(line) if line != ""
-  print($outputLine)
-  break if /DO NOT DELETE THIS LINE/ =~ $outputLine
+end
+$outputLines.each do |outputLine|
+  outputLine.each_with_index do |sline, index|
+    $outFile.print("｜") if index > 1
+    $outFile.print(sline);
+  end
+  $outFile.print("\n");
 end
 
 #
@@ -475,3 +523,9 @@ end
 $puList.keys.sort.each do |puName|
   $puList[puName].generateCode()
 end
+
+#
+#  ファイルの置き換え
+#
+FileUtils.move(inFileName, inFileName + ".bak")
+FileUtils.move(outFileName, inFileName)

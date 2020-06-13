@@ -4,7 +4,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2004-2015 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2004-2019 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -112,7 +112,14 @@ typedef	uint64_t		SYSTIM;		/* システム時刻［NGKI0548］*/
 typedef	uint32_t		SYSTIM;		/* システム時刻［NGKI0548］*/
 #endif /* UINT64_MAX */
 typedef	uint32_t		PRCTIM;		/* プロセッサ時間［NGKI0573］*/
+#ifndef USE_64BIT_HRTCNT
 typedef	uint32_t		HRTCNT;		/* 高分解能タイマのカウント値 */
+#else /* USE_64BIT_HRTCNT */
+#ifndef UINT64_MAX
+#error 64bit data types are required when USE_64BIT_HRTCNT.
+#endif
+typedef	uint64_t		HRTCNT;		/* 高分解能タイマのカウント値 */
+#endif /* USE_64BIT_HRTCNT */
 
 typedef	TOPPERS_fp		FP;			/* プログラムの起動番地 */
 

@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2018 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2019 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -277,6 +277,25 @@ target_hrt_set_event(HRTCNT hrtcnt)
 }
 
 /*
+ *  高分解能タイマへの割込みタイミングのクリア
+ */
+#ifdef USE_64BIT_HRTCNT
+
+Inline void
+target_hrt_clear_event(void)
+{
+	sil_wrw_mem(MPCORE_GTC_CTRL,
+					sil_rew_mem(MPCORE_GTC_CTRL) & ~(MPCORE_GTC_CTRL_ENACOMP));
+#ifdef ARM_CA9_GTC_ERRATA
+	/* ARM Cortex-A9 Errata 740657への対策 */
+	sil_wrw_mem(MPCORE_GTC_ISR, MPCORE_GTC_ISR_EVENTFLAG);
+	clear_int(MPCORE_IRQNO_GTC);
+#endif /* ARM_CA9_GTC_ERRATA */
+}
+
+#endif /* USE_64BIT_HRTCNT */
+
+/*
  *  高分解能タイマ割込みの要求
  */
 Inline void
@@ -288,11 +307,15 @@ target_hrt_raise_event(void)
 /*
  *  割込みタイミングに指定する最大値
  */
+#ifndef USE_64BIT_HRTCNT
+
 #if !defined(TCYC_HRTCNT) || (TCYC_HRTCNT > 4002000002U)
 #define HRTCNT_BOUND		4000000002U
 #else
 #define HRTCNT_BOUND		(TCYC_HRTCNT - 2000000U)
 #endif
+
+#endif /* USE_64BIT_HRTCNT */
 
 /*
  *  高分解能タイマ割込みハンドラ

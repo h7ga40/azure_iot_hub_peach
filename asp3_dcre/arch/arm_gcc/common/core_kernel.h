@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2004-2018 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2004-2019 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -66,17 +66,18 @@
 /*
  *  CPU例外ハンドラ番号の数
  */  
-#define TNUM_EXCNO		6
+#define TNUM_EXCNO		7
 
 /*
  *  CPU例外ハンドラ番号の定義
  */
-#define EXCNO_UNDEF		0
-#define EXCNO_SVC		1
-#define EXCNO_PABORT	2
-#define EXCNO_DABORT	3
-#define EXCNO_IRQ		4
-#define EXCNO_FIQ		5
+#define EXCNO_UNDEF		UINT_C(0)		/* 未定義命令 */
+#define EXCNO_SVC		UINT_C(1)		/* スーパバイザコール */
+#define EXCNO_PABORT	UINT_C(2)		/* プリフェッチアボート */
+#define EXCNO_DABORT	UINT_C(3)		/* データアボート */
+#define EXCNO_IRQ		UINT_C(4)		/* IRQ割込み */
+#define EXCNO_FIQ		UINT_C(5)		/* FIQ割込み */
+#define EXCNO_FATAL		UINT_C(6)		/* フェイタルデータアボート */
 
 #ifndef TOPPERS_MACRO_ONLY
 

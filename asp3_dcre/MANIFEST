@@ -1,5 +1,5 @@
 PACKAGE asp3
-VERSION 3.2.0
+VERSION 3.5.0
 
 configure.rb
 MANIFEST
@@ -87,7 +87,6 @@ tecs_kernel/init_tecs.c
 tecs_kernel/kernel.cdl
 tecs_kernel/tAlarmNotifier.c
 tecs_kernel/tAlarmNotifier_inline.h
-tecs_kernel/tCpuExceptionHandler.c
 tecs_kernel/tCyclicNotifier.c
 tecs_kernel/tCyclicNotifier_inline.h
 tecs_kernel/tDataqueue_inline.h
@@ -95,7 +94,6 @@ tecs_kernel/tEventflag_inline.h
 tecs_kernel/tFixedSizeMemoryPool_inline.h
 tecs_kernel/tISR.c
 tecs_kernel/tInitializeRoutine.c
-tecs_kernel/tInterruptHandler.c
 tecs_kernel/tInterruptRequest_inline.h
 tecs_kernel/tKernel_inline.h
 tecs_kernel/tMutex_inline.h
@@ -118,6 +116,8 @@ syssvc/tBanner.cdl
 syssvc/tBannerMain.c
 syssvc/tLogTask.cdl
 syssvc/tLogTaskMain.c
+syssvc/tPutLogSIOPort.c
+syssvc/tPutLogSIOPort.cdl
 syssvc/tSerialAdapter.c
 syssvc/tSerialAdapter.cdl
 syssvc/tSerialPort.cdl
@@ -128,7 +128,8 @@ syssvc/tSysLogAdapter.c
 syssvc/tSysLogAdapter.cdl
 syssvc/tTestService.c
 syssvc/tTestService.cdl
-syssvc/tBuiltInTestAdaptor.c
+syssvc/tTestServiceAdapter.c
+syssvc/tTestServiceAdapter.cdl
 syssvc/test_svc.h
 
 library/log_output.c
@@ -141,6 +142,15 @@ arch/gcc/tool_stddef.h
 arch/tracelog/trace_log.h
 arch/tracelog/tTraceLog.c
 arch/tracelog/tTraceLog.cdl
+
+arch/simtimer/sim_timer.c
+arch/simtimer/sim_timer.cfg
+arch/simtimer/sim_timer.h
+arch/simtimer/sim_timer_cntl.h
+arch/simtimer/tSimTimerCntl.c
+arch/simtimer/tSimTimerCntl.cdl
+arch/simtimer/tSimTimerCntlAdapter.c
+arch/simtimer/tSimTimerCntlAdapter.cdl
 
 utils/applyrename.rb
 utils/genrename.rb

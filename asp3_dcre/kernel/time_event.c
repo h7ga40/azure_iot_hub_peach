@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2018 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2019 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -48,6 +48,13 @@
 #include "time_event.h"
 
 /*
+ *  TCYC_HRTCNTの定義のチェック
+ */
+#if defined(USE_64BIT_HRTCNT) && defined(TCYC_HRTCNT)
+#error TCYC_HRTCNT must not be defined when USE_64BIT_HRTCNT.
+#endif
+
+/*
  *  TSTEP_HRTCNTの範囲チェック
  */
 #if TSTEP_HRTCNT > 4000U
@@ -55,8 +62,10 @@
 #endif /* TSTEP_HRTCNT > 4000U */
 
 /*
- *  HRTCNT_BOUNDの範囲チェック
+ *  HRTCNT_BOUNDの定義のチェック
  */
+#ifndef USE_64BIT_HRTCNT
+
 #if HRTCNT_BOUND >= 4294000000U
 #error HRTCNT_BOUND is too large.
 #endif /* HRTCNT_BOUND >= 4294000000U */
@@ -66,6 +75,14 @@
 #error HRTCNT_BOUND is too large.
 #endif /* HRTCNT_BOUND >= TCYC_HRTCNT */
 #endif /* TCYC_HRTCNT */
+
+#else /* USE_64BIT_HRTCNT */
+
+#ifdef HRTCNT_BOUND
+#error USE_64BIT_HRTCNT is not supported on this target.
+#endif /* HRTCNT_BOUND */
+
+#endif /* USE_64BIT_HRTCNT */
 
 /*
  *  タイムイベントヒープ操作マクロ
@@ -366,10 +383,10 @@ update_current_evttim(void)
 		hrtcnt_advance += TCYC_HRTCNT;
 	}
 #endif /* TCYC_HRTCNT */
+	current_hrtcnt = new_hrtcnt;					/*［ASPD1016］*/
 
 	previous_evttim = current_evttim;
 	current_evttim += (EVTTIM) hrtcnt_advance;		/*［ASPD1015］*/
-	current_hrtcnt = new_hrtcnt;					/*［ASPD1016］*/
 	boundary_evttim = current_evttim - BOUNDARY_MARGIN;	/*［ASPD1011］*/
 
 	if (monotonic_evttim - previous_evttim < (EVTTIM) hrtcnt_advance) {
@@ -406,19 +423,30 @@ set_hrt_event(void)
 	HRTCNT	hrtcnt;
 
 	if (p_last_tmevtn < p_top_tmevtn) {
+		/*
+		 *  タイムイベントがない場合
+		 */
+#ifdef USE_64BIT_HRTCNT
+		target_hrt_clear_event();
+#else /* USE_64BIT_HRTCNT */
 		target_hrt_set_event(HRTCNT_BOUND);			/*［ASPD1007］*/
+#endif /* USE_64BIT_HRTCNT */
 	}
 	else if (EVTTIM_LE(top_evttim, current_evttim)) {
 		target_hrt_raise_event();					/*［ASPD1017］*/
 	}
 	else {
 		hrtcnt = (HRTCNT)(top_evttim - current_evttim);
+#ifdef USE_64BIT_HRTCNT
+		target_hrt_set_event(hrtcnt);
+#else /* USE_64BIT_HRTCNT */
 		if (hrtcnt > HRTCNT_BOUND) {
 			target_hrt_set_event(HRTCNT_BOUND);		/*［ASPD1006］*/
 		}
 		else {
 			target_hrt_set_event(hrtcnt);			/*［ASPD1002］*/
 		}
+#endif /* USE_64BIT_HRTCNT */
 	}
 }
 
@@ -501,11 +529,11 @@ tmevtb_dequeue(TMEVTB *p_tmevtb)
 #ifdef TOPPERS_tmechk
 
 bool_t
-check_adjtim(int_t adjtim)
+check_adjtim(int32_t adjtim)
 {
 	if (adjtim > 0) {
 		return(p_last_tmevtn >= p_top_tmevtn	/*［NGKI3588］*/
-					&& EVTTIM_LE(top_evttim, current_evttim - TMAX_ADJTIM));
+					&& EVTTIM_LE(top_evttim + TMAX_ADJTIM, current_evttim));
 	}
 	else if (adjtim < 0) {						/*［NGKI3589］*/
 		return(monotonic_evttim - current_evttim >= -TMIN_ADJTIM);

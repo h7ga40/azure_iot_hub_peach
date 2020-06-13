@@ -380,7 +380,7 @@ class CfgParser
   def skipToToken(cfgFile, withinApi=true)
     skipSpace(cfgFile, withinApi)
     if @line.nil?							# ファイル末であればエラー終了
-      error_exit("unexpexced end-of-file")
+      error_exit("#{cfgFile.getFileName}: unexpeced end-of-file")
     end
   end
 
@@ -711,6 +711,14 @@ class CfgParser
               end
               staticApi[:INDEX] = (@@lastApiIndex += 1)
               $cfgFileInfo.push(staticApi)
+            end
+
+            # ";"を読む
+            skipToToken(cfgFile, false)		# 次の文字まで読み飛ばす
+            if (/^\;(.*)$/ =~ @line)
+              @line = $1
+            else
+              parse_error(cfgFile, "`;' expected after static API")
             end
           else
             parse_error(cfgFile, "unknown static API: #{apiName}")

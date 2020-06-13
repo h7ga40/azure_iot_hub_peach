@@ -266,7 +266,8 @@ static ER_BOOL
 serialPort_writeChar(CELLCB *p_cellcb, char c)
 {
 	bool_t	buffer_full;
-	ER		ercd, rercd;
+	ER_BOOL	ercd;
+	ER		rercd;
 
 	/*
 	 *  LFの前にCRを送信する．
@@ -357,11 +358,11 @@ eSerialPort_write(CELLIDX idx, const char *buffer, uint_t length)
 /*
  *  シリアルポートからの1文字受信
  */
-static bool_t
+static ER_BOOL
 serialPort_readChar(CELLCB *p_cellcb, char *p_c)
 {
 	bool_t	buffer_empty;
-	ER		ercd;
+	ER_BOOL	ercd;
 
 	SVC(loc_cpu(), gen_ercd_sys(p_cellcb));
 

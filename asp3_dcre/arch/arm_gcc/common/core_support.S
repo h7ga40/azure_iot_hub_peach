@@ -5,10 +5,10 @@
  * 
  *  Copyright (C) 2000-2004 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2006-2018 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2019 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
- *  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
+ *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
  *  ア（本ソフトウェアを改変したものを含む．以下同じ）を使用・複製・改
  *  変・再配布（以下，利用と呼ぶ）することを無償で許諾する．
  *  (1) 本ソフトウェアをソースコードの形で利用する場合には，上記の著作
@@ -752,13 +752,13 @@ ALABEL(dabort_handler)
 	 *
 	 *  データアボートが，CPU例外の入口（start_exc_entryとend_exc_entry
 	 *  の間）で発生した場合には，fatal_dabort_handlerに分岐する．アボー
-	 *  トモードのspを汎用レジスタの代わりに使用する．
+	 *  トモードのspを汎用レジスタの代わりに使用する（r13と記述している）．
 	 */
-	ldr		sp, =start_exc_entry+8
-	cmp		lr, sp
+	adr		r13, start_exc_entry+8
+	cmp		lr, r13
 	bcc		dabort_handler_1
-	ldr		sp, =end_exc_entry+8
-	cmp		lr, sp
+	adr		r13, end_exc_entry+8
+	cmp		lr, r13
 	bcc		fatal_dabort_handler
 
 ALABEL(dabort_handler_1)
@@ -799,7 +799,6 @@ ALABEL(dabort_handler_1)
 #endif /* __TARGET_ARCH_ARM < 6 */
 	mov		r4, #EXCNO_DABORT
 	b		exc_handler_1
-#endif /* OMIT_DABORT_HANDLER */
 
 /*
  *  CPU例外の入口で発生したデータアボート
@@ -853,15 +852,16 @@ ALABEL(fatal_dabort_handler)
 #endif /* __TARGET_ARCH_ARM < 6 */
 
 	/*
-	 *  例外ネストカウントの最上位ビットを1にする．
+	 *  例外ネストカウントをインクリメントする．
 	 */
 	ldr		r2, =excpt_nest_count
 	ldr		r3, [r2]
-	orr		r3, r3, #0x80000000
+	add		r3, r3, #1
 	str		r3, [r2]
 
-	mov		r4, #EXCNO_DABORT
+	mov		r4, #EXCNO_FATAL
 	b		exc_handler_1
+#endif /* OMIT_DABORT_HANDLER */
 
 /*
  *  FIQ

@@ -105,18 +105,6 @@ mpcore_initialize(void)
 void
 mpcore_terminate(void)
 {
-	extern void    software_term_hook(void);
-	void (*volatile fp)(void) = software_term_hook;
-
-	/*
-	 *  software_term_hookへのポインタを，一旦volatile指定のあるfpに代
-	 *  入してから使うのは，0との比較が最適化で削除されないようにするた
-	 *  めである．
-	 */
-	if (fp != 0) {
-		(*fp)();
-	}
-
 	/*
 	 *  GICのCPUインタフェースの終了処理
 	 */

@@ -50,7 +50,7 @@
 void
 test_start(const char *progname)
 {
-	cTestService_start(progname);
+	(void) cTestService_start(progname);
 }
 
 /*
@@ -59,7 +59,7 @@ test_start(const char *progname)
 void
 check_point(uint_t count)
 {
-	cTestService_checkPoint(count);
+	(void) cTestService_checkPoint(count);
 }
 
 /*
@@ -68,7 +68,7 @@ check_point(uint_t count)
 void
 check_finish(uint_t count)
 {
-	cTestService_finishPoint(count);
+	(void) cTestService_finishPoint(count);
 }
 
 /*
@@ -77,7 +77,7 @@ check_finish(uint_t count)
 void
 check_assert_error(const char *expr, const char *file, int_t line)
 {
-	cTestService_assertError(expr, file, line);
+	(void) cTestService_assertError(expr, file, line);
 }
 
 /*
@@ -86,7 +86,7 @@ check_assert_error(const char *expr, const char *file, int_t line)
 void
 check_ercd_error(ER ercd, const char *file, int_t line)
 {
-	cTestService_serviceError(ercd, file, line);
+	(void) cTestService_serviceError(ercd, file, line);
 }
 
 /*

@@ -226,7 +226,7 @@ config_int(INTNO intno, ATR intatr, PRI intpri)
 	 *  割込み優先度とターゲットプロセッサを設定
 	 */
 	gicd_set_priority(intno, INT_IPM(intpri));
-	gicd_set_target(intno, 1U << arm_prc_index());
+	gicd_set_target(intno, 1U << get_my_prcidx());
 
 	/*
 	 * 割込みを許可

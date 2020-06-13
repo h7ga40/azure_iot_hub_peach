@@ -332,14 +332,19 @@ end
 IsrObject.new.generate()
 
 # 割込みサービスルーチン生成順序テーブルの生成
-$kernelCfgC.add("const ID _kernel_isrorder_table[TNUM_SISRID] = { ")
-$kernelCfgC.append("\t")
-$cfgData[:CRE_ISR].each_with_index do |(_, params), index|
-  $kernelCfgC.append(", ") if index > 0
-  $kernelCfgC.append("#{params[:isrid]}")
+if $cfgData[:CRE_ISR].size != 0
+  $kernelCfgC.add("const ID _kernel_isrorder_table[TNUM_SISRID] = { ")
+  $kernelCfgC.append("\t")
+  $cfgData[:CRE_ISR].each_with_index do |(_, params), index|
+    $kernelCfgC.append(", ") if index > 0
+    $kernelCfgC.append("#{params[:isrid]}")
+  end
+  $kernelCfgC.add
+  $kernelCfgC.add2("};")
+else
+  $kernelCfgC.add2("TOPPERS_EMPTY_LABEL(const ID, " \
+										"_kernel_isrorder_table);")
 end
-$kernelCfgC.add
-$kernelCfgC.add2("};")
 
 #
 #  割込みハンドラのための標準的な初期化情報の生成

@@ -4,7 +4,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2006-2018 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2019 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -333,20 +333,21 @@ arm_disable_bp(void)
 }
 
 /*
- *  プロセッサ番号の取得
+ *  自プロセッサのインデックス（0オリジン）の取得
  *
- *  マルチプロセッサアフィニティレジスタを読んで，その下位8ビットを返す．
- *  ARMv6では，マルチプロセッサをサポートしている場合にのみ使用できる．
+ *  マルチプロセッサアフィニティレジスタを読んで，その下位8ビットを返
+ *  す．ARMv6では，マルチプロセッサをサポートしている場合にのみ使用で
+ *  きる．
  */
 #if __TARGET_ARCH_ARM >= 6
 
-Inline uint32_t
-arm_prc_index(void)
+Inline uint_t
+get_my_prcidx(void)
 {
 	uint32_t	reg;
 
 	CP15_READ_MPIDR(reg);
-	return(reg & 0xffU);
+	return((uint_t)(reg & 0xffU));
 }
 
 #endif /* __TARGET_ARCH_ARM >= 6 */

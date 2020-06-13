@@ -107,16 +107,4 @@ tt_syslog(SYSLOG *p_logbuf, const char *format, va_list ap)
 	}
 }
 
-void
-syslog(uint_t prio, const char *format, ...)
-{
-	va_list	ap;
-	SYSLOG	logbuf;
-
-	va_start(ap, format);
-	tt_syslog(&logbuf, format, ap);
-	va_end(ap);
-	syslog_write(prio, &logbuf);
-}
-
 #endif /* TOPPERS_OMIT_SYSLOG */

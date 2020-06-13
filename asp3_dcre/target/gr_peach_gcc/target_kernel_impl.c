@@ -78,7 +78,7 @@ void __libc_init_array()
 /*
  *  MMUの設定情報（メモリエリアの情報）
  */
-ARM_MMU_CONFIG arm_memory_area[] = {
+const ARM_MMU_CONFIG arm_memory_area[] = {
 	{ SPI_ADDR, SPI_ADDR, SPI_SIZE, MMU_ATTR_RAM },
 	{ SRAM_ADDR, SRAM_ADDR, SRAM_SIZE, MMU_ATTR_RAM },
 	{ IO1_ADDR, IO1_ADDR, IO1_SIZE, MMU_ATTR_IODEV },
@@ -269,6 +269,17 @@ void
 target_exit(void)
 {
 	static int first = 1;
+	extern void    software_term_hook(void);
+	void (*volatile fp)(void) = software_term_hook;
+
+	/*
+	 *  software_term_hookへのポインタを，一旦volatile指定のあるfpに代
+	 *  入してから使うのは，0との比較が最適化で削除されないようにするた
+	 *  めである．
+	 */
+	if (fp != 0) {
+		(*fp)();
+	}
 
 	/*
 	 *  チップ依存の終了処理

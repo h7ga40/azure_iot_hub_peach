@@ -276,14 +276,14 @@ module_eval(<<'...end C_parser.y.rb/module_eval...', 'C_parser.y.rb', 784)
 	def self.warning( msg )
 		@@n_warning += 1
 		locale = @@current_locale[ @@generator_nest ]
-		Console.puts "warning: #{locale[0]}: line #{locale[1]} #{msg}"
+		Console.puts "#{locale[0]}:#{locale[1]}: warning: #{msg}"
 	end
 
 	# このメソッドは構文解析、意味解析からのみ呼出し可
 	def self.info( msg )
 		@@n_info += 1
 		locale = @@current_locale[ @@generator_nest ]
-		Console.puts "info: #{locale[0]}: line #{locale[1]} #{msg}"
+		Console.puts "#{locale[0]}:#{locale[1]}: info: #{msg}"
 	end
 
 	def self.get_n_error

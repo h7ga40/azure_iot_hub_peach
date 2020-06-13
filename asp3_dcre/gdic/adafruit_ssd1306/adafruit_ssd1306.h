@@ -18,9 +18,13 @@ All text above, and the splash screen must be included in any redistribution
 #ifndef _Adafruit_SSD1306_H_
 #define _Adafruit_SSD1306_H_
 
+#include <stdint.h>
+#include <stdbool.h>
+#include <time.h>
 #include "gpio_api.h"
 #include "spi_api.h"
 #include "i2c_api.h"
+#include "gfxfont.h"
 
 #define BLACK 0
 #define WHITE 1

@@ -1,5 +1,5 @@
 
-	TOPPERS/ASP3 Kernel（Release 3.2）
+	TOPPERS/ASP3 Kernel（Release 3.5）
 		Toyohashi Open Platform for Embedded Real-Time Systems/
 		Advanced Standard Profile Kernel
 
@@ -38,6 +38,10 @@ ASP3カーネルをより良いものにするためのご意見等を歓迎し�
 TOPPERS開発者メーリングリスト（dev@toppers.jp）宛またはASP3カーネルのバ
 グトラッキングシステム（Trac）に，その他の方はTOPPERSユーザーズメーリン
 グリスト（users@toppers.jp）宛にお願いします．
+
+これらのメーリングリストに投稿されたメールは，ウェブサイトのメーリング
+リストアーカイブから読むことができますので，公開すべきでない情報（個人
+情報など）をメール中に含めないように注意をお願いします．
 
 TOPPERSユーザーズメーリングリストへの登録方法については，以下のページに
 説明があります．

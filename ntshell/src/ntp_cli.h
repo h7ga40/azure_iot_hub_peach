@@ -94,6 +94,8 @@ typedef enum ntp_cli_state {
 	NTP_CLI_STATE_SYNC,
 } ntp_cli_state_t;
 
+typedef void (* ntp_cli_state_changed_cb_t)(ntp_cli_state_t state);
+
 typedef struct ntp_cli {
 	ntp_cli_state_t state;
 	int timer;
@@ -116,6 +118,7 @@ typedef struct ntp_cli {
 	char buf[30];
 	int rcv_flag;
 	int exe_flag;
+	ntp_cli_state_changed_cb_t state_changed_cb;
 } T_NTP_CLI_CONTEXT;
 
 /* 関数 */
@@ -127,6 +130,7 @@ void ntp_cli_wakeup(T_NTP_CLI_CONTEXT *nc);
 void ntp_cli_timeout(T_NTP_CLI_CONTEXT *nc);
 ER callback_nblk_ntp_cli(ID cepid, FN fncd, void *p_parblk);
 
+void ntp_cli_set_state_changed_cb(ntp_cli_state_changed_cb_t state_changed_cb);
 void ntp_cli_execute();
 
 #endif	/* of #ifndef _NTP_CLI_H_ */

@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2006-2018 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2019 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -456,7 +456,7 @@ extern const uint_t arm_tnum_memory_area;
 /*
  *  MMUの設定情報（メモリエリアの情報）（target_kernel_impl.c）
  */
-extern ARM_MMU_CONFIG arm_memory_area[];
+extern const ARM_MMU_CONFIG arm_memory_area[];
 
 /*
  *  MMUの初期化

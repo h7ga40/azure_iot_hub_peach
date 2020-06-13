@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2006-2018 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2019 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -72,7 +72,7 @@ static uint32_t section_table[ARM_SECTION_TABLE_ENTRY]
  *  MMUのセクションテーブルエントリの設定
  */
 Inline void
-config_section_entry(ARM_MMU_CONFIG *p_ammuc)
+config_section_entry(const ARM_MMU_CONFIG *p_ammuc)
 {
 	uint32_t	vaddr = p_ammuc->vaddr;
 	uint32_t	paddr = p_ammuc->paddr;
@@ -340,10 +340,14 @@ default_exc_handler(void *p_excinf, EXCNO excno)
 	case EXCNO_FIQ:
 		syslog_0(LOG_EMERG, "FIQ exception occurs.");
 		break;
+	case EXCNO_FATAL:
+		syslog_0(LOG_EMERG, "Fatal Data Abort exception occurs.");
+		break;
 	}
 	xlog_sys(p_excinf);
 
-	if (excno == EXCNO_PABORT || excno == EXCNO_DABORT) {
+	if (excno == EXCNO_PABORT || excno == EXCNO_DABORT
+										|| excno == EXCNO_FATAL) {
 		uint32_t	fsr, far;
 
 #if __TARGET_ARCH_ARM >= 6

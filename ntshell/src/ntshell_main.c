@@ -80,8 +80,8 @@ extern uint8_t mac_addr[6];
 const struct utsname host_name = {
 	"TOPPERS/ASP3",
 	TARGET_NAME,
-	"3.4.0",
-	"3.4.0",
+	"3.5.0",
+	"3.5.0",
 	TARGET_NAME,
 	"toppers.jp"
 };
@@ -113,6 +113,8 @@ struct ntshell_obj_t {
 	uint8_t link_up;
 	uint8_t up;
 	uint8_t dhcp;
+	uint8_t ntp;
+	ntp_cli_state_t ntp_state;
 #endif
 	int event_req, event_res;
 };
@@ -121,6 +123,7 @@ struct ntshell_obj_t ntshell_obj;
 #ifndef NTSHELL_NO_SOCKET
 static void netif_link_callback(T_IFNET *ether);
 static void ntshell_change_netif_link(uint8_t link_up, uint8_t up);
+static void ntp_cli_state_changed(ntp_cli_state_t state);
 #endif
 static void ntshell_initialize(struct ntshell_obj_t *obj);
 static void ntshell_finalize(struct ntshell_obj_t *obj);
@@ -229,6 +232,10 @@ void ntshell_task(intptr_t exinf)
 	ffarch_init();
 
 	stdio_open(SIO_PORTID);
+
+#ifndef NTSHELL_NO_SOCKET
+	ntp_cli_set_state_changed_cb(ntp_cli_state_changed);
+#endif
 
 	main_initialize();
 
@@ -367,6 +374,13 @@ static void ntshell_timeout(struct ntshell_obj_t *obj, bool_t wakeup)
 
 		ntshell_change_netif_link(obj->link_up, obj->up);
 	}
+	if (obj->ntp) {
+		obj->ntp = 0;
+		if (obj->ntp_state != NTP_CLI_STATE_SYNC)
+			event |= NTSHELL_EVENT_NTP_ASYNC;
+		else
+			event |= NTSHELL_EVENT_NTP_SYNC;
+	}
 #endif
 	for (int i = 0; i < obj->task_count; i++) {
 		task_base_t *task = obj->tasks[i];
@@ -407,6 +421,22 @@ void netif_link_callback(T_IFNET *ether)
 	if (wake && (obj->event_req == obj->event_res)) {
 		obj->event_req++;
 		rel_wai(NTSHELL_TASK);
+	}
+}
+
+void ntp_cli_state_changed(ntp_cli_state_t state)
+{
+	struct ntshell_obj_t *obj = (struct ntshell_obj_t *)&ntshell_obj;
+	bool_t wake = obj->ntp_state != state;
+
+	if (wake) {
+		obj->ntp_state = state;
+		obj->ntp = 1;
+
+		if (obj->event_req == obj->event_res) {
+			obj->event_req++;
+			rel_wai(NTSHELL_TASK);
+		}
 	}
 }
 #endif
@@ -466,7 +496,7 @@ static int usrcmd_ntopt_callback(long *args, void *extobj)
 	}
 
 	if ((found == 0) && (((const char *)args[1])[0] != '\0'))
-		printf("Unknown command found.\n");
+		printf("Unknown command found. %s \n", (const char *)args[1]);
 
 	return result;
 }

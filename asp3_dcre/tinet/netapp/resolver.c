@@ -239,7 +239,7 @@ static ER_UINT
 add_name (uint8_t *msg, uint_t size, uint_t offset, char *name)
 {
 	uint_t		label_len;
-	uint8_t		*tail;
+	char		*tail;
 
 	while (*name != '\0') {
 
@@ -251,7 +251,7 @@ add_name (uint8_t *msg, uint_t size, uint_t offset, char *name)
 		tail = skip_label(name);
 
 		/* ラベル長を設定する。*/
-		label_len = tail - (uint8_t*)name;
+		label_len = tail - name;
 		if (label_len > DNS_LABEL_LENGTH) {	/* 63 オクテットを超えるとエラー */
 			syslog(LOG_NOTICE, "[RSLV] label length(%d) too long > %d.",
 			                   label_len, DNS_LABEL_LENGTH);
@@ -404,7 +404,7 @@ setup_dns_msg (uint16_t flags, char *name, uint8_t *msg, uint_t msg_size)
 		if ((flags & DNS_LUP_FLAGS_NAME_MASK) == DNS_LUP_FLAGS_NAME_HOST) {
 
 			/* ドメイン名を追加する。*/
-			if ((offset = add_name(msg, msg_size, offset, dns_domain_name)) < 0)
+			if ((offset = add_name(msg, msg_size, offset, (char *)dns_domain_name)) < 0)
 				return offset;
 
 			if (offset - sizeof(dns_hdr) > DNS_NAME_LENGTH) {		/* 名前が 255 オクテットを超えるとエラー */
@@ -1036,7 +1036,7 @@ dns_in4_set_dname (const uint8_t *new, uint_t len)
 	int	name_len = DNS_NAME_LENGTH;
 
 	if (new == NULL)
-		strcpy(dns_domain_name, RSLV_CFG_DNS_DOMAIN_NAME_STR);
+		strcpy((char *)dns_domain_name, RSLV_CFG_DNS_DOMAIN_NAME_STR);
 	else {
 		dst = dns_domain_name;
 		while ((name_len -- > 0) && (len -- > 0) && *new)

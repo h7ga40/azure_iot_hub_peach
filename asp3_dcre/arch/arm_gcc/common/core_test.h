@@ -3,7 +3,7 @@
  *      Toyohashi Open Platform for Embedded Real-Time Systems/
  *      Advanced Standard Profile Kernel
  * 
- *  Copyright (C) 2006-2016 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2006-2019 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -35,7 +35,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  * 
- *  $Id$
+ *  $Id: core_test.h 1244 2019-07-16 21:41:05Z ertl-hiro $
  */
 
 /*
@@ -53,9 +53,8 @@
 #include "arm.h"
 
 /*
- *  CPU例外の発生
+ *  不正アドレスの定義（メモリのない番地に設定する）
  */
-
 #ifndef ILLEGAL_IADDR
 #define ILLEGAL_IADDR			0xd0000000U		/* 不正命令アドレス */
 #endif /* ILLEGAL_IADDR */
@@ -65,68 +64,97 @@
 #endif /* ILLEGAL_DADDR */
 
 /*
- *  スーパバイザコールによるCPU例外の発生
- *
- *  CPU例外ハンドラから，そのままリターンすることができる．svc命令によ
- *  りlrレジスタが上書きされるため，lrレジスタは破壊されるものと指定し
- *  ている．
+ *  サンプルプログラムで用いるCPU例外の発生
  */
-#if defined(USE_SVC_CPUEXC)
+#if defined(USE_CPUEXC_SVC)
 
 #define CPUEXC1					EXCNO_SVC		/* スーパバイザコール */
-#define RAISE_CPU_EXCEPTION		Asm("svc #0":::"lr")
-#define PREPARE_RETURN_CPUEXC
+#define RAISE_CPU_EXCEPTION		RAISE_CPU_EXCEPTION_SVC
+#define PREPARE_RETURN_CPUEXC	PREPARE_RETURN_CPUEXC_SVC
+
+#elif defined(USE_CPUEXC_PABORT)
+
+#define CPUEXC1					EXCNO_PABORT	/* プリフェッチアボート */
+#define RAISE_CPU_EXCEPTION		RAISE_CPU_EXCEPTION_PABORT
+#define PREPARE_RETURN_CPUEXC	PREPARE_RETURN_CPUEXC_PABORT
+
+#elif defined(USE_CPUEXC_DABORT)
+
+#define CPUEXC1					EXCNO_DABORT	/* データアボート */
+#define RAISE_CPU_EXCEPTION		RAISE_CPU_EXCEPTION_DABORT
+#define PREPARE_RETURN_CPUEXC	PREPARE_RETURN_CPUEXC_DABORT
+
+#elif defined(USE_CPUEXC_FATAL)
+
+#define CPUEXC1					EXCNO_FATAL		/* フェイタルデータアボート */
+#define RAISE_CPU_EXCEPTION		RAISE_CPU_EXCEPTION_FATAL
+/* フェイタルデータアボート例外ハンドラからリターンしてはならない */
+
+#else
+
+#define CPUEXC1					EXCNO_UNDEF		/* 未定義命令 */
+#define RAISE_CPU_EXCEPTION		RAISE_CPU_EXCEPTION_UNDEF
+#define PREPARE_RETURN_CPUEXC	PREPARE_RETURN_CPUEXC_UNDEF
+
+#endif
+
+/*
+ *  スーパバイザコールによるCPU例外の発生
+ *
+ *  svc #0によりCPU例外を発生させる．svc命令によりlrレジスタが上書きさ
+ *  れるため，lrレジスタは破壊されるものと指定している．CPU例外ハンド
+ *  ラからそのままリターンすることで，svc命令の次の命令から実行が継続
+ *  する．
+ */
+#define RAISE_CPU_EXCEPTION_SVC			Asm("svc #0":::"lr")
+#define PREPARE_RETURN_CPUEXC_SVC
 
 /*
  *  プリフェッチアボートによるCPU例外の発生
  *
- *  プリフェッチアボートを起こした命令をスキップしてCPU例外ハンドラから
- *  リターンするために，戻り番地はそのままで良い（ARMモードで使うことを
- *  想定）．
+ *  不正な番地を関数の先頭番地として呼び出すことで，プリフェッチアボー
+ *  トによるCPU例外を発生させる．不正な番地に分岐した命令をスキップし
+ *  てCPU例外ハンドラからリターンするために，戻り番地には，lrレジスタ
+ *  の値（不正な番地への分岐命令からのリターン番地が入っている）を設定
+ *  する．
  */
-#elif defined(USE_PABORT_CPUEXC)
-
-#define CPUEXC1					EXCNO_PABORT	/* プリフェッチアボート */
-#define RAISE_CPU_EXCEPTION		((void (*)(void)) ILLEGAL_IADDR)()
-#define PREPARE_RETURN_CPUEXC
+#define RAISE_CPU_EXCEPTION_PABORT		(((void (*)(void)) ILLEGAL_IADDR)())
+#define PREPARE_RETURN_CPUEXC_PABORT	(((T_EXCINF *) p_excinf)->pc \
+											= ((T_EXCINF *) p_excinf)->lr)
 
 /*
  *  データアボートによるCPU例外の発生
  *
- *  データアボートを起こした命令をスキップしてCPU例外ハンドラからリター
- *  ンするために，戻り番地から4を減算する（ARMモードで使うことを想定）．
+ *  不正な番地をリードすることで，データアボートによるCPU例外を発生さ
+ *  せる．データアボートを起こした命令をスキップしてCPU例外ハンドラか
+ *  らリターンするために，戻り番地から4を減算する（ARMモードで使うこと
+ *  を想定している）．
  */
-#elif defined(USE_DABORT_CPUEXC)
-
-#include "arm.h"
-#define CPUEXC1					EXCNO_DABORT	/* データアボート */
-#define RAISE_CPU_EXCEPTION		(void)(*((volatile uint32_t *) ILLEGAL_DADDR))
-#define PREPARE_RETURN_CPUEXC	((T_EXCINF *) p_excinf)->pc -= 4U
+#define RAISE_CPU_EXCEPTION_DABORT		(void)(*((volatile uint32_t *) \
+															ILLEGAL_DADDR))
+#define PREPARE_RETURN_CPUEXC_DABORT	(((T_EXCINF *) p_excinf)->pc -= 4U)
 
 /*
- *  フェイタルデータアボート処理
+ *  フェイタルデータアボートによるCPU例外の発生
  *
- *  スタックポインタを不正にして，フェイタルデータアボート処理を行わせ
- *  る．CPU例外ハンドラからはリターンできない．
+ *  スタックポインタを不正にして，未定義命令を実行することで，フェイタ
+ *  ルデータアボートによるCPU例外を発生させる．CPU例外ハンドラからリター
+ *  ンしてはならない．
  */
-#elif defined(USE_FATAL_DABORT_CPUEXC)
-
-#define CPUEXC1					EXCNO_DABORT	/* データアボート */
-#define RAISE_CPU_EXCEPTION		Asm("mov sp, %0"::"I"(ILLEGAL_DADDR))
+#define RAISE_CPU_EXCEPTION_FATAL		Asm("mov sp, %0\n" \
+										  "\t.word 0xf0500090" \
+										  ::"I"(ILLEGAL_DADDR))
 
 /*
  *  未定義命令によるCPU例外の発生
  *
- *  RAISE_CPU_EXCEPTIONは，ARMモードで使うことを想定している．CPU例外ハ
- *  ンドラから，そのままリターンすることができる．使用している未定義命
- *  令は，"Multiply and multiply accumulate"命令群のエンコーディング内
- *  における未定義命令である．
+ *  未定義命令によりCPU例外を発生させる．使用している未定義命令は，
+ *  "Multiply and multiply accumulate"命令群のエンコーディング内におけ
+ *  る未定義命令である．CPU例外ハンドラからそのままリターンすることで，
+ *  未定義命令の次の命令から実行が継続する（ARMモードで使うことを想定
+ *  している）．
  */
-#else
+#define RAISE_CPU_EXCEPTION_UNDEF		Asm(".word 0xf0500090")
+#define PREPARE_RETURN_CPUEXC_UNDEF
 
-#define CPUEXC1					EXCNO_UNDEF		/* 未定義命令 */
-#define RAISE_CPU_EXCEPTION		Asm(".word 0xf0500090")
-#define PREPARE_RETURN_CPUEXC
-
-#endif
 #endif /* TOPPERS_CORE_TEST_H */

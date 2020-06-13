@@ -300,7 +300,6 @@ def generateNotifyHandler(key, params, objid)
       # エラー通知処理の処理
       $kernelCfgC.add("\tif (ercd != E_OK) {")
 
-
       if nfymode2 == $TENFY_SETVAR
         # 変数の設定
         $kernelCfgC.add("\t\t*#{funcname}_p_evar = (intptr_t) ercd;")

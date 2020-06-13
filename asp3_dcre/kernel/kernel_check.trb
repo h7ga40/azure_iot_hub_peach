@@ -91,11 +91,11 @@ def checkNotifyHandler(key, params, objid, exinf, nfyhdr)
 								|| nfymode1 == $TNFY_SNDDTQ
     # 通知処理のパラメータが2つの場合
     epar1 = params[:par3]
-    epar2 = params[:par4]
+    # epar2 = params[:par4]
   else
     # 通知処理のパラメータが1つの場合
     epar1 = params[:par2]
-    epar2 = params[:par3]
+    # epar2 = params[:par3]
   end
 
   # タイムイベントハンドラの先頭番地が，プログラムの先頭番地として正し
@@ -328,7 +328,7 @@ if $cfgData[:DEF_ICS].size > 0
   params0 = $cfgData[:DEF_ICS][1]
   istk = PEEK(SYMBOL("_kernel_istk"), $sizeof_void_ptr)
 
-  # istkszがターゲット定義の制約に合致しない場合（E_PAR）［NGKI3222］
+  # istkがターゲット定義の制約に合致しない場合（E_PAR）［NGKI3222］
   if (istk & ($CHECK_STACK_ALIGN - 1)) != 0
     error_wrong("E_PAR", params0, :istk, "not aligned")
   end

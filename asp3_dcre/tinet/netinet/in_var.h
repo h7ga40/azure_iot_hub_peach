@@ -140,7 +140,9 @@
 #define IN_GET_DATAGRAM(nbuf,len,maxlen,dst,src,next,hlim,nbatr,tmout)	\
 					inn_get_datagram(nbuf,len,maxlen,dst,src,next,hlim,nbatr,tmout)
 #define IN_IS_ADDR_MULTICAST(addr)	inn_is_addr_multicast(addr)
-#define IN_IS_NET_ADDR_MULTICAST(nbuf)	IN_IS_ADDR_MULTICAST(&GET_IP6_HDR(nbuf)->dst)
+#define IN_IS_NET_ADDR_MULTICAST(nbuf)	(GET_IP_VER(input)==IPV6_VERSION	\
+					?IN_IS_ADDR_MULTICAST(&GET_IP6_HDR(input)->dst)	\
+					:IN4_IS_ADDR_MULTICAST(ntohl(GET_IP4_HDR(input)->dst)))
 #define IN_ADDRWITHIFP(ifp,src,dst)	inn_addrwithifp(ifp,src,dst)
 #define IN_IS_ADDR_ANY(addr)		IN6_IS_ADDR_UNSPECIFIED(addr)
 

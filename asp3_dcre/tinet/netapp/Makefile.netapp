@@ -363,7 +363,7 @@ endif
 
 ifeq ($(TARGET_KERNEL),ASP)
 
-	APPLDIR := $(APPLDIR) $(NETAPP_DIRS)
+	APPLDIRS := $(APPLDIRS) $(NETAPP_DIRS)
 	APPL_COBJS := $(APPL_COBJS) $(NETAPP_COBJS)
 	APPL_CFLAGS := $(APPL_CFLAGS) -fno-strict-aliasing
 
@@ -381,7 +381,7 @@ ifeq ($(USE_LCD),true)
 
 ifeq ($(TARGET_KERNEL),ASP)
 
-	APPLDIR := $(APPLDIR) $(SRCDIR)/pdic/sc1602
+	APPLDIRS := $(APPLDIRS) $(SRCDIR)/pdic/sc1602
 
 endif
 

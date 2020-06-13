@@ -6,7 +6,7 @@
 # 
 #  Copyright (C) 2001-2003 by Embedded and Real-Time Systems Laboratory
 #                              Toyohashi Univ. of Technology, JAPAN
-#  Copyright (C) 2006-2018 by Embedded and Real-Time Systems Laboratory
+#  Copyright (C) 2006-2019 by Embedded and Real-Time Systems Laboratory
 #              Graduate School of Information Science, Nagoya Univ., JAPAN
 # 
 #  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -81,7 +81,8 @@ require "shell"
 #  -G <tecsgen>			TECSジェネレータ（tecsgen）のパス名
 #  -o <options>			コンパイルオプション（COPTSに追加）
 #  -O <options>			シンボル定義オプション（CDEFSに追加）
-#  -k <options>			リンカオプション（LDFLAGS等に追加）
+#  -k <options>			リンカオプション（LDFLAGSに追加）
+#  -b <options>			リンカオプション（LIBSに追加）
 #  -e <tinetdir>		TINET のソースの置かれているディレクトリ
 #  -i <net_if>			ネットワークインタフェース（TINETが有効の場合は必須）
 #						ether、ppp、loop の何れかを指定する。
@@ -146,6 +147,7 @@ $tecsgen = nil
 $copts = []
 $cdefs = []
 $ldflags = []
+$libs = []
 
 #
 #  オプションの処理
@@ -225,6 +227,9 @@ OptionParser.new(nil, 22) do |opt|
   end
   opt.on("-k options",		"linker options") do |val|
     $ldflags += val.split(/\s+/)
+  end
+  opt.on("-b options",		"linker options for linking libraries") do |val|
+    $libs += val.split(/\s+/)
   end
   opt.on("-e options",		"path of TINET directory") do |val|
     $tinetdir = val
@@ -331,6 +336,7 @@ $vartable["TECSGEN"] = $tecsgen
 $vartable["COPTS"] = $copts.join(" ")
 $vartable["CDEFS"] = $cdefs.join(" ")
 $vartable["LDFLAGS"] = $ldflags.join(" ")
+$vartable["LIBS"] = $libs.join(" ")
 $vartable["OBJEXT"] = GetObjectExtension()
 $vartable["TINETDIR"] = $tinetdir
 $vartable["NET_IF"] = $net_if

@@ -4,7 +4,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2004-2018 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2004-2019 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -199,6 +199,11 @@ trace_dump(void)
 #define LOG_TSKSTAT(p_tcb)		trace_2(LOG_TYPE_TSKSTAT, p_tcb, p_tcb->tstat)
 
 #define LOG_DSP_LEAVE(p_tcb)	trace_1(LOG_TYPE_DSP|LOG_LEAVE, p_tcb)
+
+#ifdef TOPPERS_SUPPORT_PROTECT
+#define LOG_SCYC_START(p_sominib)	trace_1(LOG_TYPE_SCYC|LOG_START, p_sominib)
+#define LOG_TWD_START(p_twdinib)	trace_1(LOG_TYPE_TWD|LOG_START, p_twdinib)
+#endif /* TOPPERS_SUPPORT_PROTECT */
 
 #define LOG_TSYSLOG_ESYSLOG_WRITE_ENTER(priority, p_syslog) \
 								trace_wri_log((TRACE *) p_syslog)

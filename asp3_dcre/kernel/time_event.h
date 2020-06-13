@@ -5,7 +5,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2005-2018 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2005-2019 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -190,7 +190,7 @@ extern void		tmevtb_dequeue(TMEVTB *p_tmevtb);
  *  調整してはならない場合にtrue，そうでない場合にfalseを返す．現在のイ
  *  ベント時刻を取得した後に呼び出すことを想定している．
  */
-extern bool_t	check_adjtim(int_t adjtim);
+extern bool_t	check_adjtim(int32_t adjtim);
 
 /*
  *  タイムイベントが発生するまでの時間の計算

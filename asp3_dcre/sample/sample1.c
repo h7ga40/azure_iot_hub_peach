@@ -549,7 +549,7 @@ main_task(intptr_t exinf)
 			consume_time(1000LU);
 			hrtcnt2 = fch_hrt();
 			syslog(LOG_NOTICE, "hrtcnt1 = %tu, hrtcnt2 = %tu",
-											hrtcnt1, hrtcnt2);
+								(uint32_t) hrtcnt1, (uint32_t) hrtcnt2);
 			break;
 
 		case 'v':

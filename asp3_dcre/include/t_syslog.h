@@ -4,7 +4,7 @@
  * 
  *  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
  *                              Toyohashi Univ. of Technology, JAPAN
- *  Copyright (C) 2004-2018 by Embedded and Real-Time Systems Laboratory
+ *  Copyright (C) 2004-2019 by Embedded and Real-Time Systems Laboratory
  *              Graduate School of Information Science, Nagoya Univ., JAPAN
  * 
  *  上記著作権者は，以下の(1)～(4)の条件を満たす場合に限り，本ソフトウェ
@@ -79,8 +79,8 @@ extern "C" {
 
 #define LOG_TYPE_INH		UINT_C(0x11)	/* 割込みハンドラ */
 #define LOG_TYPE_ISR		UINT_C(0x12)	/* 割込みサービスルーチン */
-#define LOG_TYPE_CYC		UINT_C(0x13)	/* 周期ハンドラ */
-#define LOG_TYPE_ALM		UINT_C(0x14)	/* アラームハンドラ */
+#define LOG_TYPE_CYC		UINT_C(0x13)	/* 周期通知 */
+#define LOG_TYPE_ALM		UINT_C(0x14)	/* アラーム通知 */
 #define LOG_TYPE_OVR		UINT_C(0x15)	/* オーバランハンドラ */
 #define LOG_TYPE_EXC		UINT_C(0x16)	/* CPU例外ハンドラ */
 #define LOG_TYPE_TSKSTAT	UINT_C(0x21)	/* タスク状態変化 */
@@ -233,7 +233,17 @@ t_syslog_6(uint_t prio, uint_t type, LOGPAR arg1, LOGPAR arg2,
  */
 extern void	tt_syslog(SYSLOG *p_logbuf, const char *format, va_list ap);
 
-extern void syslog(uint_t prio, const char *format, ...);
+Inline void
+syslog(uint_t prio, const char *format, ...)
+{
+	va_list	ap;
+	SYSLOG	logbuf;
+
+	va_start(ap, format);
+	tt_syslog(&logbuf, format, ap);
+	va_end(ap);
+	syslog_write(prio, &logbuf);
+}
 
 /*
  *  エラーメッセージを出力するためのライブラリ関数（t_perror.c）

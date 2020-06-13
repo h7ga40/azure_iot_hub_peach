@@ -241,7 +241,8 @@
 #define arp_init		_tinet_arp_init
 #define arp_get_cache		_tinet_arp_get_cache
 
-#define ether_map_ipv4_multicast	_tinet_ether_map_ipv4_multicast
+#define ether_map_ipv4_multicast	\
+								_tinet_ether_map_ipv4_multicast
 
 /* netinet6/icmp6.c */
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby -Eutf-8
+#!/usr/bin/env ruby
 # -*- coding: utf-8 -*-
 #
 #  TOPPERS Software
@@ -36,7 +36,7 @@
 #  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #  の責任を負わない．
 # 
-#  $Id: makerelease.rb 1155 2019-01-14 13:24:01Z ertl-hiro $
+#  $Id$
 # 
 
 require "optparse"
@@ -125,8 +125,8 @@ def readFile(inFileName)
       readFile(canonicalPath(baseDirectory + $1))
     else
       fileName = $prefix + "/" + canonicalPath(baseDirectory + line)
-      if !File.file?("../" + fileName)
-        abort("#{fileName} is not a file.")
+      if !File.file?("../" + fileName) && !File.directory?("../" + fileName)
+        abort("#{fileName} is not a file or a directory.")
       elsif $fileList.index(fileName)
         abort("#{fileName} is duplicated.")
       else 
