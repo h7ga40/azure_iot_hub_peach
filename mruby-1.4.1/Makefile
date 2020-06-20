@@ -2,7 +2,8 @@
 # We provide a minimalistic version called minirake inside of our
 # codebase.
 
-RAKE = build.bat
+#RAKE = build.bat
+RAKE = ruby -Eutf-8 ./minirake
 
 all :
 	$(RAKE)

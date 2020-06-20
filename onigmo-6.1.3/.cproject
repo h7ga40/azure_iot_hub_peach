@@ -22,7 +22,7 @@
 			</storageModule>
 			<storageModule moduleId="com.renesas.cdt.managedbuild.core.toolchainInfo">
 				<option id="toolchain.id" value="gcc-arm-embedded"/>
-				<option id="toolchain.version" value="9.2.1.20191025"/>
+				<option id="toolchain.version" value="6.3.1.20170620"/>
 				<option id="toolchain.enable" value="true"/>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
@@ -132,7 +132,7 @@
 			</storageModule>
 			<storageModule moduleId="com.renesas.cdt.managedbuild.core.toolchainInfo">
 				<option id="toolchain.id" value="gcc-arm-embedded"/>
-				<option id="toolchain.version" value="9.2.1.20191025"/>
+				<option id="toolchain.version" value="6.3.1.20170620"/>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.staticLib" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.staticLib,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release" cleanCommand="rm -rf *.lst *.lis *.lpp *.map" description="" id="com.renesas.cdt.managedbuild.gcc.rz.configuration.release.lib.1406265691" name="Release" parent="com.renesas.cdt.managedbuild.gcc.rz.configuration.release.lib">
