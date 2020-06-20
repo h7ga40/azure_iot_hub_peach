@@ -30,7 +30,7 @@
  *  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *  の責任を負わない．
  *
- *  @(#) $Id$
+ *  @(#) $Id: tecs_mruby.h 2031 2019-11-19 11:07:36Z coas-nagasima $
  */
 
 #ifndef tecs_mruby_h__
@@ -47,10 +47,6 @@
 #include "mruby/dump.h"
 #include "mruby/proc.h"
 
-#include "TECSPointer.h"
-#include "TECSStruct.h"
-
-
 #else /* TECSGEN */
 
 /*
@@ -61,18 +57,25 @@
 typedef int mrb_state;
 typedef int mrb_irep;
 typedef int mrb_context;
+typedef int mrbc_context;
+typedef int mrb_value;
+typedef int mrb_int;
 struct  RClass {uint32_t gcnext;};  // actual definition: struct RBasic *gcnext
 struct  RProc  {uint32_t gcnext;};  // actual definition: struct RBasic *gcnext
 
 typedef int CELLCB;
 
-#define GET_SET_BOOL( Type, type )
-#define GET_SET_CHAR( Type, type )
-#define GET_SET_INT( Type, type )
-#define GET_SET_FLOAT( Type, type )
-#define POINTER_CLASS( Type, type )
-#define CHECK_AND_GET_POINTER( Type, type )
+// これらのダミー定義は TECSPointer.h に移された (V1.7.0)
+// #define GET_SET_BOOL( Type, type )
+// #define GET_SET_CHAR( Type, type )
+// #define GET_SET_INT( Type, type )
+// #define GET_SET_FLOAT( Type, type )
+// #define POINTER_CLASS( Type, type )
+// #define CHECK_AND_GET_POINTER( Type, type )
 
 #endif /* TECSGEN */
+
+#include "TECSPointer.h"
+#include "TECSStruct.h"
 
 #endif /* tecs_mruby_h__ */

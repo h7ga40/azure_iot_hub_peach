@@ -29,20 +29,8 @@ INCLUDES := $(INCLUDES)\
 	-I$(MBEDDIR)/targets/TARGET_RENESAS/TARGET_RZA1XX/common\
 	-I$(MBEDDIR)/rtos/TARGET_CORTEX
 COPTS := $(COPTS)\
-  -mthumb\
-  -mthumb-interwork\
-  -marm\
-  -march=armv7-a\
-  -mfpu=vfpv3\
-  -mfloat-abi=hard\
   -mno-unaligned-access
 LDFLAGS := $(LDFLAGS)\
-  -mthumb\
-  -mthumb-interwork\
-  -marm\
-  -march=armv7-a\
-  -mfpu=vfpv3\
-  -mfloat-abi=hard\
   -mno-unaligned-access
 CDEFS := $(CDEFS)\
 	-DARM_MATH_CA9 \
@@ -77,7 +65,6 @@ CDEFS := $(CDEFS)\
 	-DTARGET_CORTEX_A \
 	-DTARGET_FF_ARDUINO \
 	-DTARGET_LIKE_CORTEX_A9 \
-	-DTARGET_LIKE_MBED \
 	-DTARGET_MBRZA1H \
 	-DTARGET_RELEASE \
 	-DTARGET_RENESAS \

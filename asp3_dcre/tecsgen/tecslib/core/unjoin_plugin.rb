@@ -127,6 +127,7 @@ class Namespace
   def unjoin_plugin
     @signature_list.each{ |sig| sig.unjoin_plugin }
     @celltype_list.each{ |ct| ct.unjoin_plugin }
+    @compositecelltype_list.each{ |ct| ct.unjoin_plugin }
     @cell_list.each{ |cell| cell.unjoin_plugin }
     @namespace_list.each{ |ns| ns.unjoin_plugin}
   end
@@ -162,6 +163,13 @@ class Celltype < NSBDNode
     @generate = nil
     @generate_list = []
     @plugin = nil
+  end
+end
+
+class CompositeCelltype < NSBDNode
+  def unjoin_plugin
+    @generate = nil
+    @generate_list = []
   end
 end
 

@@ -907,6 +907,17 @@ void tlsf_walk_pool(pool_t pool, tlsf_walker walker, void* user)
 	}
 }
 
+int tlsf_is_free(void* ptr)
+{
+	int is_free = 0;
+	if (ptr)
+	{
+		const block_header_t* block = block_from_ptr(ptr);
+		is_free = block_is_free(block);
+	}
+	return is_free;
+}
+
 size_t tlsf_block_size(void* ptr)
 {
 	size_t size = 0;

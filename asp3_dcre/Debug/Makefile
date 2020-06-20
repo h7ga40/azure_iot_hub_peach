@@ -303,7 +303,6 @@ else
 endif
 CFG_ASMOBJS := $(CFG_ASMOBJS)
 CFG_COBJS := kernel_cfg.o $(CFG_COBJS)
-CFG_OBJS := $(CFG_ASMOBJS) $(CFG_COBJS)
 CFG_CFLAGS := -DTOPPERS_CB_TYPE_ONLY $(CFG_CFLAGS)
 
 CFG2_OUT_SRCS := kernel_cfg.h kernel_cfg.c $(CFG2_OUT_SRCS)
@@ -384,7 +383,7 @@ MALLOC_OBJS    := $(addprefix $(OBJDIR)/, $(MALLOC_OBJS))
 #
 #  コンパイルのための変数の定義
 #
-APPL_OBJS = $(APPL_ASMOBJS) $(APPL_COBJS) $(APPL_CXXOBJS)
+APPL_OBJS = $(APPL_ASMOBJS) $(APPL_COBJS) $(APPL_CXXOBJS) $(APPL_BINOBJS)
 SYSSVC_OBJS = $(SYSSVC_ASMOBJS) $(SYSSVC_COBJS) $(HIDDEN_OBJS)
 KERNEL_LIB_OBJS = $(KERNEL_ASMOBJS) $(KERNEL_COBJS) $(KERNEL_LCOBJS) $(MALLOC_OBJS)
 CFG_OBJS = $(CFG_ASMOBJS) $(CFG_COBJS)
@@ -415,7 +414,7 @@ ifdef DATA_START_ADDRESS
 	LDFLAGS := $(LDFLAGS) -Wl,-Tdata,$(DATA_START_ADDRESS)
 endif
 ifdef LDSCRIPT
-	LDFLAGS := $(LDFLAGS) -Wl,-T,$(LDSCRIPT)
+	LDFLAGS := $(LDFLAGS) -T $(LDSCRIPT)
 endif
 
 #
@@ -494,7 +493,8 @@ $(OBJDIR)/@(BANNEROBJ): $(filter-out $(OBJDIR)/@(BANNEROBJ),$(ALL_OBJS)) \
 #  全体のリンク
 #
 $(OBJFILE): $(ALL_OBJS) $(LIBS_DEP)
-	$(LINK) $(CFLAGS) $(LDFLAGS) $(OBJ_LDFLAGS) -o $(OBJFILE) -Wl,-Map=$(OBJNAME).map,--cref \
+	$(LINK) $(CFLAGS) $(LDFLAGS) $(OBJ_LDFLAGS) -o $(OBJFILE) \
+			-Wl,-Map=$(OBJNAME).map,--cref -Wl,--gc-sections -Wl,-e_kernel__start,--gc-keep-exported=_kernel_istk \
 			$(START_OBJS) $(APPL_OBJS) $(SYSSVC_OBJS) $(CFG_OBJS) \
 			-Wl,--start-group $(ALL_LIBS) -Wl,--end-group $(END_OBJS)
 
@@ -675,6 +675,9 @@ $(APPL_CXXOBJS:$(OBJDIR)/%.o=%.s): %.s: %.cpp
 
 $(APPL_ASMOBJS): $(OBJDIR)/%.o: %.S
 	$(CC) -c -o $@ -MD -MP -MF $(DEPDIR)/$*.d $(CFLAGS) $(APPL_CFLAGS) $<
+
+$(APPL_BINOBJS): $(OBJDIR)/%.o: %.bin
+	$(OBJCOPY) -B arm -I binary -O elf32-littlearm --rename-section .data=.rodata $< $*.o
 
 $(MALLOC_OBJS): $(OBJDIR)/%.o:
 	$(AR) x $(MALLOC_LIB) $(notdir $@)

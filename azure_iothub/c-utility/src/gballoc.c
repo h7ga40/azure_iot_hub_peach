@@ -1,10 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-
 #include <stdlib.h>
 #include <stdint.h>
-#include <stddef.h>
 #include "azure_c_shared_utility/lock.h"
 #include "azure_c_shared_utility/optimize_size.h"
 #include "azure_c_shared_utility/xlogging.h"
@@ -96,7 +94,7 @@ void* gballoc_malloc(size_t size)
     }
     else
     {
-        ALLOCATION* allocation = (ALLOCATION*)malloc(sizeof(ALLOCATION));
+        ALLOCATION* allocation = (ALLOCATION*)calloc(1, sizeof(ALLOCATION));
         if (allocation == NULL)
         {
             result = NULL;
@@ -152,7 +150,7 @@ void* gballoc_calloc(size_t nmemb, size_t size)
     }
     else
     {
-        ALLOCATION* allocation = (ALLOCATION*)malloc(sizeof(ALLOCATION));
+        ALLOCATION* allocation = (ALLOCATION*)calloc(1, sizeof(ALLOCATION));
         if (allocation == NULL)
         {
             result = NULL;
@@ -213,7 +211,7 @@ void* gballoc_realloc(void* ptr, size_t size)
         if (ptr == NULL)
         {
             /* Codes_SRS_GBALLOC_01_017: [When ptr is NULL, gballoc_realloc shall call the underlying realloc with ptr being NULL and the realloc result shall be tracked by gballoc.] */
-            allocation = (ALLOCATION*)malloc(sizeof(ALLOCATION));
+            allocation = (ALLOCATION*)calloc(1, sizeof(ALLOCATION));
         }
         else
         {

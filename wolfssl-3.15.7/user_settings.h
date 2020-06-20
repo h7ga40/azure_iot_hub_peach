@@ -1,6 +1,8 @@
 //#define DEBUG_WOLFSSL
 
+#ifndef HAVE_LIBZ
 #define HAVE_LIBZ
+#endif
 #define HAVE_ECC
 #define HAVE_AESGCM
 //#define HAVE_FIPS
@@ -18,6 +20,7 @@
 
 #define WOLFSSL_RIPEMD
 #define WOLFSSL_SHA512
+#define WOLFSSL_SHA384
 #define WOLFSSL_SMALL_STACK
 // curlで使用している
 #define WOLFSSL_ALLOW_TLSV10

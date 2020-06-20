@@ -32,11 +32,13 @@
  *   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *   の責任を負わない．
  *  
- *   $Id$ 
+ *   $Id: TECSPointer.h 2031 2019-11-19 11:07:36Z coas-nagasima $ 
  */
 
 #ifndef TECSPointer_h__
 #define TECSPointer_h__
+
+#ifndef TECSGEN
 
 #include <string.h>
 #include <stdint.h>
@@ -580,6 +582,17 @@ CharPointer_from_s( mrb_state *mrb, mrb_value self )
 
 /* Initialize TECSPointer classes */
 void	init_TECSPointer( mrb_state *mrb, struct RClass *TECS );
+
+#else /*TECSGEN */
+
+#define GET_SET_BOOL( Type, type )
+#define GET_SET_CHAR( Type, type )
+#define GET_SET_INT( Type, type )
+#define GET_SET_FLOAT( Type, type )
+#define POINTER_CLASS( Type, type )
+#define CHECK_AND_GET_POINTER( Type, type )
+
+#endif /*TECSGEN */
 
 #endif /* TECSPointer_h__ */
 

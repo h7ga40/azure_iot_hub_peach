@@ -13,16 +13,24 @@ and removing calls to _DoWork will yield the same results. */
 #include "azure_c_shared_utility/crt_abstractions.h"
 #include "azure_c_shared_utility/platform.h"
 #include "azure_c_shared_utility/shared_util_options.h"
+#include "azure_c_shared_utility/xlogging.h"
 #include "iothub_client_ll.h"
 #include "iothub_message.h"
 #include "iothubtransporthttp.h"
 #include "iothubtransportmqtt.h"
 #include "iothubtransportmqtt_websockets.h"
 #include "iothub_client_options.h"
-#include "serializer.h"
-#include "serializer_devicetwin.h"
-#include "pinkit.h"
 #include "client.h"
+#include <mruby.h>
+#include <mruby/array.h>
+#include <mruby/class.h>
+#include <mruby/compile.h>
+#include <mruby/data.h>
+#include <mruby/dump.h>
+#include <mruby/proc.h>
+#include <mruby/string.h>
+#include <mruby/value.h>
+#include <mruby/variable.h>
 
 #ifdef _MSC_VER
 extern int sprintf_s(char* dst, size_t dstSizeInBytes, const char* format, ...);
@@ -42,479 +50,14 @@ char* connectionString = NULL;
 bool g_use_proxy;
 HTTP_PROXY_OPTIONS g_proxy_options;
 
-static int callbackCounter;
-static bool g_continueRunning;
-static bool g_twinReport;
-static char propText[1024];
-#define MESSAGE_COUNT       5
-#define DOWORK_LOOP_NUM     3
+struct RClass *_class_device_client;
+struct RClass *_class_message;
 
-typedef struct EVENT_INSTANCE_TAG
-{
-	IOTHUB_MESSAGE_HANDLE messageHandle;
-	size_t messageTrackingId;  // For tracking the messages within the user callback.
-} EVENT_INSTANCE;
+static void mrb_device_client_free(mrb_state *mrb, void *ptr);
+static void mrb_message_free(mrb_state *mrb, void *ptr);
 
-static IOTHUBMESSAGE_DISPOSITION_RESULT ReceiveMessageCallback(IOTHUB_MESSAGE_HANDLE message, void* userContextCallback)
-{
-	int* counter = (int*)userContextCallback;
-	const char* buffer;
-	size_t size;
-	MAP_HANDLE mapProperties;
-	const char* messageId;
-	const char* correlationId;
-	const char* contentType;
-	const char* contentEncoding;
-
-	// Message properties
-	if ((messageId = IoTHubMessage_GetMessageId(message)) == NULL)
-	{
-		messageId = "<null>";
-	}
-
-	if ((correlationId = IoTHubMessage_GetCorrelationId(message)) == NULL)
-	{
-		correlationId = "<null>";
-	}
-
-	if ((contentType = IoTHubMessage_GetContentTypeSystemProperty(message)) == NULL)
-	{
-		contentType = "<null>";
-	}
-
-	if ((contentEncoding = IoTHubMessage_GetContentEncodingSystemProperty(message)) == NULL)
-	{
-		contentEncoding = "<null>";
-	}
-
-	// Message content
-	if (IoTHubMessage_GetByteArray(message, (const unsigned char**)&buffer, &size) != IOTHUB_MESSAGE_OK)
-	{
-		printf("unable to retrieve the message data\r\n");
-	}
-	else
-	{
-		(void)printf("Received Message [%d]\r\n Message ID: %s\r\n Correlation ID: %s\r\n Content-Type: %s\r\n Content-Encoding: %s\r\n Data: <<<%.*s>>> & Size=%d\r\n",
-			*counter, messageId, correlationId, contentType, contentEncoding, (int)size, buffer, (int)size);
-		// If we receive the work 'quit' then we stop running
-		if (size == (strlen("quit") * sizeof(char)) && memcmp(buffer, "quit", size) == 0)
-		{
-			g_continueRunning = false;
-		}
-	}
-
-	// Retrieve properties from the message
-	mapProperties = IoTHubMessage_Properties(message);
-	if (mapProperties != NULL)
-	{
-		const char*const* keys;
-		const char*const* values;
-		size_t propertyCount = 0;
-		if (Map_GetInternals(mapProperties, &keys, &values, &propertyCount) == MAP_OK)
-		{
-			if (propertyCount > 0)
-			{
-				size_t index;
-
-				printf(" Message Properties:\r\n");
-				for (index = 0; index < propertyCount; index++)
-				{
-					(void)printf("\tKey: %s Value: %s\r\n", keys[index], values[index]);
-				}
-				(void)printf("\r\n");
-			}
-		}
-	}
-
-	/* Some device specific action code goes here... */
-	(*counter)++;
-	return IOTHUBMESSAGE_ACCEPTED;
-}
-
-// Define the Model
-BEGIN_NAMESPACE(WeatherStation);
-
-DECLARE_MODEL(ContosoAnemometer,
-WITH_DATA(double, windSpeed),
-WITH_DATA(double, temperature),
-WITH_DATA(double, humidity),
-WITH_METHOD(quit),
-WITH_METHOD(turnLedOn),
-WITH_METHOD(turnLedOff)
-);
-
-DECLARE_STRUCT(ThresholdD,
-	double, value
-);
-
-DECLARE_STRUCT(ThresholdR,
-	double, value,
-	ascii_char_ptr, status
-);
-
-DECLARE_DEVICETWIN_MODEL(AnemometerState,
-WITH_REPORTED_PROPERTY(ThresholdR, threshold)
-);
-
-DECLARE_DEVICETWIN_MODEL(AnemometerSettings,
-WITH_DESIRED_PROPERTY(ThresholdD, threshold, onDesiredThreshold)
-);
-
-END_NAMESPACE(WeatherStation);
-
-void anemometerReportedStateCallback(int status_code, void* userContextCallback)
-{
-	AnemometerState *anemometer = (AnemometerState *)userContextCallback;
-
-	printf("received states \033[43m%d\033[49m, reported threshold = %.1f\n", status_code, anemometer->threshold.value);
-}
-
-void onDesiredThreshold(void* argument)
-{
-	// Note: The argument is NOT a pointer to threshold, but instead a pointer to the MODEL
-	//       that contains threshold as one of its arguments.  In this case, it
-	//       is AnemometerSettings*.
-
-	AnemometerSettings *anemometer = (AnemometerSettings *)argument;
-	printf("received a new desired.threshold = \033[42m%.1f\033[49m\n", anemometer->threshold.value);
-
-	g_twinReport = true;
-}
-
-METHODRETURN_HANDLE quit(ContosoAnemometer* device)
-{
-	(void)device;
-	(void)printf("quit with Method.\r\n");
-
-	g_continueRunning = false;
-
-	METHODRETURN_HANDLE result = MethodReturn_Create(0, "{\"Message\":\"quit with Method\"}");
-	return result;
-}
-
-METHODRETURN_HANDLE turnLedOn(ContosoAnemometer* device)
-{
-	(void)device;
-	(void)printf("\033[41mTurning LED on with Method.\033[49m\r\n");
-
-	pinkit.ledOn = 1;
-
-	METHODRETURN_HANDLE result = MethodReturn_Create(1, "{\"Message\":\"Turning fan on with Method\"}");
-	return result;
-}
-
-METHODRETURN_HANDLE turnLedOff(ContosoAnemometer* device)
-{
-	(void)device;
-	(void)printf("\033[44mTurning LED off with Method.\033[49m\r\n");
-
-	pinkit.ledOn = 0;
-
-	METHODRETURN_HANDLE result = MethodReturn_Create(0, "{\"Message\":\"Turning fan off with Method\"}");
-	return result;
-}
-
-static int ReceiveDeviceMethodCallback(const char* method_name, const unsigned char* payload, size_t size, unsigned char** response, size_t* resp_size, void* userContextCallback)
-{
-	int result;
-
-	/*this is step  3: receive the method and push that payload into serializer (from below)*/
-	char* payloadZeroTerminated = (char*)malloc(size + 1);
-	if (payloadZeroTerminated == 0)
-	{
-		printf("failed to malloc\r\n");
-		*resp_size = 0;
-		*response = NULL;
-		result = -1;
-	}
-	else
-	{
-		(void)memcpy(payloadZeroTerminated, payload, size);
-		payloadZeroTerminated[size] = '\0';
-
-		/*execute method - userContextCallback is of type deviceModel*/
-		METHODRETURN_HANDLE methodResult = EXECUTE_METHOD(userContextCallback, method_name, payloadZeroTerminated);
-		free(payloadZeroTerminated);
-
-		if (methodResult == NULL)
-		{
-			printf("failed to EXECUTE_METHOD\r\n");
-			*resp_size = 0;
-			*response = NULL;
-			result = -1;
-		}
-		else
-		{
-			/* get the serializer answer and push it in the networking stack*/
-			const METHODRETURN_DATA* data = MethodReturn_GetReturn(methodResult);
-			if (data == NULL)
-			{
-				printf("failed to MethodReturn_GetReturn\r\n");
-				*resp_size = 0;
-				*response = NULL;
-				result = -1;
-			}
-			else
-			{
-				result = data->statusCode;
-				if (data->jsonValue == NULL)
-				{
-					char* resp = "{}";
-					*resp_size = strlen(resp);
-					*response = (unsigned char*)malloc(*resp_size);
-					(void)memcpy(*response, resp, *resp_size);
-				}
-				else
-				{
-					*resp_size = strlen(data->jsonValue);
-					*response = (unsigned char*)malloc(*resp_size);
-					(void)memcpy(*response, data->jsonValue, *resp_size);
-				}
-			}
-			MethodReturn_Destroy(methodResult);
-		}
-	}
-	return result;
-}
-
-static void SendConfirmationCallback(IOTHUB_CLIENT_CONFIRMATION_RESULT result, void* userContextCallback)
-{
-	EVENT_INSTANCE* eventInstance = (EVENT_INSTANCE*)userContextCallback;
-
-	(void)printf("Confirmation[%d] received for message tracking id = %u with result = %s\r\n", callbackCounter, eventInstance->messageTrackingId, MU_ENUM_TO_STRING(IOTHUB_CLIENT_CONFIRMATION_RESULT, result));
-
-	/* Some device specific action code goes here... */
-	callbackCounter++;
-	IoTHubMessage_Destroy(eventInstance->messageHandle);
-}
-
-void iothub_client_run(int proto)
-{
-	IOTHUB_CLIENT_LL_HANDLE iotHubClientHandle;
-
-	EVENT_INSTANCE messages[MESSAGE_COUNT];
-	int msg_id = 0;
-	double avgWindSpeed = 10.0;
-	double minTemperature = 20.0;
-	double minHumidity = 60.0;
-	int receiveContext = 0;
-
-	g_continueRunning = true;
-
-	srand((unsigned int)time(NULL));
-
-	callbackCounter = 0;
-
-	if (platform_init() != 0)
-	{
-		(void)printf("Failed to initialize the platform.\r\n");
-	}
-	else {
-		if (serializer_init(NULL) != SERIALIZER_OK)
-		{
-			(void)printf("Failed in serializer_init.");
-		}
-		else if (SERIALIZER_REGISTER_NAMESPACE(WeatherStation) == NULL)
-		{
-			LogError("unable to SERIALIZER_REGISTER_NAMESPACE");
-		}
-		else
-		{
-			IOTHUB_CLIENT_TRANSPORT_PROVIDER protocol;
-			switch (proto) {
-			case 0:
-				(void)printf("Starting the IoTHub client sample HTTP...\r\n");
-				protocol = HTTP_Protocol;
-				break;
-			case 1:
-				(void)printf("Starting the IoTHub client sample MQTT...\r\n");
-				protocol = MQTT_Protocol;
-				break;
-			case 2:
-				(void)printf("Starting the IoTHub client sample MQTT over WebSocket...\r\n");
-				protocol = MQTT_WebSocket_Protocol;
-				break;
-			default:
-				platform_deinit();
-				return;
-			}
-
-			if ((iotHubClientHandle = IoTHubClient_LL_CreateFromConnectionString(connectionString, protocol)) == NULL)
-			{
-				(void)printf("ERROR: iotHubClientHandle is NULL!\r\n");
-			}
-			else
-			{
-				if (g_use_proxy)
-				{
-					if (IoTHubClient_LL_SetOption(iotHubClientHandle, OPTION_HTTP_PROXY, &g_proxy_options) != IOTHUB_CLIENT_OK)
-					{
-						printf("failure to set option \"HTTP Proxy\"\r\n");
-					}
-				}
-#if 0
-				long curl_verbose = 1;
-				if (IoTHubClient_LL_SetOption(iotHubClientHandle, OPTION_CURL_VERBOSE, &curl_verbose) != IOTHUB_CLIENT_OK)
-				{
-					printf("failure to set option \"CURL Verbose\"\r\n");
-				}
-
-				unsigned int timeout = 241000;
-				// Because it can poll "after 9 seconds" polls will happen effectively // at ~10 seconds.
-				// Note that for scalabilty, the default value of minimumPollingTime
-				// is 25 minutes. For more information, see:
-				// https://azure.microsoft.com/documentation/articles/iot-hub-devguide/#messaging
-				unsigned int minimumPollingTime = 9;
-				if (IoTHubClient_LL_SetOption(iotHubClientHandle, "timeout", &timeout) != IOTHUB_CLIENT_OK)
-				{
-					printf("failure to set option \"timeout\"\r\n");
-				}
-
-				if (IoTHubClient_LL_SetOption(iotHubClientHandle, "MinimumPollingTime", &minimumPollingTime) != IOTHUB_CLIENT_OK)
-				{
-					printf("failure to set option \"MinimumPollingTime\"\r\n");
-				}
-
-				bool traceOn = 1;
-				if (IoTHubClient_LL_SetOption(iotHubClientHandle, OPTION_LOG_TRACE, &traceOn) != IOTHUB_CLIENT_OK)
-				{
-					printf("failure to set option \"log trace on\"\r\n");
-				}
-#endif
-#ifdef SET_TRUSTED_CERT_IN_SAMPLES
-				// For mbed add the certificate information
-				if (IoTHubClient_LL_SetOption(iotHubClientHandle, OPTION_TRUSTED_CERT, certificates) != IOTHUB_CLIENT_OK)
-				{
-					printf("failure to set option \"TrustedCerts\"\r\n");
-				}
-#endif // SET_TRUSTED_CERT_IN_SAMPLES
-				AnemometerState *anemometerState = IoTHubDeviceTwin_LL_CreateAnemometerState(iotHubClientHandle);
-				if (anemometerState == NULL)
-				{
-					printf("Failure in IoTHubDeviceTwin_LL_CreateAnemometerState");
-				}
-				else
-				{
-					(void)printf("IoTHubDeviceTwin_LL_CreateAnemometerState...successful.\r\n");
-				}
-				AnemometerSettings *anemometerSettings = IoTHubDeviceTwin_LL_CreateAnemometerSettings(iotHubClientHandle);
-				if (anemometerSettings == NULL)
-				{
-					printf("Failure in IoTHubDeviceTwin_LL_CreateAnemometerSettings");
-				}
-				else
-				{
-					(void)printf("IoTHubDeviceTwin_LL_CreateAnemometerSettings...successful.\r\n");
-				}
-				ContosoAnemometer* myWeather = CREATE_MODEL_INSTANCE(WeatherStation, ContosoAnemometer);
-				if (myWeather == NULL)
-				{
-					(void)printf("Failed on CREATE_MODEL_INSTANCE\r\n");
-				}
-				else if (IoTHubClient_LL_SetDeviceMethodCallback(iotHubClientHandle, ReceiveDeviceMethodCallback, myWeather) != IOTHUB_CLIENT_OK)
-				{
-					(void)printf("ERROR: IoTHubClient_LL_SetDeviceMethodCallback..........FAILED!\r\n");
-				}
-				else
-				{
-					(void)printf("IoTHubClient_LL_SetDeviceMethodCallback...successful.\r\n");
-				}
-				/* Setting Message call back, so we can receive Commands. */
-				if (IoTHubClient_LL_SetMessageCallback(iotHubClientHandle, ReceiveMessageCallback, &receiveContext) != IOTHUB_CLIENT_OK)
-				{
-					(void)printf("ERROR: IoTHubClient_LL_SetMessageCallback..........FAILED!\r\n");
-				}
-				else
-				{
-					(void)printf("IoTHubClient_LL_SetMessageCallback...successful.\r\n");
-				}
-
-				/* Now that we are ready to receive commands, let's send some messages */
-				int iterator = 4000;
-				do
-				{
-					if (iterator >= 5000)
-					{
-						iterator = 0;
-						int msgPos = msg_id % MESSAGE_COUNT;
-						unsigned char *msgText;
-						size_t msgSize;
-						myWeather->windSpeed = avgWindSpeed + (rand() % 4 + 2);
-						myWeather->temperature = pinkit.temperature;
-						myWeather->humidity = minHumidity + (rand() % 20);
-						if (SERIALIZE(&msgText, &msgSize, myWeather->windSpeed, myWeather->temperature, myWeather->humidity) != CODEFIRST_OK)
-						{
-							(void)printf("Failed to serialize\r\n");
-						}
-						else if ((messages[msgPos].messageHandle = IoTHubMessage_CreateFromByteArray((const unsigned char*)msgText, msgSize)) == NULL)
-						{
-							(void)printf("ERROR: iotHubMessageHandle is NULL!\r\n");
-							free(msgText);
-						}
-						else
-						{
-							MAP_HANDLE propMap;
-
-							messages[msgPos].messageTrackingId = msg_id;
-
-							propMap = IoTHubMessage_Properties(messages[msgPos].messageHandle);
-							(void)sprintf_s(propText, sizeof(propText), myWeather->temperature > anemometerSettings->threshold.value ? "true" : "false");
-							if (Map_AddOrUpdate(propMap, "temperatureAlert", propText) != MAP_OK)
-							{
-								(void)printf("ERROR: Map_AddOrUpdate Failed!\r\n");
-							}
-
-							if (proto == 0) {
-								(void)IoTHubMessage_SetContentTypeSystemProperty(messages[msgPos].messageHandle, "application/json");
-								(void)IoTHubMessage_SetContentEncodingSystemProperty(messages[msgPos].messageHandle, "utf-8");
-							}
-
-							if (IoTHubClient_LL_SendEventAsync(iotHubClientHandle, messages[msgPos].messageHandle, SendConfirmationCallback, &messages[msgPos]) != IOTHUB_CLIENT_OK)
-							{
-								(void)printf("ERROR: IoTHubClient_LL_SendEventAsync..........FAILED!\r\n");
-							}
-							else
-							{
-								(void)printf("IoTHubClient_LL_SendEventAsync accepted message [%d] for transmission to IoT Hub.\r\n", msg_id);
-							}
-
-							free(msgText);
-							msg_id++;
-						}
-					}
-					else if (g_twinReport) {
-						g_twinReport = false;
-						anemometerState->threshold.value = anemometerSettings->threshold.value;
-						anemometerState->threshold.status = "success";
-						IoTHubDeviceTwin_LL_SendReportedStateAnemometerState(anemometerState, anemometerReportedStateCallback, anemometerState);
-					}
-					iterator++;
-
-					IoTHubClient_LL_DoWork(iotHubClientHandle);
-					ThreadAPI_Sleep(1);
-
-				} while (g_continueRunning);
-
-				(void)printf("iothub_client_run has gotten quit message, call DoWork %d more time to complete final sending...\r\n", DOWORK_LOOP_NUM);
-				for (size_t index = 0; index < DOWORK_LOOP_NUM; index++)
-				{
-					IoTHubClient_LL_DoWork(iotHubClientHandle);
-					ThreadAPI_Sleep(1);
-				}
-
-				if (anemometerSettings != NULL)
-					IoTHubDeviceTwin_LL_DestroyAnemometerSettings(anemometerSettings);
-				if (anemometerState != NULL)
-					IoTHubDeviceTwin_LL_DestroyAnemometerState(anemometerState);
-				if (myWeather != NULL)
-					DESTROY_MODEL_INSTANCE(myWeather);
-				IoTHubClient_LL_Destroy(iotHubClientHandle);
-			}
-			serializer_deinit();
-		}
-		platform_deinit();
-	}
-}
+const static struct mrb_data_type mrb_device_client_type = { "DeviceClient", mrb_device_client_free };
+const static struct mrb_data_type mrb_message_type = { "Message", mrb_message_free };
 
 void iothub_client_init()
 {
@@ -533,31 +76,475 @@ void iothub_client_init()
 #endif
 }
 
+int run_mruby_code(int argc, char **argv, const uint8_t *code, const char *cmdline)
+{
+	mrb_state *mrb;
+	struct RProc *n;
+	struct mrb_irep *irep;
+	mrb_value ARGV;
+	mrbc_context *c;
+	mrb_value v;
+	mrb_sym zero_sym;
+	int result = 0;
+
+	/* mruby‚Ì‰Šú‰» */
+	mrb = mrb_open();
+	if (mrb == NULL)
+		return -1;
+
+	int ai = mrb_gc_arena_save(mrb);
+	ARGV = mrb_ary_new_capa(mrb, argc);
+	for (int i = 0; i < argc; i++) {
+		mrb_ary_push(mrb, ARGV, mrb_str_new_cstr(mrb, argv[i]));
+	}
+	mrb_define_global_const(mrb, "ARGV", ARGV);
+
+	c = mrbc_context_new(mrb);
+	c->dump_result = TRUE;
+
+	/* Set $0 */
+	zero_sym = mrb_intern_lit(mrb, "$0");
+	mrbc_filename(mrb, c, cmdline);
+	mrb_gv_set(mrb, zero_sym, mrb_str_new_cstr(mrb, cmdline));
+
+	irep = mrb_read_irep(mrb, code);
+	n = mrb_proc_new(mrb, irep);
+	v = mrb_run(mrb, n, mrb_nil_value());
+
+	mrb_gc_arena_restore(mrb, ai);
+	mrbc_context_free(mrb, c);
+	if (mrb->exc) {
+		if (!mrb_undef_p(v)) {
+			mrb_print_error(mrb);
+		}
+		result = -1;
+	}
+
+	mrb_close(mrb);
+	return result;
+}
+
 int iothub_client_main(int argc, char **argv)
 {
+	extern const uint8_t main_code[];
+
 	if (connectionString == NULL) {
 		printf("Not set connection string, use dps_csgen or set_cs.\n");
 		return 0;
 	}
 
 	if (argc < 2) {
-		iothub_client_run(1);
-		return 0;
+		return run_mruby_code(argc - 1, &argv[1], main_code, "iothub");
 	}
 
 	if (strcmp(argv[1], "http") == 0) {
-		iothub_client_run(0);
-		return 0;
+		return run_mruby_code(argc - 1, &argv[1], main_code, "iothub");
 	}
 	else if (strcmp(argv[1], "mqtt") == 0) {
-		iothub_client_run(1);
-		return 0;
+		return run_mruby_code(argc - 1, &argv[1], main_code, "iothub");
 	}
 	else if (strcmp(argv[1], "mqttows") == 0) {
-		iothub_client_run(2);
-		return 0;
+		return run_mruby_code(argc - 1, &argv[1], main_code, "iothub");
 	}
 
 	printf("%s [http|mqtt|mqttows] \n", argv[0]);
 	return 0;
+}
+
+mrb_value mrb_azure_iot_get_connection_string(mrb_state *mrb, mrb_value self)
+{
+	mrb_value ret;
+
+	ret = mrb_str_new_cstr(mrb, connectionString);
+
+	return ret;
+}
+
+mrb_value mrb_azure_iot_set_connection_string(mrb_state *mrb, mrb_value self)
+{
+	mrb_value cs;
+
+	mrb_get_args(mrb, "S", &cs);
+
+	if (mrb_nil_p(cs)) {
+		free(connectionString);
+		connectionString = NULL;
+	}
+	else {
+		char *conn_str = (char *)malloc(RSTRING_LEN(cs) + 1);
+		if (conn_str != NULL) {
+			strncpy(conn_str, RSTRING_PTR(cs), RSTRING_LEN(cs));
+			free(connectionString);
+			connectionString = conn_str;
+		}
+	}
+
+	return mrb_nil_value();
+}
+
+mrb_value mrb_azure_iot_get_proxy(mrb_state *mrb, mrb_value self)
+{
+	mrb_value ret;
+
+	if (g_proxy_options.username != NULL) {
+		int len = strlen(g_proxy_options.username) +
+			strlen(g_proxy_options.password) +
+			strlen(g_proxy_options.host_address) + 7 + 1 + 1 + 1 + 5 + 1;
+
+		ret = mrb_str_buf_new(mrb, len);
+		char *proxy = RSTRING_PTR(ret);
+
+		sprintf(proxy, "http://%s:%s@%s:%d",
+			g_proxy_options.username,
+			g_proxy_options.password,
+			g_proxy_options.host_address,
+			g_proxy_options.port);
+
+		mrb_str_resize(mrb, ret, strlen(proxy));
+	}
+	else if (g_proxy_options.host_address != NULL) {
+		int len = strlen(g_proxy_options.host_address) + 7 + 1 + 5 + 1;
+
+		ret = mrb_str_buf_new(mrb, len);
+		char *proxy = RSTRING_PTR(ret);
+
+		sprintf(proxy, "http://%s:%d",
+			g_proxy_options.host_address,
+			g_proxy_options.port);
+
+		mrb_str_resize(mrb, ret, strlen(proxy));
+	}
+	else {
+		return mrb_nil_value();
+	}
+
+	return ret;
+}
+
+mrb_value mrb_azure_iot_set_proxy(mrb_state *mrb, mrb_value self)
+{
+	mrb_value proxy;
+
+	mrb_get_args(mrb, "S", &proxy);
+
+	int ret = set_proxy(mrb_str_to_cstr(mrb, proxy));
+
+	return ret == 0 ? mrb_true_value() : mrb_false_value();
+}
+
+typedef struct DEVICE_CLIENT_CONTEXT {
+	mrb_state *mrb;
+	mrb_value self;
+	IOTHUB_CLIENT_LL_HANDLE iotHubClientHandle;
+	mrb_value twin;
+} DEVICE_CLIENT_CONTEXT;
+
+static IOTHUBMESSAGE_DISPOSITION_RESULT mrb_receive_message_callback(IOTHUB_MESSAGE_HANDLE message, void *userContextCallback)
+{
+	DEVICE_CLIENT_CONTEXT *context = (DEVICE_CLIENT_CONTEXT *)userContextCallback;
+	const unsigned char *buffer;
+	size_t size;
+
+	if (IoTHubMessage_GetByteArray(message, &buffer, &size) != IOTHUB_MESSAGE_OK)
+	{
+		printf("unable to retrieve the message data\r\n");
+	}
+
+	printf(buffer);
+	printf("\r\n");
+
+	return IOTHUBMESSAGE_ACCEPTED;
+}
+
+mrb_value mrb_device_client_initialize(mrb_state *mrb, mrb_value self)
+{
+	const char *cs = NULL;
+	mrb_int proto;
+
+	mrb_get_args(mrb, "zi", &cs, &proto);
+
+	IOTHUB_CLIENT_TRANSPORT_PROVIDER protocol;
+	switch (proto) {
+	case 0:
+		protocol = HTTP_Protocol;
+		break;
+	case 1:
+		protocol = MQTT_Protocol;
+		break;
+	case 2:
+		protocol = MQTT_WebSocket_Protocol;
+		break;
+	default:
+		mrb_raise(mrb, E_RUNTIME_ERROR, "DeviceClient.new protocol");
+		return mrb_nil_value();
+	}
+
+	DEVICE_CLIENT_CONTEXT *context = mrb_malloc(mrb, sizeof(DEVICE_CLIENT_CONTEXT));
+	if (context == NULL) {
+		mrb_raise(mrb, E_RUNTIME_ERROR, "DeviceClient.new context");
+		return mrb_nil_value();
+	}
+
+	IOTHUB_CLIENT_LL_HANDLE iotHubClientHandle;
+	iotHubClientHandle = IoTHubClient_LL_CreateFromConnectionString(cs, protocol);
+	if (iotHubClientHandle == NULL) {
+		mrb_free(mrb, context);
+		mrb_raise(mrb, E_RUNTIME_ERROR, "DeviceClient.new ConnectionString");
+		return mrb_nil_value();
+	}
+
+	context->mrb = mrb;
+	context->self = self;
+	context->iotHubClientHandle = iotHubClientHandle;
+
+	DATA_TYPE(self) = &mrb_device_client_type;
+	DATA_PTR(self) = context;
+
+	if (g_use_proxy)
+	{
+		if (IoTHubClient_LL_SetOption(iotHubClientHandle, OPTION_HTTP_PROXY, &g_proxy_options) != IOTHUB_CLIENT_OK)
+		{
+			mrb_raise(mrb, E_RUNTIME_ERROR, "failure to set option \"HTTP Proxy\"\r\n");
+		}
+	}
+
+	if (IoTHubClient_LL_SetOption(iotHubClientHandle, OPTION_TRUSTED_CERT, certificates) != IOTHUB_CLIENT_OK)
+	{
+		mrb_raise(mrb, E_RUNTIME_ERROR, "failure to set option \"TrustedCerts\"\r\n");
+	}
+
+	if (IoTHubClient_LL_SetMessageCallback(iotHubClientHandle, mrb_receive_message_callback, context) != IOTHUB_CLIENT_OK)
+	{
+		mrb_raise(mrb, E_RUNTIME_ERROR, "ERROR: IoTHubClient_LL_SetMessageCallback..........FAILED!\r\n");
+	}
+
+	return self;
+}
+
+void mrb_device_client_free(mrb_state *mrb, void *ptr)
+{
+	DEVICE_CLIENT_CONTEXT *context = (DEVICE_CLIENT_CONTEXT *)ptr;
+	IOTHUB_CLIENT_LL_HANDLE iotHubClientHandle = context->iotHubClientHandle;
+
+	IoTHubClient_LL_Destroy(iotHubClientHandle);
+	mrb_free(mrb, context);
+}
+
+typedef struct SEND_CALLBAK_CONTEXT {
+	mrb_state *mrb;
+	mrb_value message, block, arg;
+
+} SEND_CALLBAK_CONTEXT;
+
+static void mrb_send_confirmation_callback(IOTHUB_CLIENT_CONFIRMATION_RESULT result, void *userContextCallback)
+{
+	SEND_CALLBAK_CONTEXT *context = (SEND_CALLBAK_CONTEXT *)userContextCallback;
+
+	if (mrb_nil_p(context->block)) {
+		return;
+	}
+	
+	mrb_yield(context->mrb, context->block, context->arg);
+
+	IOTHUB_MESSAGE_HANDLE ioTHubMessageHandle = (IOTHUB_MESSAGE_HANDLE)DATA_PTR(context->message);
+
+	if (ioTHubMessageHandle != NULL) {
+		IoTHubMessage_Destroy(ioTHubMessageHandle);
+		DATA_PTR(context->message) = NULL;
+	}
+
+	mrb_free(context->mrb, context);
+}
+
+mrb_value mrb_device_client_send_event(mrb_state *mrb, mrb_value self)
+{
+	DEVICE_CLIENT_CONTEXT *context = (DEVICE_CLIENT_CONTEXT *)DATA_PTR(self);
+	IOTHUB_CLIENT_LL_HANDLE iotHubClientHandle = context->iotHubClientHandle;
+	mrb_value message, block, arg;
+
+	mrb_get_args(mrb, "o|&o", &message, &block, &arg);
+
+	if (!mrb_obj_is_kind_of(mrb, message, _class_message)) {
+		LogError("DeviceClient#send_event");
+		return mrb_nil_value();
+	}
+
+	IOTHUB_MESSAGE_HANDLE ioTHubMessageHandle = (IOTHUB_MESSAGE_HANDLE)DATA_PTR(message);
+	SEND_CALLBAK_CONTEXT *callbakContext = mrb_malloc(mrb, sizeof(SEND_CALLBAK_CONTEXT));
+	callbakContext->mrb = mrb;
+	callbakContext->message = message;
+	callbakContext->block = block;
+	callbakContext->arg = arg;
+
+	IOTHUB_CLIENT_RESULT result;
+	result = IoTHubClient_LL_SendEventAsync(iotHubClientHandle, ioTHubMessageHandle, mrb_send_confirmation_callback, callbakContext);
+	if (result != IOTHUB_CLIENT_OK) {
+		LogError("DeviceClient#send_event");
+		return mrb_nil_value();
+	}
+
+	return mrb_true_value();
+}
+
+mrb_value mrb_device_client_do_work(mrb_state *mrb, mrb_value self)
+{
+	DEVICE_CLIENT_CONTEXT *context = (DEVICE_CLIENT_CONTEXT *)DATA_PTR(self);
+	IOTHUB_CLIENT_LL_HANDLE iotHubClientHandle = context->iotHubClientHandle;
+
+	IoTHubClient_LL_DoWork(iotHubClientHandle);
+
+	return mrb_nil_value();
+}
+
+static int mrb_receive_device_method_callback(const char *method_name, const unsigned char *payload, size_t size, unsigned char **response, size_t *resp_size, void *userContextCallback)
+{
+	DEVICE_CLIENT_CONTEXT *context = (DEVICE_CLIENT_CONTEXT *)userContextCallback;
+	mrb_state *mrb = context->mrb;
+	mrb_value twin = context->twin;
+	mrb_value arg = mrb_str_new(mrb, payload, size);
+	mrb_value ret;
+
+	ret = mrb_funcall(mrb, twin, method_name, 1, arg);
+	if (!mrb_string_p(ret)) {
+		ret = mrb_obj_as_string(mrb, ret);
+	}
+
+	*resp_size = RSTRING_LEN(ret);
+	*response = (unsigned char *)malloc(*resp_size);
+	(void)memcpy(*response, RSTRING_PTR(ret), *resp_size);
+
+	return 0;
+}
+
+static void mrb_device_twin_callback(int status_code, void *userContextCallback)
+{
+	DEVICE_CLIENT_CONTEXT *context = (DEVICE_CLIENT_CONTEXT *)userContextCallback;
+}
+
+static void mrb_receive_device_twin_callback(DEVICE_TWIN_UPDATE_STATE update_state, const unsigned char *payload, size_t size, void *userContextCallback)
+{
+	DEVICE_CLIENT_CONTEXT *context = (DEVICE_CLIENT_CONTEXT *)userContextCallback;
+	IOTHUB_CLIENT_LL_HANDLE iotHubClientHandle = context->iotHubClientHandle;
+	mrb_state *mrb = context->mrb;
+	mrb_value twin = context->twin;
+	mrb_value arg = mrb_str_new(mrb, payload, size);
+	mrb_value ret;
+
+	ret = mrb_funcall(mrb, twin, "recv_twin", 1, arg);
+	if (!mrb_string_p(ret)) {
+		ret = mrb_obj_as_string(mrb, ret);
+	}
+
+	if (IoTHubClient_LL_SendReportedState(iotHubClientHandle, RSTRING_PTR(ret), RSTRING_LEN(ret), mrb_device_twin_callback, context) != IOTHUB_CLIENT_OK)
+	{
+		LogError("Failure sending data");
+	}
+}
+
+mrb_value mrb_device_client_set_twin(mrb_state *mrb, mrb_value self)
+{
+	DEVICE_CLIENT_CONTEXT *context = (DEVICE_CLIENT_CONTEXT *)DATA_PTR(self);
+	IOTHUB_CLIENT_LL_HANDLE iotHubClientHandle = context->iotHubClientHandle;
+	mrb_value twin;
+
+	mrb_get_args(mrb, "o", &twin);
+
+	context->twin = twin;
+
+	if (IoTHubClient_LL_SetDeviceMethodCallback(iotHubClientHandle, mrb_receive_device_method_callback, context) != IOTHUB_CLIENT_OK)
+	{
+		LogError("ERROR: IoTHubClient_LL_SetDeviceMethodCallback..........FAILED!\r\n");
+	}
+
+	if (IoTHubClient_LL_SetDeviceTwinCallback(iotHubClientHandle, mrb_receive_device_twin_callback, context) != IOTHUB_CLIENT_OK)
+	{
+		LogError("failure in IoTHubClient_LL_SetDeviceTwinCallback");
+	}
+
+	return mrb_nil_value();
+}
+
+mrb_value mrb_message_initialize(mrb_state *mrb, mrb_value self)
+{
+	unsigned char *msgText;
+	mrb_int msgSize;
+
+	mrb_get_args(mrb, "s", &msgText, &msgSize);
+
+	IOTHUB_MESSAGE_HANDLE ioTHubMessageHandle;
+	ioTHubMessageHandle = IoTHubMessage_CreateFromByteArray(msgText, msgSize);
+	if (ioTHubMessageHandle == NULL) {
+		LogError("Message.new");
+		return mrb_nil_value();
+	}
+
+	DATA_TYPE(self) = &mrb_message_type;
+	DATA_PTR(self) = ioTHubMessageHandle;
+
+	return self;
+}
+
+void mrb_message_free(mrb_state *mrb, void *ptr)
+{
+	IOTHUB_MESSAGE_HANDLE ioTHubMessageHandle = (IOTHUB_MESSAGE_HANDLE)ptr;
+
+	if (ioTHubMessageHandle != NULL)
+		IoTHubMessage_Destroy(ioTHubMessageHandle);
+}
+
+mrb_value mrb_message_add_property(mrb_state *mrb, mrb_value self)
+{
+	IOTHUB_MESSAGE_HANDLE ioTHubMessageHandle = (IOTHUB_MESSAGE_HANDLE)DATA_PTR(self);
+	const char *name, *value;
+
+	mrb_get_args(mrb, "zz", &name, &value);
+
+	MAP_HANDLE propMap;
+	propMap = IoTHubMessage_Properties(ioTHubMessageHandle);
+	if (Map_AddOrUpdate(propMap, name, value) != MAP_OK)
+	{
+		LogError("Message#add_property");
+		return mrb_nil_value();
+	}
+
+	return mrb_nil_value();
+}
+
+mrb_value mrb_kernel_sleep(mrb_state *mrb, mrb_value self);
+
+void mrb_mruby_others_gem_init(mrb_state *mrb)
+{
+	struct RClass *_module_azure_iot;
+
+	_module_azure_iot = mrb_define_module(mrb, "AzureIoT");
+
+	mrb_define_const(mrb, _module_azure_iot, "HTTP", mrb_fixnum_value(0));
+	mrb_define_const(mrb, _module_azure_iot, "MQTT", mrb_fixnum_value(1));
+	mrb_define_const(mrb, _module_azure_iot, "MQTToWS", mrb_fixnum_value(2));
+
+	mrb_define_module_function(mrb, _module_azure_iot, "set_connection_string", mrb_azure_iot_set_connection_string, MRB_ARGS_REQ(1));
+	mrb_define_module_function(mrb, _module_azure_iot, "get_connection_string", mrb_azure_iot_get_connection_string, MRB_ARGS_NONE());
+	mrb_define_module_function(mrb, _module_azure_iot, "set_proxy", mrb_azure_iot_set_proxy, MRB_ARGS_REQ(1));
+	mrb_define_module_function(mrb, _module_azure_iot, "get_proxy", mrb_azure_iot_get_proxy, MRB_ARGS_NONE());
+
+	_class_device_client = mrb_define_class_under(mrb, _module_azure_iot, "DeviceClient", mrb->object_class);
+	MRB_SET_INSTANCE_TT(_class_device_client, MRB_TT_DATA);
+	mrb_define_method(mrb, _class_device_client, "initialize", mrb_device_client_initialize, MRB_ARGS_REQ(2));
+	mrb_define_method(mrb, _class_device_client, "send_event", mrb_device_client_send_event, MRB_ARGS_REQ(2));
+	mrb_define_method(mrb, _class_device_client, "do_work", mrb_device_client_do_work, MRB_ARGS_NONE());
+	mrb_define_method(mrb, _class_device_client, "set_twin", mrb_device_client_set_twin, MRB_ARGS_REQ(1));
+
+	_class_message = mrb_define_class_under(mrb, _module_azure_iot, "Message", mrb->object_class);
+	MRB_SET_INSTANCE_TT(_class_message, MRB_TT_DATA);
+	mrb_define_method(mrb, _class_message, "initialize", mrb_message_initialize, MRB_ARGS_REQ(1));
+	mrb_define_method(mrb, _class_message, "add_property", mrb_message_add_property, MRB_ARGS_REQ(2));
+
+	mrb_define_method(mrb, mrb->kernel_module, "sleep", mrb_kernel_sleep, MRB_ARGS_REQ(1));
+
+	platform_init();
+}
+
+void mrb_mruby_others_gem_final(mrb_state *mrb)
+{
+	platform_deinit();
 }

@@ -63,9 +63,6 @@ enum proxy_parse_state_t {
 
 int set_proxy_main(int argc, char **argv)
 {
-	char *schema = NULL, *address = NULL, *port = NULL, *username = NULL, *password = NULL;
-	int schema_len = 0, address_len = 0, port_len = 0, username_len = 0, password_len = 0;
-
 	if (argc < 2) {
 		if (g_proxy_options.username != NULL) {
 			printf("HTTP_PROXY=http://%s:%s@%s:%d\n",
@@ -85,9 +82,17 @@ int set_proxy_main(int argc, char **argv)
 		return 0;
 	}
 
+	return set_proxy(argv[1]);
+}
+
+int set_proxy(char *proxy)
+{
+	char *schema = NULL, *address = NULL, *port = NULL, *username = NULL, *password = NULL;
+	int schema_len = 0, address_len = 0, port_len = 0, username_len = 0, password_len = 0;
+
 	enum proxy_parse_state_t state = proxy_parse_state_schema;
 
-	char *pos = argv[1];
+	char *pos = proxy;
 	schema = pos;
 	for (char c = *pos; c != '\0'; pos++, c = *pos) {
 		switch (state) {

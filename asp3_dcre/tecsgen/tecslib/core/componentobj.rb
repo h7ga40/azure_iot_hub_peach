@@ -34,7 +34,7 @@
 #   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #   の責任を負わない．
 #  
-#   $Id$
+#   $Id: componentobj.rb 2846 2018-03-25 11:30:55Z okuma-top $
 #++
 
 # STAGE:
@@ -5159,6 +5159,17 @@ class Namespace < NSBDNode
   # ルートリージョンとルートネームスペースは同じオブジェクト
   def self.get_root
     @@root_namespace
+  end
+
+  #== Namespace に属するシグニチャのリスト
+  def get_signature_list
+    @signature_list
+  end
+
+  #== Namespace# 子ネームスペースのリスト
+  #
+  def get_namespace_list
+    @namespace_list
   end
 
   #== Namespace (Region) に属するセルのリスト

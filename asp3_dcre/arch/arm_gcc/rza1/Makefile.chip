@@ -13,8 +13,8 @@ CHIPDIR = $(SRCDIR)/arch/$(CORE)_$(TOOL)/$(CHIP)
 #  コンパイルオプション
 #
 INCLUDES := $(INCLUDES) -I$(CHIPDIR)
-COPTS := $(COPTS) -mcpu=cortex-a9
-LDFLAGS := $(LDFLAGS) -mcpu=cortex-a9
+COPTS := $(COPTS) -mcpu=cortex-a9 -mfpu=vfpv3-d16
+LDFLAGS := $(LDFLAGS) -mcpu=cortex-a9 -mfpu=vfpv3-d16
 CDEFS := $(CDEFS) -D__TARGET_ARCH_ARM=7
 
 #

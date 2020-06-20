@@ -34,7 +34,7 @@
 #   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #   の責任を負わない．
 #  
-#   $Id$
+#   $Id: pluginModule.rb 2633 2017-04-02 06:02:05Z okuma-top $
 #++
 
 #== プラグインをロードする側のモジュール
@@ -42,6 +42,15 @@
 module PluginModule
 
   @@loaded_plugin_list = {}
+
+  # 後ろのコードの出力順の指定 (数字が少ないほどプライオリティは高い)
+  MULTI_PLUGIN_POST_CODE_PRIORITY     = 00000
+  DOMAIN_PLUGIN_POST_CODE_PRIORITY    = 10000
+  THROUGH_PLUGIN_POST_CODE_PRIORITY   = 20000
+  CELLTYPE_PLUGIN_POST_CODE_PRIORITY  = 30000
+  COMPOSITE_PLUGIN_POST_CODE_PRIORITY = 40000
+  CELL_PLUGIN_POST_CODE_PRIORITY      = 50000
+  SIGNATURE_PLUGIN_POST_CODE_PRIORITY = 60000
 
   #=== プラグインをロードする
   # return:: PluginClass
@@ -143,25 +152,104 @@ module PluginModule
 
   #=== プラグインが CDL の POST コードを生成
   # tmp_plugin_post_code.cdl への出力
-  def self.gen_plugin_post_code file
+  def self.gen_plugin_post_code
+    dbgPrint "------------  gen_plugin_post_code  -------------\n"
     dbgPrint "PluginModule #{@@loaded_plugin_list}\n"
-    @@loaded_plugin_list.each{ |plugin_name,count|
-      if count == :MultiPlugin then
-        next
-      end
-      dbgPrint "PluginModule: #{plugin_name}\n"
-      eval_str = "#{plugin_name}.gen_post_code( file )"
-      if $verbose then
-        print "gen_plugin_post_code: #{eval_str}\n"
-      end
-      begin
-        eval( eval_str )
-      rescue Exception => evar
-        Generator.error( "P2007 $1: fail to generate post code" , plugin_name )
-
-        print_exception( evar )
+    sorted_plugin_list = self.sort_and_load @@loaded_plugin_list.keys
+    new_plugin_list = []
+    @@loaded_plugin_list.each{ |plugin_name, count|
+      b_found = false
+      sorted_plugin_list.each{ |plugin|
+        if plugin.name.to_sym == plugin_name then
+          b_found = true
+          break
+        end
+      }
+      if b_found == false then
+        new_plugin_list << plugin_name
       end
     }
+    self.sort_and_load new_plugin_list
+  end
+
+  def self.sort_and_load plugin_list
+    #------ post_code priority 順のリストを作成  ------#
+    plugin_priority_list = {}
+    plugin_list.each{ |plugin_name|
+      next if ! const_defined? plugin_name    # undefined PluginModule
+      plClass = Object.const_get plugin_name
+      if plClass.respond_to? :get_post_code_priority then
+        prio = plClass.get_post_code_priority
+      else
+        prio = self.get_post_code_priority plClass
+      end
+      if plugin_priority_list[ prio ] == nil then
+        plugin_priority_list[ prio ] = [ plClass ]
+      else
+        plugin_priority_list[ prio ] << plClass
+      end
+      dbgPrint "pluginModule: prio=#{prio} plugin=#{plClass.name}\n"
+    }
+    sorted_plugin_list = []
+    plugin_priority_list.keys.sort.each{ |prio|
+      if prio != 0 then   # exclude MultiPlugin
+        plClassList = plugin_priority_list[ prio ]
+        sorted_plugin_list += plClassList
+      end
+    }
+    #----- post code priority 順に post code を生成  -------#
+    sorted_plugin_list.each{ |plClass|
+      tmp_file_name = "#{$gen}/tmp_#{plClass.name}_post_code.cdl"
+      file = nil
+      begin
+        file = CFile.open( tmp_file_name, "w" )
+      rescue
+        Generator.error( "G9999 fail to create #{tmp_file_name}" )
+      end
+
+      if file then
+        dbgPrint "PluginModule: #{plClass.name}\n"
+        eval_str = "plClass.name}.gen_post_code( file )"
+        if $verbose then
+          print "gen_plugin_post_code: #{eval_str}\n"
+        end
+        begin
+          plClass.gen_post_code( file )
+        rescue Exception => evar
+          Generator.error( "P2007 $1: fail to generate post code" , plClass.name )
+          print_exception( evar )
+        end
+                begin
+          file.close
+        rescue
+          Generator.error( "G9999 fail to close #{tmp_file_name}" )
+        end
+        dbgPrint( "## Import Post Code\n")
+        Import.new( "#{tmp_file_name}" )
+      end
+    }
+    return sorted_plugin_list
+  end
+  
+  #=== プラグインの後ろの CDL コードの生成順を指定
+  def self.get_post_code_priority plClass
+    if plClass <= MultiPlugin then
+      return MULTI_PLUGIN_POST_CODE_PRIORITY
+    elsif plClass <= DomainPlugin then
+      return DOMAIN_PLUGIN_POST_CODE_PRIORITY
+    elsif plClass <= ThroughPlugin then
+      return THROUGH_PLUGIN_POST_CODE_PRIORITY
+    elsif plClass <= CompositePlugin then
+      return COMPOSITE_PLUGIN_POST_CODE_PRIORITY
+    elsif plClass <=  CelltypePlugin then
+      return CELLTYPE_PLUGIN_POST_CODE_PRIORITY
+    elsif plClass <= CellPlugin then
+      return CELL_PLUGIN_POST_CODE_PRIORITY
+    elsif plClass <= SignaturePlugin then
+      return SIGNATURE_PLUGIN_POST_CODE_PRIORITY
+    else
+      raise "Unknown Plugin type '#{self.class.name}'"
+    end
   end
 
 end

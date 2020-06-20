@@ -103,7 +103,11 @@ class Node
   end
 
   def locale_str
-    "locale=( #{@locale[0]}, #{@locale[1]} )"
+    if @locale then
+      "locale=( #{@locale[0]}, #{@locale[1]} )"
+    else
+      "locale=(?)"
+    end
   end
 end
 

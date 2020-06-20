@@ -35,7 +35,7 @@
 #   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #   の責任を負わない．
 #  
-#   $Id$
+#   $Id: tecsgen.rb 2780 2018-02-11 11:22:33Z okuma-top $
 #++
 
 #= tecsgen  : TECS のジェネレータ
@@ -218,9 +218,11 @@ class TECSGEN
 
   @@current_tecsgen = nil
 
-  def self.init( addtional_option_parser = nil )
+  def self.init( addtional_option_parser = nil, no_tecsgen_option = false )
     initialize_global_var
-    analyze_option addtional_option_parser
+    if no_tecsgen_option == false
+      analyze_option addtional_option_parser
+    end
     load_modules
     if ! $TECSFLOW then
       setup
@@ -462,7 +464,7 @@ class TECSGEN
       }
       #  parser.on(  '--include_path_opt_format',  'cpp include path option format, default: "-I %s"' ){
       #  }
-      parser.version = #{$version}
+      parser.version = "#{$version}"
       parser.release = nil
       if additional_option_parser
         additional_option_parser.call( parser )

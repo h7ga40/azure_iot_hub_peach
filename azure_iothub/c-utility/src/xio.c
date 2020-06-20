@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 #include <stdlib.h>
-#include <stddef.h>
 #include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/optimize_size.h"
 #include "azure_c_shared_utility/xio.h"
@@ -192,7 +191,7 @@ int xio_setoption(XIO_HANDLE xio, const char* optionName, const void* value)
                 result = 0;
             }
         }
-        else /*passthrough*/ 
+        else /*passthrough*/
         {
             /* Codes_SRS_XIO_003_028: [xio_setoption shall pass the optionName and value to the concrete IO implementation specified in xio_create by invoking the concrete_xio_setoption function.] */
             /* Codes_SRS_XIO_03_029: [xio_setoption shall return 0 upon success.] */

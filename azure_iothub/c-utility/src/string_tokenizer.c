@@ -2,8 +2,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 #include <stdlib.h>
-#include "azure_c_shared_utility/gballoc.h"
 #include <stdbool.h>
+#include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/string_tokenizer.h"
 #include "azure_c_shared_utility/optimize_size.h"
 #include "azure_c_shared_utility/xlogging.h"
@@ -47,7 +47,7 @@ extern STRING_TOKENIZER_HANDLE STRING_TOKENIZER_create_from_char(const char* inp
         result = NULL;
     }
     /* Codes_SRS_STRING_07_002: [STRING_TOKENIZER_create shall allocate a new STRING_TOKENIZER_HANDLE having the content of the STRING_HANDLE copied and current position pointing at the beginning of the string] */
-    else if ((result = (STRING_TOKEN*)malloc(sizeof(STRING_TOKEN))) == NULL)
+    else if ((result = (STRING_TOKEN*)calloc(1, sizeof(STRING_TOKEN))) == NULL)
     {
         LogError("Memory Allocation failed. Cannot allocate STRING_TOKENIZER.");
     }
@@ -74,7 +74,7 @@ int STRING_TOKENIZER_get_next_token(STRING_TOKENIZER_HANDLE tokenizer, STRING_HA
     {
         result = MU_FAILURE;
     }
-    else 
+    else
     {
         STRING_TOKEN* token = (STRING_TOKEN*)tokenizer;
         /* Codes_SRS_STRING_04_011: [Each subsequent call to STRING_TOKENIZER_get_next_token starts searching from the saved position on t and behaves as described above.] */
@@ -119,11 +119,11 @@ int STRING_TOKENIZER_get_next_token(STRING_TOKENIZER_HANDLE tokenizer, STRING_HA
 
             /* Codes_SRS_STRING_04_006: [If no such character is found, then STRING_TOKENIZER_get_next_token shall return a nonzero Value (You've reach the end of the string or the string consists with only delimiters).] */
             //At this point update Current Pos to the character of the last token found or end of String.
-            token->currentPos += i; 
-            
+            token->currentPos += i;
+
             //Update the remainingInputStringSize
             remainingInputStringSize -= i;
-            
+
             /* Codes_SRS_STRING_04_006: [If no such character is found, then STRING_TOKENIZER_get_next_token shall return a nonzero Value (You've reach the end of the string or the string consists with only delimiters).] */
             if (remainingInputStringSize == 0)
             {
@@ -135,7 +135,7 @@ int STRING_TOKENIZER_get_next_token(STRING_TOKENIZER_HANDLE tokenizer, STRING_HA
                 const char* endOfTokenPosition=NULL;
                 size_t amountOfCharactersToCopy;
                 size_t j;
-                //At this point the Current Pos is pointing to a character that is point to a nonDelimiter. So, now search for a Delimiter, till the end of the String. 
+                //At this point the Current Pos is pointing to a character that is point to a nonDelimiter. So, now search for a Delimiter, till the end of the String.
                 /*Codes_SRS_STRING_04_008: [STRING_TOKENIZER_get_next_token than searches from the start of a token for a character that is contained in the delimiters string.] */
                 /* Codes_SRS_STRING_04_009: [If no such character is found, STRING_TOKENIZER_get_next_token extends the current token to the end of the string inside t, copies the token to output and returns 0.] */
                 /* Codes_SRS_STRING_04_010: [If such a character is found, STRING_TOKENIZER_get_next_token consider it the end of the token and copy it's content to output, updates the current position inside t to the next character and returns 0.] */
@@ -157,8 +157,8 @@ int STRING_TOKENIZER_get_next_token(STRING_TOKENIZER_HANDLE tokenizer, STRING_HA
                 {
                     amountOfCharactersToCopy = endOfTokenPosition - token->currentPos;
                 }
-                
-                //copy here the string to output. 
+
+                //copy here the string to output.
                 if (STRING_copy_n(output, token->currentPos, amountOfCharactersToCopy) != 0)
                 {
                     LogError("Problem copying token to output String.");
@@ -176,8 +176,8 @@ int STRING_TOKENIZER_get_next_token(STRING_TOKENIZER_HANDLE tokenizer, STRING_HA
                     {
                         token->currentPos += amountOfCharactersToCopy;
                     }
-                    
-                    result = 0; //Result will be on the output. 
+
+                    result = 0; //Result will be on the output.
                 }
             }
         }

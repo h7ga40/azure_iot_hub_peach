@@ -59,6 +59,8 @@ ifeq ($(SRCLANG),c)
 		$(SRCDIR)/../zlib-1.2.11/Debug/libzlib.a \
 		$(SRCDIR)/../wolfssl-3.15.7/Debug/libwolfssl.a \
 		$(SRCDIR)/../curl-7.57.0/Debug/libcurl.a \
+		$(SRCDIR)/../onigmo-6.1.3/Debug/libonigmo.a \
+		$(SRCDIR)/../mruby-1.4.1/build/arm-none-eabi/lib/libmruby.a \
 		$(SRCDIR)/../azure_iothub/Debug/libazure_iothub.a
 endif
 ifeq ($(SRCLANG),c++)
@@ -119,6 +121,7 @@ DEVTOOLDIR =
 #
 CFG = ruby -Eutf-8 $(SRCDIR)/cfg/cfg.rb
 TECSGEN = ruby -Eutf-8 $(SRCDIR)/tecsgen/tecsgen.rb
+MRBC= $(SRCDIR)/../mruby-1.4.1/bin/mrbc
 
 #
 #  オブジェクトファイル名の定義
@@ -187,6 +190,7 @@ ifdef OMIT_TECS
 	CDEFS := -DTOPPERS_OMIT_TECS $(CDEFS)
 endif
 CDEFS := $(CDEFS) -DDHCP4_CLI_CFG -DUSE_PING -DUSE_RESOLVER -DUSE_NETAPP_SUBR -DNOUSE_MPF_NET_BUF -DECHONET_USE_MALLOC -DHAVE_CONFIG_H -DWOLFSSL_USER_SETTINGS -DRamDisk=_binary_______ntshell_src_rom_fs_bin_start
+CDEFS := $(CDEFS) -DMRB_USE_PRESET_SYMBOLS -DMRB_USE_ETEXT_EDATA
 INCLUDES := -I. -I$(SRCDIR)/include -I$(SRCDIR) \
 	-I$(SRCDIR)/../zlib-1.2.11/src \
 	-I$(SRCDIR)/../wolfssl-3.15.7/wolfssl \
@@ -195,6 +199,7 @@ INCLUDES := -I. -I$(SRCDIR)/include -I$(SRCDIR) \
 	-I$(SRCDIR)/../mbedtls-2.16.1/include \
 	-I$(SRCDIR)/../curl-7.57.0/include \
 	-I$(SRCDIR)/../curl-7.57.0 \
+	-I$(SRCDIR)/../mruby-1.4.1/include \
 	-I$(SRCDIR)/../azure_iothub/c-utility/inc \
 	-I$(SRCDIR)/../azure_iothub/c-utility/pal/toppers \
 	-I$(SRCDIR)/../azure_iothub/iothub_client/inc \
@@ -212,7 +217,7 @@ CFLAGS = $(COPTS) $(CDEFS) $(INCLUDES)
 APPLDIRS := $(APPLDIRS) $(SRCDIR)/$(TINETDIR)/netapp
 APPL_COBJS := $(APPL_COBJS) ping.o ping6.o resolver.o dhcp4_cli.o netapp_subr.o ntp_cli.o net_misc.o
 APPLDIRS := $(APPLDIRS) ../../ntshell/fatfs ../../ntshell/ntshell ../../ntshell/ntshell/core ../../ntshell/ntshell/util ../../ntshell/src
-APPL_COBJS := $(APPL_COBJS) netcmd.o fdtable.o stdio_stub.o io_stub.o socket_stub.o ffarch.o diskio.o ff.o sdfs.o ccsbcs.o ntshell.o text_editor.o text_history.o usrcmd.o vtrecv.o vtsend.o ntlibc.o ntstdio.o ntopt.o syscall.o
+APPL_COBJS := $(APPL_COBJS) netcmd.o fdtable.o stdio_stub.o pipe_stub.o io_stub.o socket_stub.o ffarch.o diskio.o ff.o sdfs.o ccsbcs.o ntshell.o text_editor.o text_history.o usrcmd.o vtrecv.o vtsend.o ntlibc.o ntstdio.o ntopt.o syscall.o
 APPLDIRS := $(APPLDIRS) ../pinkit
 APPL_COBJS := $(APPL_COBJS) accelerometer.o boardfullcolorled.o lightsensor.o temperature.o pinkit.o
 
@@ -223,18 +228,21 @@ APPLNAME = app_iothub_client
 APPLDIRS := $(APPLDIRS) ../src ../../azure_iohub/c-utility/adapters
 APPL_CFG = main.cfg
 APPL_CDL = main.cdl
+APPL_RB = main.rb
 
 APPL_DIRS := $(APPLDIRS) $(SRCDIR)/library
 APPL_ASMOBJS :=
 ifdef USE_CXX
-	APPL_CXXOBJS := main.o ntshell_main.o client.o code.o envcmd.o
+	APPL_CXXOBJS := main.o ntshell_main.o client.o code.o envcmd.o mruby.o preset_symbols.o
 	APPL_COBJS := $(APPL_COBJS)
 else
-	APPL_COBJS := $(APPL_COBJS) main.o ntshell_main.o client.o code.o envcmd.o
+	APPL_COBJS := $(APPL_COBJS) main.o ntshell_main.o client.o code.o envcmd.o mruby.o preset_symbols.o
 endif
 APPL_COBJS := $(APPL_COBJS) log_output.o vasyslog.o t_perror.o strerror.o mbed_stub.o
 APPL_BINOBJS := rom_fs.o
 APPL_CFLAGS := $(APPL_CFLAGS) -nostdinc
+APPL_MRB := $(patsubst %.rb,%_rb.c,$(APPL_RB))
+APPL_COBJS := $(APPL_COBJS) $(patsubst %.c,%.o,$(APPL_MRB))
 ifdef APPLDIRS
 	INCLUDES := $(INCLUDES) $(foreach dir,$(APPLDIRS),-I$(dir))
 endif
@@ -274,7 +282,11 @@ endif
 #
 #  システムサービスに関する定義
 #
-GCC_PATH = $(shell which $(CC))/../../
+ifdef TCINSTALL
+	GCC_PATH = $(TCINSTALL)
+else
+	GCC_PATH = $(shell which $(CC))/../../
+endif
 MALLOC_LIB = "${GCC_PATH}arm-none-eabi/lib/thumb/v7-ar/fpv3/hard/libc.a"
 MALLOC_OBJS = lib_a-reent.o lib_a-impure.o lib_a-malloc.o lib_a-mallocr.o lib_a-calloc.o lib_a-callocr.o lib_a-realloc.o lib_a-reallocr.o lib_a-sbrkr.o lib_a-freer.o
 
@@ -384,9 +396,11 @@ endif
 #  ソースファイルのあるディレクトリに関する定義
 #
 vpath %.c $(KERNEL_DIRS) $(SYSSVC_DIRS) $(APPL_DIRS)
+vpath %.cpp $(APPL_DIRS)
 vpath %.S $(KERNEL_DIRS) $(SYSSVC_DIRS) $(APPL_DIRS)
 vpath %.cfg $(APPL_DIRS)
 vpath %.cdl $(APPL_DIRS)
+vpath %.rb $(APPL_DIRS)
 vpath %.bin $(APPL_DIRS)
 
 #
@@ -440,7 +454,7 @@ ifdef DATA_START_ADDRESS
 	LDFLAGS := $(LDFLAGS) -Wl,-Tdata,$(DATA_START_ADDRESS)
 endif
 ifdef LDSCRIPT
-	LDFLAGS := $(LDFLAGS) -Wl,-T,$(LDSCRIPT)
+	LDFLAGS := $(LDFLAGS) -T $(LDSCRIPT)
 endif
 
 #
@@ -519,7 +533,8 @@ $(OBJDIR)/@(BANNEROBJ): $(filter-out $(OBJDIR)/@(BANNEROBJ),$(ALL_OBJS)) \
 #  全体のリンク
 #
 $(OBJFILE): $(ALL_OBJS) $(LIBS_DEP)
-	$(LINK) $(CFLAGS) $(LDFLAGS) $(OBJ_LDFLAGS) -o $(OBJFILE) -Wl,-Map=$(OBJNAME).map,--cref \
+	$(LINK) $(CFLAGS) $(LDFLAGS) $(OBJ_LDFLAGS) -o $(OBJFILE) \
+			-Wl,-Map=$(OBJNAME).map,--cref -Wl,--gc-sections -Wl,-e_kernel__start,--gc-keep-exported=_kernel_istk \
 			$(START_OBJS) $(APPL_OBJS) $(SYSSVC_OBJS) $(CFG_OBJS) \
 			-Wl,--start-group $(ALL_LIBS) -Wl,--end-group $(END_OBJS)
 
@@ -700,6 +715,9 @@ $(APPL_CXXOBJS:$(OBJDIR)/%.o=%.s): %.s: %.cpp
 
 $(APPL_ASMOBJS): $(OBJDIR)/%.o: %.S
 	$(CC) -c -o $@ -MD -MP -MF $(DEPDIR)/$*.d $(CFLAGS) $(APPL_CFLAGS) $<
+
+$(APPL_MRB): %_rb.c: %.rb
+	$(MRBC) -e -B$*_code -o $*_rb.c $<
 
 $(APPL_BINOBJS): $(OBJDIR)/%.o: %.bin
 	$(OBJCOPY) -B arm -I binary -O elf32-littlearm --rename-section .data=.rodata $< $(OBJDIR)/$*.o

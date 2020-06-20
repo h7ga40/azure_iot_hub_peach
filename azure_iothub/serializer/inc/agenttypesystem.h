@@ -51,16 +51,18 @@ typedef struct EDM_BINARY_TAG
     EDM_TRUE, \
     EDM_FALSE
 
-MU_DEFINE_ENUM(EDM_BOOLEANS, EDM_BOOLEANS_VALUES);
+MU_DEFINE_ENUM_WITHOUT_INVALID(EDM_BOOLEANS, EDM_BOOLEANS_VALUES);
 
 /*ispositiveinfinity*/
 
-#ifdef _MSC_VER
+#if defined __c2__
+#define ISPOSITIVEINFINITY(x) (isinf((x)) && (signbit((x))==0))
+#elif defined _MSC_VER
 #define ISPOSITIVEINFINITY(x) ((_finite((x))==0) && ((_fpclass((x)) & _FPCLASS_PINF) == _FPCLASS_PINF))
 #else
 #if defined __STDC_VERSION__
-#if ((__STDC_VERSION__  == 199901L) || (__STDC_VERSION__ == 201112L))
-/*C99 compiler or C11*/
+#if ((__STDC_VERSION__  == 199901L) || (__STDC_VERSION__ == 201112L) || (__STDC_VERSION__ == 201710L))
+/*C99, C11 or C18 compiler*/
 #define ISPOSITIVEINFINITY(x) (isinf((x)) && (signbit((x))==0))
 #else
 #error update this file to contain the latest C standard.
@@ -74,13 +76,15 @@ MU_DEFINE_ENUM(EDM_BOOLEANS, EDM_BOOLEANS_VALUES);
 #endif
 #endif
 
-#ifdef _MSC_VER
+#if defined __c2__
+#define ISNEGATIVEINFINITY(x) (isinf((x)) && (signbit((x))!=0))
+#elif defined _MSC_VER
 /*not exactly signbit*/
 #define ISNEGATIVEINFINITY(x) ((_finite((x))==0) && ((_fpclass((x)) & _FPCLASS_NINF) == _FPCLASS_NINF))
 #else
 #if defined __STDC_VERSION__
-#if ((__STDC_VERSION__  == 199901L) || (__STDC_VERSION__ == 201112L))
-/*C99 compiler or C11*/
+#if ((__STDC_VERSION__  == 199901L) || (__STDC_VERSION__ == 201112L) || (__STDC_VERSION__ == 201710L))
+/*C99, C11 or C18 compiler*/
 #define ISNEGATIVEINFINITY(x) (isinf((x)) && (signbit((x))!=0))
 #else
 #error update this file to contain the latest C standard.
@@ -554,7 +558,7 @@ typedef struct EDM_COMPLEX_TYPE_TAG
     AGENT_DATA_TYPES_NOT_IMPLEMENTED, \
     AGENT_DATA_TYPES_JSON_ENCODER_ERRROR
 
-MU_DEFINE_ENUM(AGENT_DATA_TYPES_RESULT, AGENT_DATA_TYPES_RESULT_VALUES);
+MU_DEFINE_ENUM_WITHOUT_INVALID(AGENT_DATA_TYPES_RESULT, AGENT_DATA_TYPES_RESULT_VALUES);
 
 #define AGENT_DATA_TYPE_TYPE_VALUES\
     EDM_NO_TYPE,                                                                   \
@@ -597,7 +601,7 @@ MU_DEFINE_ENUM(AGENT_DATA_TYPES_RESULT, AGENT_DATA_TYPES_RESULT_VALUES);
     EDM_STRING_NO_QUOTES_TYPE                                                      \
 
 
-MU_DEFINE_ENUM(AGENT_DATA_TYPE_TYPE, AGENT_DATA_TYPE_TYPE_VALUES);
+MU_DEFINE_ENUM_WITHOUT_INVALID(AGENT_DATA_TYPE_TYPE, AGENT_DATA_TYPE_TYPE_VALUES);
 
 struct AGENT_DATA_TYPE_TAG
 {

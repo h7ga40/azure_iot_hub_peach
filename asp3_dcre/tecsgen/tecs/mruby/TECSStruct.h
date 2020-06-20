@@ -32,11 +32,13 @@
  *   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  *   の責任を負わない．
  *  
- *   $Id$ 
+ *   $Id: TECSStruct.h 2031 2019-11-19 11:07:36Z coas-nagasima $ 
  */
 
 #ifndef TECSStruct_h__
 #define TECSStruct_h__
+
+#ifndef TECSGEN
 
 #define MEMBER_GET_SET_INT( TAG, MEMBER, Type, TYPE )					\
 	static mrb_value													\
@@ -137,5 +139,14 @@
 			|| strcmp( DATA_TYPE( value )->struct_name, "TECS::Struct" #tag ) ) \
 			mrb_raise(mrb, E_TYPE_ERROR, "not Struct or tag mismatch"); \
 	}while(0)
+
+#else  /* TECSGEN */
+
+#define MEMBER_GET_SET_INT( TAG, MEMBER, Type, TYPE )
+#define MEMBER_GET_SET_FLOAT( TAG, MEMBER )
+#define STRUCT_INIT_MEMBER( t_TAG, MEMBER )
+#define STRUCT_CLASS( t_rtsk )
+
+#endif /* TECSGEN */
 
 #endif /* TECSStruct_h__ */

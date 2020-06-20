@@ -4,7 +4,6 @@
 #define __STDC_WANT_LIB_EXT1__ 1
 
 #include <stdlib.h>
-#include <stddef.h>
 #include <stdarg.h>
 #include <string.h>
 #include <limits.h>
@@ -255,7 +254,7 @@ int sprintf_s(char* dst, size_t dstSizeInBytes, const char* format, ...)
         /*not Microsoft compiler... */
 #if defined (__STDC_VERSION__) || (__cplusplus)
 #if ( \
-        ((__STDC_VERSION__  == 199901L) || (__STDC_VERSION__ == 201000L) || (__STDC_VERSION__ == 201112L)) || \
+        ((__STDC_VERSION__  == 199901L) || (__STDC_VERSION__ == 201000L) || (__STDC_VERSION__ == 201112L) || (__STDC_VERSION__ == 201710L)) || \
         (defined __cplusplus) \
     )
         /*C99 compiler*/

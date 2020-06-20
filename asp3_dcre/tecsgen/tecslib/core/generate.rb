@@ -34,7 +34,7 @@
 #   アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #   の責任を負わない．
 #  
-#   $Id$
+#   $Id: generate.rb 2834 2018-03-18 06:20:15Z okuma-top $
 #++
 
 def ifdef_macro_only f
@@ -516,7 +516,8 @@ EOT
       f.print "\tmake tcflow_exec\n\n"
       f.print "tcflow_exec : $(GEN_DIR)/tcflow.rbdmp\n"
       f.print "$(GEN_DIR)/tcflow.rbdmp : $(CELLTYPE_SRCS) $(PLUGIN_CELLTYPE_SRCS)\n"
-      f.print "\ttcflow -g $(GEN_DIR) -c '$(CC) -E -DTECSFLOW -DTECSGEN $(CFLAGS) -I ./' $^\n"
+      f.print "\ttcflow -g $(GEN_DIR) -c '$(CC) -E -DTECSFLOW $(CFLAGS) -I ./' $^\n"
+      f.print "\t# add -DTECSGEN if many errors occur, especially in case using cygwin, linux\n"
     end
 
     if $generating_region.get_n_cells != 0 || $generating_region == @@root_namespace then
@@ -4101,6 +4102,8 @@ EOT
           else
             str = "0"
           end
+        elsif type.kind_of?( DescriptorType ) then
+          str = "{}"
         else
           raise "UnknownType"
         end
@@ -4133,6 +4136,9 @@ EOT
             f.print "    " * indent
             f.printf( "%-40s /* %s */\n", "0,", identifier )
           end
+        elsif type.kind_of?( DescriptorType ) then
+          f.print "    " * indent
+          f.printf( "%-40s /* %s */\n", "{},", identifier )
         else
           raise "UnknownType"
         end

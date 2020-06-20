@@ -265,26 +265,7 @@ class TECSGEN
     if ARGV.length > 0 then
       dbgPrint( "## Generating Post Code\n")
       # プラグインのポストコードの出力と import
-      tmp_file_name = "#{$gen}/tmp_plugin_post_code.cdl"
-      file = nil
-      begin
-        file = CFile.open( tmp_file_name, "w" )
-      rescue
-        Generator.error( "G9999 fail to create #{tmp_file_name}" )
-      end
-
-      if file then
-        # through プラグインのポストコード生成
-        PluginModule.gen_plugin_post_code file
-
-        begin
-          file.close
-        rescue
-          Generator.error( "G9999 fail to close #{tmp_file_name}" )
-        end
-        dbgPrint( "## Import Post Code\n")
-        Import.new( "#{tmp_file_name}" )
-      end
+      PluginModule.gen_plugin_post_code
     end
 
     ####  意味解析１ (post コード) ####

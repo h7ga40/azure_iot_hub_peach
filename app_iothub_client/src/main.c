@@ -208,7 +208,23 @@ int custom_rand_generate_seed(uint8_t* output, int32_t sz)
 	return 0;
 }
 
+#include <mruby.h>
+
+mrb_value mrb_kernel_sleep(mrb_state *mrb, mrb_value self)
+{
+	mrb_float interval;
+	RELTIM tmo;
+
+	mrb_get_args(mrb, "f", &interval);
+
+	tmo = (RELTIM)(interval * 1000000);
+	dly_tsk(tmo);
+
+	return mrb_nil_value();
+}
+
 extern int curl_main(int argc, char **argv);
+extern int mruby_main(int argc, char **argv);
 extern int iothub_client_main(int argc, char **argv);
 
 static const cmd_table_t cmdlist[] = {
@@ -221,6 +237,7 @@ static const cmd_table_t cmdlist[] = {
 	{"hexdump", "Hex dump", usrcmd_hexdump},
 	{"date", "print date and time", usrcmd_date},
 	{"curl", "Command lines or scripts to transfer data", curl_main},
+	{"mruby","mruby command", mruby_main},
 	{"ping", "ping", usrcmd_ping},
 	{"dhcpc", "DHCP Client rel/renew/info", usrcmd_dhcp4c},
 	{"dnsc", "DNS client", usrcmd_dnsc },

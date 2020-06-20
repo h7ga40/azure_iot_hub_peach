@@ -446,7 +446,8 @@ module_eval(<<'...end bnf.y.rb/module_eval...', 'bnf.y.rb', 1534)
 
     # import_C の中でのエラー？
     if @@import_C then
-      C_parser.error( msg )
+      # C_parser.error( msg )
+      locale = C_parser.current_locale
     else
 
       # Node の記憶する 位置 (locale) を使用した場合、変更以前に比べ、
@@ -457,11 +458,11 @@ module_eval(<<'...end bnf.y.rb/module_eval...', 'bnf.y.rb', 1534)
       if @@b_end_all_parse == false || locale == nil then
         locale = @@current_locale[ @@generator_nest ]
       end
-      if locale then
-        Console.puts "#{locale[0]}:#{locale[1]}:#{locale[2]}: error: #{msg}"
-      else
-        Console.puts "error: #{msg}"
-      end
+    end
+    if locale then
+      Console.puts "#{locale[0]}:#{locale[1]}:#{locale[2]}: error: #{msg}"
+    else
+      Console.puts "error: #{msg}"
     end
   end
 
@@ -485,16 +486,17 @@ module_eval(<<'...end bnf.y.rb/module_eval...', 'bnf.y.rb', 1534)
 
     # import_C の中でのウォーニング？
     if @@import_C then
-      C_parser.warning( msg )
+      # C_parser.warning( msg )
+      locale = C_parser.current_locale
     else
       if @@b_end_all_parse == false || locale == nil then
         locale = @@current_locale[ @@generator_nest ]
       end
-      if locale then
-        Console.puts "#{locale[0]}:#{locale[1]}:#{locale[2]}: warning: #{msg}"
-      else
-        Console.puts "warning: #{msg}"
-      end
+    end
+    if locale then
+      Console.puts "#{locale[0]}:#{locale[1]}:#{locale[2]}: warning: #{msg}"
+    else
+      Console.puts "warning: #{msg}"
     end
   end
 
@@ -518,16 +520,17 @@ module_eval(<<'...end bnf.y.rb/module_eval...', 'bnf.y.rb', 1534)
 
     # import_C の中でのウォーニング？
     if @@import_C then
-      C_parser.info( msg )
+      # C_parser.info( msg )
+      locale = C_parser.current_locale
     else
       if @@b_end_all_parse == false || locale == nil then
         locale = @@current_locale[ @@generator_nest ]
       end
-      if locale then
-        Console.puts "#{locale[0]}:#{locale[1]}:#{locale[2]}: info: #{msg}"
-      else
-        Console.puts "info: #{msg}"
-      end
+    end
+    if locale then
+      Console.puts "#{locale[0]}:#{locale[1]}:#{locale[2]}: info: #{msg}"
+    else
+      Console.puts "info: #{msg}"
     end
   end
 

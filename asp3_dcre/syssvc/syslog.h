@@ -84,7 +84,7 @@ typedef struct t_syslog_rlog {
 } T_SYSLOG_RLOG;
 
 /*
- *  ログ情報の出力
+ *  システムログ機能のサービスコール
  */
 extern ER	syslog_wri_log(uint_t prio, const SYSLOG *p_syslog) throw();
 

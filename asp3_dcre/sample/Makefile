@@ -389,7 +389,7 @@ ifdef DATA_START_ADDRESS
 	LDFLAGS := $(LDFLAGS) -Wl,-Tdata,$(DATA_START_ADDRESS)
 endif
 ifdef LDSCRIPT
-	LDFLAGS := $(LDFLAGS) -Wl,-T,$(LDSCRIPT)
+	LDFLAGS := $(LDFLAGS) -T $(LDSCRIPT)
 endif
 
 #
@@ -460,7 +460,8 @@ $(OBJDIR)/@(BANNEROBJ): $(filter-out $(OBJDIR)/@(BANNEROBJ),$(ALL_OBJS)) \
 #  全体のリンク
 #
 $(OBJFILE): $(ALL_OBJS) $(LIBS_DEP)
-	$(LINK) $(CFLAGS) $(LDFLAGS) $(OBJ_LDFLAGS) -o $(OBJFILE) -Wl,-Map=$(OBJNAME).map,--cref \
+	$(LINK) $(CFLAGS) $(LDFLAGS) $(OBJ_LDFLAGS) -o $(OBJFILE) \
+			-Wl,-Map=$(OBJNAME).map,--cref -Wl,--gc-sections -Wl,-e_kernel__start,--gc-keep-exported=_kernel_istk \
 			$(START_OBJS) $(APPL_OBJS) $(SYSSVC_OBJS) $(CFG_OBJS) \
 			$(ALL_LIBS) $(END_OBJS)
 

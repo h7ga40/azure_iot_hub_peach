@@ -6,6 +6,8 @@
 #include <ctype.h>
 #include <string.h>
 #include <limits.h>
+
+#include "azure_macro_utils/macro_utils.h"
 #include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/httpheaders.h"
 #include "azure_c_shared_utility/crt_abstractions.h"
@@ -17,7 +19,7 @@
 #include "azure_c_shared_utility/shared_util_options.h"
 #include "azure_c_shared_utility/http_proxy_io.h"
 
-#ifdef _MSC_VER
+#if (defined(_MSC_VER) && !defined(__c2__))
 #define snprintf _snprintf
 #endif
 
@@ -753,6 +755,7 @@ static HTTPAPI_RESULT OpenXIOConnection(HTTP_HANDLE_DATA* http_instance)
             LogError("Create connection failed");
             free(http_instance);
             http_instance = NULL;
+            result = HTTPAPI_ERROR;
         }
         /*Codes_SRS_HTTPAPI_COMPACT_21_022: [ If a Certificate was provided, the HTTPAPI_ExecuteRequest shall set this option on the transport layer. ]*/
         else if ((http_instance->certificate != NULL) &&
@@ -870,7 +873,7 @@ static HTTPAPI_RESULT conn_send_all(HTTP_HANDLE_DATA* http_instance, const unsig
 const char httpapiRequestString[6][7] = { "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD" };
 const char* get_request_type(HTTPAPI_REQUEST_TYPE requestType)
 {
-    return (const char*)httpapiRequestString[requestType];
+    return (const char*)httpapiRequestString[requestType - HTTPAPI_REQUEST_GET];
 }
 
 /*Codes_SRS_HTTPAPI_COMPACT_21_026: [ If the open process succeed, the HTTPAPI_ExecuteRequest shall send the request message to the host. ]*/
@@ -1252,33 +1255,33 @@ HTTPAPI_RESULT HTTPAPI_ExecuteRequest(HTTP_HANDLE handle, HTTPAPI_REQUEST_TYPE r
         HTTPHeaders_GetHeaderCount(httpHeadersHandle, &headersCount) != HTTP_HEADERS_OK)
     {
         result = HTTPAPI_INVALID_ARG;
-        LogError("(result = %s)", MU_ENUM_TO_STRING(HTTPAPI_RESULT, result));
+        LogError("(result = %" PRI_MU_ENUM ")", MU_ENUM_VALUE(HTTPAPI_RESULT, result));
     }
     /*Codes_SRS_HTTPAPI_COMPACT_21_024: [ The HTTPAPI_ExecuteRequest shall open the transport connection with the host to send the request. ]*/
     else if ((result = OpenXIOConnection(http_instance)) != HTTPAPI_OK)
     {
-        LogError("Open HTTP connection failed (result = %s)", MU_ENUM_TO_STRING(HTTPAPI_RESULT, result));
+        LogError("Open HTTP connection failed (result = %" PRI_MU_ENUM ")", MU_ENUM_VALUE(HTTPAPI_RESULT, result));
     }
     /*Codes_SRS_HTTPAPI_COMPACT_21_026: [ If the open process succeed, the HTTPAPI_ExecuteRequest shall send the request message to the host. ]*/
     else if ((result = SendHeadsToXIO(http_instance, requestType, relativePath, httpHeadersHandle, headersCount)) != HTTPAPI_OK)
     {
-        LogError("Send heads to HTTP failed (result = %s)", MU_ENUM_TO_STRING(HTTPAPI_RESULT, result));
+        LogError("Send heads to HTTP failed (result = %" PRI_MU_ENUM ")", MU_ENUM_VALUE(HTTPAPI_RESULT, result));
     }
     /*Codes_SRS_HTTPAPI_COMPACT_21_042: [ The request can contain the a content message, provided in content parameter. ]*/
     else if ((result = SendContentToXIO(http_instance, content, contentLength)) != HTTPAPI_OK)
     {
-        LogError("Send content to HTTP failed (result = %s)", MU_ENUM_TO_STRING(HTTPAPI_RESULT, result));
+        LogError("Send content to HTTP failed (result = %" PRI_MU_ENUM ")", MU_ENUM_VALUE(HTTPAPI_RESULT, result));
     }
     /*Codes_SRS_HTTPAPI_COMPACT_21_030: [ At the end of the transmission, the HTTPAPI_ExecuteRequest shall receive the response from the host. ]*/
     /*Codes_SRS_HTTPAPI_COMPACT_21_073: [ The message received by the HTTPAPI_ExecuteRequest shall starts with a valid header. ]*/
     else if ((result = ReceiveHeaderFromXIO(http_instance, statusCode)) != HTTPAPI_OK)
     {
-        LogError("Receive header from HTTP failed (result = %s)", MU_ENUM_TO_STRING(HTTPAPI_RESULT, result));
+        LogError("Receive header from HTTP failed (result = %" PRI_MU_ENUM ")", MU_ENUM_VALUE(HTTPAPI_RESULT, result));
     }
     /*Codes_SRS_HTTPAPI_COMPACT_21_074: [ After the header, the message received by the HTTPAPI_ExecuteRequest can contain addition information about the content. ]*/
     else if ((result = ReceiveContentInfoFromXIO(http_instance, responseHeadersHandle, &bodyLength, &chunked)) != HTTPAPI_OK)
     {
-        LogError("Receive content information from HTTP failed (result = %s)", MU_ENUM_TO_STRING(HTTPAPI_RESULT, result));
+        LogError("Receive content information from HTTP failed (result = %" PRI_MU_ENUM ")", MU_ENUM_VALUE(HTTPAPI_RESULT, result));
     }
     /*Codes_SRS_HTTPAPI_COMPACT_42_084: [ The message received by the HTTPAPI_ExecuteRequest should not contain http body. ]*/
     else if (requestType != HTTPAPI_REQUEST_HEAD)
@@ -1286,7 +1289,7 @@ HTTPAPI_RESULT HTTPAPI_ExecuteRequest(HTTP_HANDLE handle, HTTPAPI_REQUEST_TYPE r
         /*Codes_SRS_HTTPAPI_COMPACT_21_075: [ The message received by the HTTPAPI_ExecuteRequest can contain a body with the message content. ]*/
         if ((result = ReadHTTPResponseBodyFromXIO(http_instance, bodyLength, chunked, responseContent)) != HTTPAPI_OK)
         {
-            LogError("Read HTTP response body from HTTP failed (result = %s)", MU_ENUM_TO_STRING(HTTPAPI_RESULT, result));
+            LogError("Read HTTP response body from HTTP failed (result = %" PRI_MU_ENUM ")", MU_ENUM_VALUE(HTTPAPI_RESULT, result));
         }
     }
 

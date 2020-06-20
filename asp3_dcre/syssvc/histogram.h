@@ -51,7 +51,7 @@ extern "C" {
 #include <t_stddef.h>
 
 /*
- *  実行時間分布計測の初期化
+ *  実行時間分布集計サービスのサービスコール
  */
 extern ER	init_hist(ID histid);
 

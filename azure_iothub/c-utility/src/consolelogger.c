@@ -7,7 +7,7 @@
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_c_shared_utility/consolelogger.h"
 
-#if (defined(_MSC_VER))
+#if (defined(_MSC_VER) && !defined(__c2__))
 #include "windows.h"
 
 /*returns a string as if printed by vprintf*/

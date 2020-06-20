@@ -1039,7 +1039,7 @@ end
 		locale = @@current_locale[ @@generator_nest ]
 
 		if locale then
-			Console.puts "#{locale[0]}:#{locale[1]}: error: #{msg}"
+			Console.puts "error: #{locale[0]}: line #{locale[1]} #{msg}"
 		else
 			Console.puts "error: #{msg}"
 		end
@@ -1049,14 +1049,14 @@ end
 	def self.warning( msg )
 		@@n_warning += 1
 		locale = @@current_locale[ @@generator_nest ]
-		Console.puts "#{locale[0]}:#{locale[1]}: warning: #{msg}"
+		Console.puts "warning: #{locale[0]}: line #{locale[1]} #{msg}"
 	end
 
 	# このメソッドは構文解析、意味解析からのみ呼出し可
 	def self.info( msg )
 		@@n_info += 1
 		locale = @@current_locale[ @@generator_nest ]
-		Console.puts "#{locale[0]}:#{locale[1]}: info: #{msg}"
+		Console.puts "info: #{locale[0]}: line #{locale[1]} #{msg}"
 	end
 
 	def self.get_n_error

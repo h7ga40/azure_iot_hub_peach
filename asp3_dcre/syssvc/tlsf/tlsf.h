@@ -67,6 +67,7 @@ void tlsf_free(tlsf_t tlsf, void* ptr);
 
 /* Returns internal block size, not original request size */
 size_t tlsf_block_size(void* ptr);
+int tlsf_is_free(void* ptr);
 
 /* Overheads/limits of internal structures. */
 size_t tlsf_size(void);

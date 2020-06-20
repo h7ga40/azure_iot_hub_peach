@@ -80,7 +80,12 @@ SECTIONS
         Image$$VECTORS$$Limit = .;
 
         Image$$RO_DATA$$Base = .;
+        brodata = .;
         *(.rodata*)
+        mrb_preset_const_start = .;
+        *(.mrb_preset_const)
+        mrb_preset_const_end = .;
+        erodata = .;
         Image$$RO_DATA$$Limit = .;
 
         KEEP(*(.eh_frame*))
@@ -157,6 +162,9 @@ SECTIONS
         __data_start__ = .;
         *(vtable)
         *(.data*)
+        mrb_preset_data_start = .;
+        *(.mrb_preset_data)
+        mrb_preset_data_end = .;
         Image$$RW_DATA$$Limit = .;
 
         . = ALIGN(4);

@@ -1,0 +1,101 @@
+MRuby::GemBox.new do |conf|
+  # Use standard Kernel#sprintf method
+  conf.gem :core => "mruby-sprintf"
+
+  # Use standard print/puts/p
+  conf.gem :core => "mruby-print"
+
+  # Use standard Math module
+  # conf.gem :core => "mruby-math"  # XXX
+
+  # Use standard Time class
+  conf.gem :core => "mruby-time"
+
+  # Use standard Struct class
+  conf.gem :core => "mruby-struct"
+
+  # Use Enumerable module extension
+  conf.gem :core => "mruby-enum-ext"
+
+  # Use String class extension
+  conf.gem :core => "mruby-string-ext"
+
+  # Use Numeric class extension
+  conf.gem :core => "mruby-numeric-ext"
+
+  # Use Array class extension
+  conf.gem :core => "mruby-array-ext"
+
+  # Use Hash class extension
+  conf.gem :core => "mruby-hash-ext"
+
+  # Use Range class extension
+  conf.gem :core => "mruby-range-ext"
+
+  # Use Proc class extension
+  conf.gem :core => "mruby-proc-ext"
+
+  # Use Symbol class extension
+  conf.gem :core => "mruby-symbol-ext"
+
+  # Use Random class
+  # conf.gem :core => "mruby-random"  # we use "iij/mruby-simple-random"
+
+  # Use Object class extension
+  conf.gem :core => "mruby-object-ext"
+
+  # Use ObjectSpace class
+  conf.gem :core => "mruby-objectspace"
+
+  # Use Fiber class
+  conf.gem :core => "mruby-fiber"
+
+  # Use Enumerator class (require mruby-fiber)
+  conf.gem :core => "mruby-enumerator"
+
+  # Use Enumerator::Lazy class (require mruby-enumerator)
+  conf.gem :core => "mruby-enum-lazy"
+
+  # Use toplevel object (main) methods extension
+  conf.gem :core => "mruby-toplevel-ext"
+
+  # Use standard Kernel#eval method
+  conf.gem :core => "mruby-eval"
+
+  # Use IIJ modules
+  conf.gem :git => 'https://github.com/iij/mruby-digest.git'
+  conf.gem :git => 'https://github.com/iij/mruby-dir.git'
+  conf.gem :git => 'https://github.com/iij/mruby-env.git'
+  conf.gem :git => 'https://github.com/iij/mruby-errno.git'
+  conf.gem :git => 'https://github.com/iij/mruby-iijson.git'
+  conf.gem :git => 'https://github.com/iij/mruby-io.git'
+  conf.gem :git => 'https://github.com/iij/mruby-ipaddr.git'
+  conf.gem :git => 'https://github.com/iij/mruby-mock.git'
+  conf.gem :git => 'https://github.com/iij/mruby-mtest.git'
+  conf.gem :git => 'https://github.com/iij/mruby-pack.git'
+  conf.gem :git => 'https://github.com/iij/mruby-process.git'
+  conf.gem :git => 'https://github.com/iij/mruby-regexp-pcre.git'
+  conf.gem :git => 'https://github.com/iij/mruby-require.git'
+  conf.gem :git => 'https://github.com/iij/mruby-simple-random.git'
+  conf.gem :git => 'https://github.com/iij/mruby-socket.git'
+  conf.gem :git => 'https://github.com/iij/mruby-syslog.git'
+  conf.gem :git => 'https://github.com/iij/mruby-tempfile.git'
+
+  # Generate mirb command
+  conf.gem :core => "mruby-bin-mirb"
+
+  # Generate mruby command
+  conf.gem :core => "mruby-bin-mruby"
+
+  # Generate mruby-strip command
+  conf.gem :core => "mruby-bin-strip"
+
+  # Use Kernel module extension
+  conf.gem :core => "mruby-kernel-ext"
+
+  # Use class/module extension
+  conf.gem :core => "mruby-class-ext"
+
+  # Use mruby-compiler to build other mrbgems
+  conf.gem :core => "mruby-compiler"
+end
