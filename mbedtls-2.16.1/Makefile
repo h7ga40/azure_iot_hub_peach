@@ -143,7 +143,6 @@ RANLIB  = arm-none-eabi-ranlib
 
 C_FLAGS += -std=gnu11
 C_FLAGS += -mcpu=cortex-a9
-C_FLAGS += -march=armv7-a
 C_FLAGS += -marm
 C_FLAGS += -mthumb-interwork
 C_FLAGS += -mlittle-endian
@@ -168,7 +167,6 @@ C_FLAGS += -D__GLIBC__
 
 CXX_FLAGS += -std=gnu++11
 CXX_FLAGS += -mcpu=cortex-a9
-CXX_FLAGS += -march=armv7-a
 CXX_FLAGS += -marm
 CXX_FLAGS += -mthumb-interwork
 CXX_FLAGS += -mlittle-endian
@@ -192,7 +190,6 @@ CXX_FLAGS += -nostdinc
 ASM_FLAGS += -x
 ASM_FLAGS += assembler-with-cpp
 ASM_FLAGS += -mcpu=cortex-a9
-ASM_FLAGS += -march=armv7-a
 ASM_FLAGS += -marm
 ASM_FLAGS += -mthumb-interwork
 ASM_FLAGS += -mlittle-endian

@@ -13471,6 +13471,7 @@ int ProcessReply(WOLFSSL* ssl)
             return INPUT_CASE_ERROR;
         }
     }
+    return FATAL_ERROR;
 }
 
 
