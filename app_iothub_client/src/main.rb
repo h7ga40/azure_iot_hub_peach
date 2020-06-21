@@ -10,17 +10,17 @@ module WeatherStation
 			puts "execute quit " + peyload
 		end
 
-		def turnFanOn(peyload)
-			puts "execute turnFanOn " + peyload
+		def turnLedOn(peyload)
+			puts "execute turnLedOn " + peyload
 		end
 
-		def turnFanOff(peyload)
-			puts "execute turnFanOff " + peyload
+		def turnLedOff(peyload)
+			puts "execute turnLedOff " + peyload
 		end
 
-		def set_fan_speed(fanSpeed)
-			@fanSpeed = fanSpeed
-			puts "set fan speed " + fanSpeed.to_s
+		def set_threshold(threshold)
+			@threshold = threshold
+			puts "set fan speed " + threshold.to_s
 		end
 
 		def recv_twin(peyload)
@@ -29,25 +29,25 @@ module WeatherStation
 			if desired == nil
 				desired = json
 			end
-			fanSpeed = desired["fanSpeed"]
-			if fanSpeed == nil
+			threshold = desired["threshold"]
+			if threshold == nil
 				puts peyload
 			else
-				value = fanSpeed["value"]
+				value = threshold["value"]
 				if value == nil
 					puts peyload
 				else
-					set_fan_speed(value)
+					set_threshold(value)
 				end
 			end
 
-			{fanSpeed: {value: @fanSpeed, status: "success"}}.to_json
+			{threshold: {value: @threshold, status: "success"}}.to_json
 		end
 
 		def measure
-			@windSpeed = 10 + (rand() * 4) + 2
-			@temperature = 20 + (rand() * 15)
-			@humidity = 60 + (rand() * 20)
+			@windSpeed = PinKit.wind_speed
+			@temperature = PinKit.temperature
+			@humidity = PinKit.humidity
 		end
 	end
 end

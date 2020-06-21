@@ -20,17 +20,19 @@ and removing calls to _DoWork will yield the same results. */
 #include "iothubtransportmqtt.h"
 #include "iothubtransportmqtt_websockets.h"
 #include "iothub_client_options.h"
-#include "client.h"
 #include <mruby.h>
 #include <mruby/array.h>
 #include <mruby/class.h>
 #include <mruby/compile.h>
 #include <mruby/data.h>
 #include <mruby/dump.h>
+#include <mruby/numeric.h>
 #include <mruby/proc.h>
 #include <mruby/string.h>
 #include <mruby/value.h>
 #include <mruby/variable.h>
+#include "pinkit.h"
+#include "client.h"
 
 #ifdef _MSC_VER
 extern int sprintf_s(char* dst, size_t dstSizeInBytes, const char* format, ...);
@@ -87,7 +89,7 @@ int run_mruby_code(int argc, char **argv, const uint8_t *code, const char *cmdli
 	mrb_sym zero_sym;
 	int result = 0;
 
-	/* mruby‚Ì‰Šú‰» */
+	/* mrubyã®åˆæœŸåŒ– */
 	mrb = mrb_open();
 	if (mrb == NULL)
 		return -1;
@@ -512,6 +514,26 @@ mrb_value mrb_message_add_property(mrb_state *mrb, mrb_value self)
 
 mrb_value mrb_kernel_sleep(mrb_state *mrb, mrb_value self);
 
+mrb_value mrb_pinkit_wind_speed(mrb_state *mrb, mrb_value self)
+{
+	double windSpeed = 
+		sqrt(pinkit.accel.X * pinkit.accel.X
+			+ pinkit.accel.Y * pinkit.accel.Y
+			+ pinkit.accel.Z * pinkit.accel.Z);
+
+	return mrb_float_value(mrb, (mrb_float)windSpeed);
+}
+
+mrb_value mrb_pinkit_temperature(mrb_state *mrb, mrb_value self)
+{
+	return mrb_float_value(mrb, (mrb_float)pinkit.temperature);
+}
+
+mrb_value mrb_pinkit_humidity(mrb_state *mrb, mrb_value self)
+{
+	return mrb_float_value(mrb, (mrb_float)pinkit.humidity);
+}
+
 void mrb_mruby_others_gem_init(mrb_state *mrb)
 {
 	struct RClass *_module_azure_iot;
@@ -540,6 +562,14 @@ void mrb_mruby_others_gem_init(mrb_state *mrb)
 	mrb_define_method(mrb, _class_message, "add_property", mrb_message_add_property, MRB_ARGS_REQ(2));
 
 	mrb_define_method(mrb, mrb->kernel_module, "sleep", mrb_kernel_sleep, MRB_ARGS_REQ(1));
+
+	struct RClass *_module_pinkit;
+
+	_module_pinkit = mrb_define_module(mrb, "PinKit");
+
+	mrb_define_module_function(mrb, _module_pinkit, "wind_speed", mrb_pinkit_wind_speed, MRB_ARGS_NONE());
+	mrb_define_module_function(mrb, _module_pinkit, "temperature", mrb_pinkit_temperature, MRB_ARGS_NONE());
+	mrb_define_module_function(mrb, _module_pinkit, "humidity", mrb_pinkit_humidity, MRB_ARGS_NONE());
 
 	platform_init();
 }
