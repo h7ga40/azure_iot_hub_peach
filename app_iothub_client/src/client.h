@@ -1,8 +1,5 @@
-// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-#ifndef SENDEVENTASYNC_H
-#define SENDEVENTASYNC_H
+#ifndef CLIENT_H
+#define CLIENT_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -21,4 +18,4 @@ int dps_csgen_main(int argc, char **argv);
 }
 #endif
 
-#endif /* SENDEVENTASYNC_H */
+#endif /* CLIENT_H */

@@ -1,14 +1,5 @@
-// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
 #include <stdio.h>
 #include <stdlib.h>
-
-/* This sample uses the _LL APIs of iothub_client for example purposes.
-That does not mean that HTTP only works with the _LL APIs.
-Simply changing the using the convenience layer (functions not having _LL)
-and removing calls to _DoWork will yield the same results. */
-
 #include "azure_c_shared_utility/threadapi.h"
 #include "azure_c_shared_utility/crt_abstractions.h"
 #include "azure_c_shared_utility/platform.h"
