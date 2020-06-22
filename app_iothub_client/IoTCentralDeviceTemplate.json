@@ -1,0 +1,94 @@
+{
+  "@id": "urn:_2i6fe8ayqrk:PinKit_z2:1",
+  "@type": "Interface",
+  "displayName": {
+    "en": "インターフェイス"
+  },
+  "contents": [
+    {
+      "@id": "urn:_2i6fe8ayqrk:PinKit_z2:temperature:1",
+      "@type": [
+        "Telemetry",
+        "SemanticType/Temperature"
+      ],
+      "displayName": {
+        "en": "温度"
+      },
+      "name": "temperature",
+      "schema": "double",
+      "unit": "Units/Temperature/celsius"
+    },
+    {
+      "@id": "urn:_2i6fe8ayqrk:PinKit_z2:temperatureAlert:1",
+      "@type": [
+        "Telemetry",
+        "SemanticType/State"
+      ],
+      "displayName": {
+        "en": "温度アラート"
+      },
+      "name": "temperatureAlert",
+      "schema": {
+        "@id": "urn:_2i6fe8ayqrk:PinKit_z2:temperatureAlert:5crbedlxq:1",
+        "@type": "Enum",
+        "valueSchema": "integer",
+        "enumValues": [
+          {
+            "@id": "urn:_2i6fe8ayqrk:PinKit_z2:temperatureAlert:5crbedlxq:true:1",
+            "@type": "EnumValue",
+            "displayName": {
+              "en": "異常"
+            },
+            "enumValue": 1,
+            "name": "true"
+          },
+          {
+            "@id": "urn:_2i6fe8ayqrk:PinKit_z2:temperatureAlert:5crbedlxq:false:1",
+            "@type": "EnumValue",
+            "displayName": {
+              "en": "通常"
+            },
+            "enumValue": 0,
+            "name": "false"
+          }
+        ]
+      }
+    },
+    {
+      "@id": "urn:_2i6fe8ayqrk:PinKit_z2:turnLedOn:1",
+      "@type": "Command",
+      "commandType": "synchronous",
+      "durable": false,
+      "displayName": {
+        "en": "LED ON"
+      },
+      "name": "turnLedOn"
+    },
+    {
+      "@id": "urn:_2i6fe8ayqrk:PinKit_z2:turnLedOff:1",
+      "@type": "Command",
+      "commandType": "synchronous",
+      "durable": false,
+      "displayName": {
+        "en": "LED OFF"
+      },
+      "name": "turnLedOff"
+    },
+    {
+      "@id": "urn:_2i6fe8ayqrk:PinKit_z2:threshold:1",
+      "@type": [
+        "Property",
+        "SemanticType/Temperature"
+      ],
+      "displayName": {
+        "en": "温度閾値"
+      },
+      "name": "threshold",
+      "writable": true,
+      "schema": "double"
+    }
+  ],
+  "@context": [
+    "http://azureiot.com/v1/contexts/IoTModel.json"
+  ]
+}

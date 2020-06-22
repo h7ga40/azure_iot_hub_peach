@@ -6,16 +6,25 @@ module WeatherStation
 	class ContosoAnemometer
 		attr_reader :windSpeed, :temperature, :humidity
 
+		def initialize
+			@threshold = 28
+		end
+
 		def quit(peyload)
 			puts "execute quit " + peyload
+			"{\"Message\":\"quit with Method\"}"
 		end
 
 		def turnLedOn(peyload)
 			puts "execute turnLedOn " + peyload
+			PinKit.led = true
+			"{\"Message\":\"Turning LED on with Method\"}"
 		end
 
 		def turnLedOff(peyload)
 			puts "execute turnLedOff " + peyload
+			PinKit.led = false
+			"{\"Message\":\"Turning LED off with Method\"}"
 		end
 
 		def set_threshold(threshold)

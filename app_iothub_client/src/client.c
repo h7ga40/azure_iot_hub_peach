@@ -534,6 +534,22 @@ mrb_value mrb_pinkit_humidity(mrb_state *mrb, mrb_value self)
 	return mrb_float_value(mrb, (mrb_float)pinkit.humidity);
 }
 
+mrb_value mrb_pinkit_get_led(mrb_state *mrb, mrb_value self)
+{
+	return mrb_bool_value(pinkit.ledOn != 0);
+}
+
+mrb_value mrb_pinkit_set_led(mrb_state *mrb, mrb_value self)
+{
+	mrb_bool ledOn = pinkit.ledOn;
+
+	mrb_get_args(mrb, "b", &ledOn);
+
+	pinkit.ledOn = ledOn ? 1 : 0;
+
+	return mrb_bool_value(pinkit.ledOn != 0);
+}
+
 void mrb_mruby_others_gem_init(mrb_state *mrb)
 {
 	struct RClass *_module_azure_iot;
@@ -570,6 +586,8 @@ void mrb_mruby_others_gem_init(mrb_state *mrb)
 	mrb_define_module_function(mrb, _module_pinkit, "wind_speed", mrb_pinkit_wind_speed, MRB_ARGS_NONE());
 	mrb_define_module_function(mrb, _module_pinkit, "temperature", mrb_pinkit_temperature, MRB_ARGS_NONE());
 	mrb_define_module_function(mrb, _module_pinkit, "humidity", mrb_pinkit_humidity, MRB_ARGS_NONE());
+	mrb_define_module_function(mrb, _module_pinkit, "led", mrb_pinkit_get_led, MRB_ARGS_REQ(1));
+	mrb_define_module_function(mrb, _module_pinkit, "led=", mrb_pinkit_set_led, MRB_ARGS_REQ(1));
 
 	platform_init();
 }
