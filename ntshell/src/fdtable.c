@@ -188,7 +188,7 @@ struct fd_events {
 	fd_set errorfds;
 };
 
-ER shell_get_evts(struct fd_events *evts, TMO tmout);
+ER shell_get_evts(struct fd_events *evts, TMO *tmout);
 
 #define TMO_MAX INT_MAX
 
@@ -219,7 +219,7 @@ int shell_select(int n, fd_set *__restrict rfds, fd_set *__restrict wfds, fd_set
 		memset(&evts.errorfds, 0, sizeof(fd_set));
 	evts.count = 0;
 
-	ret = shell_get_evts(&evts, tmout);
+	ret = shell_get_evts(&evts, &tmout);
 	if (ret == E_OK) {
 		if (rfds != NULL)
 			memand(rfds, &evts.readfds, sizeof(fd_set));
@@ -255,6 +255,7 @@ int shell_poll(struct pollfd *fds, nfds_t nfds, int timeout)
 	else
 		tmout = TMO_MAX;
 
+retry:
 	memset(&evts, 0, sizeof(evts));
 
 	for (int i = 0; i < nfds; i++) {
@@ -272,7 +273,7 @@ int shell_poll(struct pollfd *fds, nfds_t nfds, int timeout)
 		pfd->revents = 0;
 	}
 
-	ret = shell_get_evts(&evts, tmout);
+	ret = shell_get_evts(&evts, &tmout);
 	if (ret == E_OK) {
 		int result = 0;
 		for (int i = 0; i < nfds; i++) {
@@ -290,6 +291,8 @@ int shell_poll(struct pollfd *fds, nfds_t nfds, int timeout)
 			if (pfd->revents != 0)
 				result++;
 		}
+		if (result == 0)
+			goto retry;
 		return result;
 	}
 	if (ret == E_TMOUT) {
@@ -299,7 +302,7 @@ int shell_poll(struct pollfd *fds, nfds_t nfds, int timeout)
 	return -EBADF;
 }
 
-ER shell_get_evts(struct fd_events *evts, TMO tmout)
+ER shell_get_evts(struct fd_events *evts, TMO *tmout)
 {
 	int count;
 	SYSTIM prev, now;
@@ -357,7 +360,7 @@ ER shell_get_evts(struct fd_events *evts, TMO tmout)
 
 		/* イベント待ち */
 		flgptn = 0;
-		ret = twai_flg(FLG_SELECT_WAIT, waitptn, TWF_ORW, &flgptn, tmout);
+		ret = twai_flg(FLG_SELECT_WAIT, waitptn, TWF_ORW, &flgptn, *tmout);
 		if (ret != E_OK) {
 			if (ret != E_TMOUT) {
 				syslog(LOG_ERROR, "twai_flg => %d", ret);
@@ -379,44 +382,45 @@ ER shell_get_evts(struct fd_events *evts, TMO tmout)
 		for (int fd = 0; fd < fd_table_count; fd++) {
 			fp = &fd_table[fd];
 
-			if (fp->readevt_w != fp->readevt_r) {
+			if (FD_ISSET(fd, (fd_set *)&waitptn)
+				&& (fp->readevt_w != fp->readevt_r)) {
 				fp->readevt_r++;
-				if (FD_ISSET(fd, (fd_set *)&waitptn))
-					FD_SET(fd, &evts->readfds);
+				FD_SET(fd, &evts->readfds);
 				count++;
 			}
-			if (fp->writeevt_w != fp->writeevt_r) {
+			if (FD_ISSET(fd, (fd_set *)&waitptn)
+				&& (fp->writeevt_w != fp->writeevt_r)) {
 				fp->writeevt_r++;
-				if (FD_ISSET(fd, (fd_set *)&waitptn))
-					FD_SET(fd, &evts->writefds);
+				FD_SET(fd, &evts->writefds);
 				count++;
 			}
-			if (fp->errorevt_w != fp->errorevt_r) {
+			if (FD_ISSET(fd, (fd_set *)&waitptn)
+				&& (fp->errorevt_w != fp->errorevt_r)) {
 				fp->errorevt_r++;
-				if (FD_ISSET(fd, (fd_set *)&waitptn))
-					FD_SET(fd, &evts->errorfds);
+				FD_SET(fd, &evts->errorfds);
 				count++;
 			}
 		}
 
-		if ((flgptn == 0) || (count > 0))
+		if (count > 0)
 			break;
 
 		get_tim(&now);
 
 		SYSTIM elapse = now - prev;
-		if (elapse > tmout) {
-			flgptn = 0;
-			break;
+		if (elapse > *tmout) {
+			*tmout = 0;
+			evts->count = 0;
+			return E_TMOUT;
 		}
 
 		prev = now;
-		tmout -= elapse;
+		*tmout -= elapse;
 	}
 
 	evts->count = count;
 
-	return (flgptn == 0) ? E_TMOUT : E_OK;
+	return E_OK;
 }
 
 void clean_fd()
@@ -431,6 +435,81 @@ void clean_fd()
 
 		delete_fp(fp);
 	}
+}
+
+int shell_close(int fd)
+{
+	struct SHELL_FILE *fp = fd_to_fp(fd);
+	if ((fp == NULL) || (fp->type == NULL))
+		return -EBADF;
+
+	int ret = fp->type->close(fp);
+
+	delete_fp(fp);
+
+	return ret;
+}
+
+ssize_t shell_read(int fd, void *data, size_t len)
+{
+	struct SHELL_FILE *fp = fd_to_fp(fd);
+	if ((fp == NULL) || (fp->type == NULL))
+		return -EBADF;
+
+	return fp->type->read(fp, (unsigned char *)data, len);
+}
+
+int shell_readv(int fd, const struct iovec *iov, int iovcnt)
+{
+	int result = 0;
+	struct SHELL_FILE *fp = fd_to_fp(fd);
+	if ((fp == NULL) || (fp->type == NULL))
+		return -EBADF;
+
+	const struct iovec *end = &iov[iovcnt];
+	for (; iov < end; iov++) {
+		result += fp->type->read(fp, (unsigned char *)iov->iov_base, iov->iov_len);
+	}
+
+	return result;
+}
+
+ssize_t shell_write(int fd, const void *data, size_t len)
+{
+	struct SHELL_FILE *fp = fd_to_fp(fd);
+	if ((fp == NULL) || (fp->type == NULL))
+		return -EBADF;
+
+	return fp->type->write(fp, (unsigned char *)data, len);
+}
+
+int shell_writev(int fd, const struct iovec *iov, int iovcnt)
+{
+	int result = 0;
+	struct SHELL_FILE *fp = fd_to_fp(fd);
+	if ((fp == NULL) || (fp->type == NULL))
+		return -EBADF;
+
+	const struct iovec *end = &iov[iovcnt];
+	for (; iov < end; iov++) {
+		result += fp->type->write(fp, (unsigned char *)iov->iov_base, iov->iov_len);
+	}
+
+	return result;
+}
+
+int shell_llseek(int fd, off_t ptr, off_t *result, int dir)
+{
+	struct SHELL_FILE *fp = fd_to_fp(fd);
+	if ((fp == NULL) || (fp->type == NULL))
+		return -EBADF;
+
+	off_t ret = fp->type->seek(fp, ptr, dir);
+	if (ret < 0)
+		return ret;
+
+	*result = ret;
+	return 0;
 }
 
 int shell_ioctl(int fd, int request, void *arg)

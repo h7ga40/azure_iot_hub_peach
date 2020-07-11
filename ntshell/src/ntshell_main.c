@@ -45,6 +45,7 @@
 #include <sil.h>
 #include <setjmp.h>
 #include <string.h>
+#include <stdlib.h>
 #include "syssvc/serial.h"
 #include "syssvc/syslog.h"
 #include "target_syssvc.h"

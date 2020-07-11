@@ -34,8 +34,8 @@
  * 
  *  @(#) $Id$
  */
-#ifndef SOCKET_STUB_H
-#define SOCKET_STUB_H
+#ifndef _FDTABLE_H_
+#define _FDTABLE_H_
 
 typedef const struct io_type_s IO_TYPE;
 
@@ -55,7 +55,7 @@ struct SHELL_FILE {
 
 struct io_type_s {
 	const int (*close)(struct SHELL_FILE *);
-	const 	size_t (*read)(struct SHELL_FILE *, unsigned char *, size_t);
+	const size_t (*read)(struct SHELL_FILE *, unsigned char *, size_t);
 	const size_t (*write)(struct SHELL_FILE *, const unsigned char *, size_t);
 	const off_t (*seek)(struct SHELL_FILE *, off_t, int);
 	const int (*ioctl)(struct SHELL_FILE *, int, void *);
@@ -82,4 +82,4 @@ struct SHELL_FILE *id_to_fd(IO_TYPE *type, int id);
 int delete_fp(struct SHELL_FILE *fp);
 void clean_fd();
 
-#endif // !SOCKET_STUB_H
+#endif /* _FDTABLE_H_ */

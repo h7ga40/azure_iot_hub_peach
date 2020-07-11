@@ -34,8 +34,8 @@
  * 
  *  @(#) $Id$
  */
-#ifndef SHELLIF_H
-#define SHELLIF_H
+#ifndef _SHELLIF_H_
+#define _SHELLIF_H_
 
 #ifdef _MSC_VER
 #undef NULL
@@ -311,4 +311,4 @@ void free(void *ptr);
 }
 #endif
 
-#endif /* SHELLIF_H */
+#endif /* _SHELLIF_H_ */
