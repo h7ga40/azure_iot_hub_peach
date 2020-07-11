@@ -444,8 +444,7 @@ long SYS_dup2(long a, long b) {
 }
 
 long SYS_pipe(long a) {
-	//int pipe(int fd[2])
-	return no_implement("pipe\n");
+	return shell_pipe((int *)a);
 }
 
 long SYS_readlink(long a, long b, long c) {

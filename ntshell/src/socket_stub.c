@@ -687,7 +687,6 @@ int shell_accept(int fd, struct sockaddr *__restrict addr, socklen_t *__restrict
 			if (sz < sizeof(struct sockaddr_in)) {
 				return -EINVAL;
 			}
-			struct sockaddr_in *raddr = &socket->raddr4;
 			if (sz > sizeof(struct sockaddr_in))
 				sz = sizeof(struct sockaddr_in);
 			memcpy(addr, raddr, sz);
@@ -745,7 +744,6 @@ int shell_accept(int fd, struct sockaddr *__restrict addr, socklen_t *__restrict
 			if (sz < sizeof(struct sockaddr_in6)) {
 				return -EINVAL;
 			}
-			struct sockaddr_in6 *raddr = &socket->raddr6;
 			if (sz > sizeof(struct sockaddr_in6))
 				sz = sizeof(struct sockaddr_in6);
 			memcpy(addr, raddr, sz);
@@ -927,7 +925,7 @@ ssize_t shell_recvfrom(int fd, void *__restrict buf, size_t len, int flags, stru
 				tmp = rsz;
 				if (rsz > len)
 					rsz = len;
-				if (rsz >= 0) {
+				if (rsz > 0) {
 					memcpy(buf, socket->input, rsz);
 					ret = wai_sem(SEM_FILEDESC);
 					if (ret < 0) {
@@ -948,6 +946,9 @@ ssize_t shell_recvfrom(int fd, void *__restrict buf, size_t len, int flags, stru
 						syslog(LOG_ERROR, "tcp_rel_buf => %d", ret);
 						//return -ECOMM;
 					}
+				}
+				else {
+					syslog(LOG_ERROR, "shell_recvfrom => %d", rsz);
 				}
 				ret = rsz;
 			}

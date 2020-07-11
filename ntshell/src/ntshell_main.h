@@ -93,6 +93,8 @@ void sys_init(intptr_t exinf);
 #define NTSHELL_EVENT_NETIF_CHANGED	0x00000002
 #define NTSHELL_EVENT_LINK_UP		0x00000004
 #define NTSHELL_EVENT_UP			0x00000008
+#define NTSHELL_EVENT_NTP_ASYNC		0x00000010
+#define NTSHELL_EVENT_NTP_SYNC		0x00000020
 
 /* ntshellタスク初期化 */
 void ntshell_task_init(task_base_t **tasks, int task_count);

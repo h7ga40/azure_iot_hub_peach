@@ -168,6 +168,11 @@ void ntp_cli_initialize(T_NTP_CLI_CONTEXT *nc, ID cepid)
 	nc->rcv_rmt.ipaddr = IPV4_ADDRANY;
 }
 
+void ntp_cli_set_state_changed_cb(ntp_cli_state_changed_cb_t state_changed_cb)
+{
+	ntp_cli.state_changed_cb = state_changed_cb;
+}
+
 void ntp_cli_execute()
 {
 	ntp_cli.exe_flag = 1;
@@ -216,6 +221,9 @@ void ntp_cli_read_data(T_NTP_CLI_CONTEXT *nc)
 
 			// 時刻を更新
 			ntp_cli_update_time(nc);
+			if (nc->state_changed_cb != NULL) {
+				nc->state_changed_cb(NTP_CLI_STATE_SYNC);
+			}
 
 			nc->state = NTP_CLI_STATE_SYNC;
 			nc->poll = NTP_POLL_NORMAL;
@@ -345,6 +353,9 @@ void ntp_cli_timeout(T_NTP_CLI_CONTEXT *nc)
 	case NTP_CLI_STATE_REQUEST:
 		nc->retry++;
 		if (nc->retry > 3) {
+			if (nc->state_changed_cb != NULL) {
+				nc->state_changed_cb(NTP_CLI_STATE_ASYNC);
+			}
 			nc->state = NTP_CLI_STATE_ASYNC;
 			nc->poll = NTP_POLL_ASYNC;
 			nc->timer = (1 << nc->poll) * 1000 * 1000;  // 1024秒後に時刻同期

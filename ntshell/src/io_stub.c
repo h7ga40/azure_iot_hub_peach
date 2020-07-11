@@ -118,7 +118,6 @@ int shell_open(const char *path, int flags, void *arg)
 		memset(fp->exinf, 0, sizeof(struct SHELL_DIR));
 
 		FATFS_DIR *dir = &((struct SHELL_DIR *)fp->exinf)->dir;
-		FRESULT res;
 		if ((res = f_opendir(dir, path)) != FR_OK) {
 			delete_fp(fp);
 			return fresult2errno(res);
@@ -258,81 +257,6 @@ void file_delete(struct SHELL_FILE *fp)
 	fp->exinf = NULL;
 }
 
-int shell_close(int fd)
-{
-	struct SHELL_FILE *fp = fd_to_fp(fd);
-	if ((fp == NULL) || (fp->type == NULL))
-		return -EBADF;
-
-	int ret = fp->type->close(fp);
-
-	delete_fp(fp);
-
-	return ret;
-}
-
-ssize_t shell_read(int fd, void *data, size_t len)
-{
-	struct SHELL_FILE *fp = fd_to_fp(fd);
-	if ((fp == NULL) || (fp->type == NULL))
-		return -EBADF;
-
-	return fp->type->read(fp, (unsigned char *)data, len);
-}
-
-int shell_readv(int fd, const struct iovec *iov, int iovcnt)
-{
-	int result = 0;
-	struct SHELL_FILE *fp = fd_to_fp(fd);
-	if ((fp == NULL) || (fp->type == NULL))
-		return -EBADF;
-
-	const struct iovec *end = &iov[iovcnt];
-	for (; iov < end; iov++) {
-		result += fp->type->read(fp, (unsigned char *)iov->iov_base, iov->iov_len);
-	}
-
-	return result;
-}
-
-ssize_t shell_write(int fd, const void *data, size_t len)
-{
-	struct SHELL_FILE *fp = fd_to_fp(fd);
-	if ((fp == NULL) || (fp->type == NULL))
-		return -EBADF;
-
-	return fp->type->write(fp, (unsigned char *)data, len);
-}
-
-int shell_writev(int fd, const struct iovec *iov, int iovcnt)
-{
-	int result = 0;
-	struct SHELL_FILE *fp = fd_to_fp(fd);
-	if ((fp == NULL) || (fp->type == NULL))
-		return -EBADF;
-
-	const struct iovec *end = &iov[iovcnt];
-	for (; iov < end; iov++) {
-		result += fp->type->write(fp, (unsigned char *)iov->iov_base, iov->iov_len);
-	}
-
-	return result;
-}
-
-int shell_llseek(int fd, off_t ptr, off_t *result, int dir)
-{
-	struct SHELL_FILE *fp = fd_to_fp(fd);
-	if ((fp == NULL) || (fp->type == NULL))
-		return -EBADF;
-
-	off_t ret = fp->type->seek(fp, ptr, dir);
-	if (ret < 0)
-		return ret;
-
-	*result = ret;
-	return 0;
-}
-
 int shell_fstat(int fd, struct stat * st)
 {
 	struct SHELL_FILE *fp = fd_to_fp(fd);
@@ -404,7 +328,7 @@ int shell_stat(const char *__restrict path, struct stat *__restrict st)
 
 	st->st_size = fi.fsize;
 	st->st_mtim.tv_nsec = 0;
-	st->st_mtim.tv_sec = fi.fdate + fi.ftime;
+	st->st_mtim.tv_sec = (time_t)fi.fdate + (time_t)fi.ftime;
 	st->st_mode = (S_IRUSR | S_IRGRP | S_IROTH);
 	st->st_mode |= (fi.fattrib & AM_RDO) ? 0 : (S_IWUSR | S_IWGRP | S_IWOTH);
 	st->st_mode |= (fi.fattrib & (AM_DIR | AM_VOL)) ? S_IFDIR : S_IFREG;
