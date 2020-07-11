@@ -287,12 +287,24 @@ int sio_ioctl(struct SHELL_FILE *fp, int request, void *arg)
 
 bool_t sio_readable(struct SHELL_FILE *fp)
 {
-	return fp->readevt_w != fp->readevt_r;
+	struct ntstdio_t *ntstdio = (struct ntstdio_t *)fp->exinf;
+	stdio_sio_t *uart = (stdio_sio_t *)ntstdio->exinf;
+
+	return uart->rx_pos_r != uart->rx_pos_w;
 }
 
 bool_t sio_writable(struct SHELL_FILE *fp)
 {
-	return fp->writable && (fp->writeevt_w == fp->writeevt_r);
+	if (!fp->writable)
+		return false;
+
+	struct ntstdio_t *ntstdio = (struct ntstdio_t *)fp->exinf;
+	stdio_sio_t *uart = (stdio_sio_t *)ntstdio->exinf;
+
+	int tx_pos_w = uart->tx_pos_w + 1;
+	if (tx_pos_w >= sizeof(uart->tx_buf))
+		tx_pos_w = 0;
+	return uart->tx_pos_r != tx_pos_w;
 }
 
 void sio_delete(struct SHELL_FILE *fp)
@@ -334,11 +346,13 @@ static unsigned char ntstdio_xi(struct ntstdio_t *handle, struct SHELL_FILE *fp)
 	if (lock)
 		unl_cpu();
 
-	if (fp->readevt_w != fp->readevt_r) fp->readevt_r++;
-
 	c = uart->rx_buf[uart->rx_pos_r++];
 	if (uart->rx_pos_r >= sizeof(uart->rx_buf))
 		uart->rx_pos_r = 0;
+
+	if ((uart->rx_pos_r == uart->rx_pos_w)
+		&& (fp->readevt_w != fp->readevt_r))
+		fp->readevt_r++;
 
 	return c;
 }
@@ -433,10 +447,15 @@ static void ntstdio_xo(struct ntstdio_t *handle, struct SHELL_FILE *fp, unsigned
 	if (lock)
 		unl_cpu();
 
-	while (uart->tx_pos_w != uart->tx_pos_r) {
+	// 送信バッファが一杯なら
+	int tx_pos_w = uart->tx_pos_w + 1;
+	if (tx_pos_w >= sizeof(uart->tx_buf))
+		tx_pos_w = 0;
+	while (tx_pos_w == uart->tx_pos_r) {
 		FLGPTN flgptn = 0, waitptn = 0;
 		FD_SET(fp->fd, (fd_set *)&waitptn);
 
+		// 送信完了割り込みまで待つ
 		ret = twai_flg(FLG_SELECT_WAIT, waitptn, TWF_ORW, &flgptn, 1000);
 		if ((ret != E_OK) && (ret != E_TMOUT)) {
 			syslog(LOG_ERROR, "wai_flg => %d", ret);

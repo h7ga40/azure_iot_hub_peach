@@ -291,7 +291,6 @@ static void put_buf(struct ntstdio_t *handle, unsigned char c)
 	if ((handle->pos + 1) >= put_buf->len)
 		return;
 	put_buf->outptr[handle->pos] = (char)c;
-	handle->pos++;
 }
 
 int ntstdio_snprintf(char *buf, int len, const char *fmt, ...)
@@ -306,15 +305,15 @@ int ntstdio_snprintf(char *buf, int len, const char *fmt, ...)
 	handle.pos = 0;
 	handle.exinf = &exinf;
 	exinf.outptr = buf;
-	exinf.len = len;
+	exinf.len = len - 1; /* null char */
 
 	va_start(arp, fmt);
 	result = xvprintf(&handle, fmt, arp);
 	va_end(arp);
 
 	/* Terminate output string with a \0 */
-	buf[handle.pos] = '\0';
-	return result;
+	buf[result] = '\0';
+	return result;	/* not count null char */
 }
 
 int ntstdio_fprintf(ntstdio_t *handle, NTSTDIO_XO xo, const char *fmt, ...)

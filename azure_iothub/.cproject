@@ -55,7 +55,7 @@
 							<option id="com.renesas.cdt.managedbuild.gcc.rz.option.floatabi.731445685" name="Float ABI" superClass="com.renesas.cdt.managedbuild.gcc.rz.option.floatabi" useByScannerDiscovery="true" value="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.fpu.abi.hard" valueType="enumerated"/>
 							<option id="com.renesas.cdt.managedbuild.gcc.rz.option.thumb.1128222632" name="Thumb interwork (-mthumb-interwork)" superClass="com.renesas.cdt.managedbuild.gcc.rz.option.thumb" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 							<option id="com.renesas.cdt.managedbuild.gcc.rz.option.endian.1182462322" name="Endianness" superClass="com.renesas.cdt.managedbuild.gcc.rz.option.endian" useByScannerDiscovery="true" value="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.endianness.little" valueType="enumerated"/>
-							<option id="com.renesas.cdt.managedbuild.gcc.rz.option.warnStack.707436042" name="Warn if stack size exceeds the limit (-Wstack-usage) (H')" superClass="com.renesas.cdt.managedbuild.gcc.rz.option.warnStack" useByScannerDiscovery="false" value="100" valueType="string"/>
+							<option id="com.renesas.cdt.managedbuild.gcc.rz.option.warnStack.707436042" name="Warn if stack size exceeds the limit, in bytes (-Wstack-usage)" superClass="com.renesas.cdt.managedbuild.gcc.rz.option.warnStack" useByScannerDiscovery="false" value="100" valueType="string"/>
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="ilg.gnuarmeclipse.managedbuild.cross.targetPlatform.209110211" isAbstract="false" osList="all" superClass="ilg.gnuarmeclipse.managedbuild.cross.targetPlatform"/>
 							<builder buildPath="${workspace_loc:/azure_iothub}/Debug" id="com.renesas.cdt.managedbuild.gcc.rz.builder.1922728041" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="GCC for Renesas Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="com.renesas.cdt.managedbuild.gcc.rz.builder"/>
 							<tool id="com.renesas.cdt.managedbuild.gcc.rz.tool.assembler.1959689287" name="Cross ARM GNU Assembler" superClass="com.renesas.cdt.managedbuild.gcc.rz.tool.assembler">
@@ -127,7 +127,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="c-utility/adapters/tlsio_wolfssl.c|c-utility/adapters/httpapi_curl.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="c-utility/adapters/httpapi_curl.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -187,7 +187,7 @@
 							<option id="com.renesas.cdt.managedbuild.gcc.rz.option.floatabi.7191279" name="Float ABI" superClass="com.renesas.cdt.managedbuild.gcc.rz.option.floatabi" useByScannerDiscovery="true" value="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.fpu.abi.hard" valueType="enumerated"/>
 							<option id="com.renesas.cdt.managedbuild.gcc.rz.option.thumb.810221471" name="Thumb interwork (-mthumb-interwork)" superClass="com.renesas.cdt.managedbuild.gcc.rz.option.thumb" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 							<option id="com.renesas.cdt.managedbuild.gcc.rz.option.endian.526623997" name="Endianness" superClass="com.renesas.cdt.managedbuild.gcc.rz.option.endian" useByScannerDiscovery="true" value="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.endianness.little" valueType="enumerated"/>
-							<option id="com.renesas.cdt.managedbuild.gcc.rz.option.warnStack.128614533" name="Warn if stack size exceeds the limit (-Wstack-usage) (H')" superClass="com.renesas.cdt.managedbuild.gcc.rz.option.warnStack" useByScannerDiscovery="false" value="100" valueType="string"/>
+							<option id="com.renesas.cdt.managedbuild.gcc.rz.option.warnStack.128614533" name="Warn if stack size exceeds the limit, in bytes (-Wstack-usage)" superClass="com.renesas.cdt.managedbuild.gcc.rz.option.warnStack" useByScannerDiscovery="false" value="100" valueType="string"/>
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="ilg.gnuarmeclipse.managedbuild.cross.targetPlatform.928682476" isAbstract="false" osList="all" superClass="ilg.gnuarmeclipse.managedbuild.cross.targetPlatform"/>
 							<builder buildPath="${workspace_loc:/azure_iothub}/Release" id="com.renesas.cdt.managedbuild.gcc.rz.builder.67328796" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="GCC for Renesas Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="com.renesas.cdt.managedbuild.gcc.rz.builder"/>
 							<tool id="com.renesas.cdt.managedbuild.gcc.rz.tool.assembler.807552117" name="Cross ARM GNU Assembler" superClass="com.renesas.cdt.managedbuild.gcc.rz.tool.assembler">
@@ -226,7 +226,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="c-utility/adapters/tlsio_wolfssl.c|c-utility/adapters/httpapi_curl.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="c-utility/adapters/httpapi_curl.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

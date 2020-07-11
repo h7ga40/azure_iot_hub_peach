@@ -23,6 +23,7 @@
 			<storageModule moduleId="com.renesas.cdt.managedbuild.core.toolchainInfo">
 				<option id="toolchain.id" value="gcc-arm-embedded"/>
 				<option id="toolchain.version" value="6.3.1.20170620"/>
+				<option id="toolchain.enable" value="false"/>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 				<configuration artifactName="mbedtls" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.staticLib" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.staticLib,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="rm -rf *.lst *.lis *.lpp *.map" description="" id="com.renesas.cdt.managedbuild.gcc.rz.configuration.debug.lib.169678681" name="Debug" parent="com.renesas.cdt.managedbuild.gcc.rz.configuration.debug.lib">
@@ -50,14 +51,14 @@
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.command.rm.1773088692" name="Remove command" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.command.rm" useByScannerDiscovery="false" value="rm" valueType="string"/>
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.addtools.createflash.1447091678" name="Create flash image" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.addtools.createflash" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.addtools.printsize.2047098138" name="Print size" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.addtools.printsize" useByScannerDiscovery="false" value="true" valueType="boolean"/>
-							<option id="com.renesas.cdt.managedbuild.gcc.rz.createlibgen.240690545" name="Create libgen" superClass="com.renesas.cdt.managedbuild.gcc.rz.createlibgen" useByScannerDiscovery="false" value="true" valueType="boolean"/>
+							<option id="com.renesas.cdt.managedbuild.gcc.rz.createlibgen.240690545" name="Create libgen" superClass="com.renesas.cdt.managedbuild.gcc.rz.createlibgen" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 							<option id="com.renesas.cdt.managedbuild.gcc.rz.option.architecture.1889133370" name="Architecture" superClass="com.renesas.cdt.managedbuild.gcc.rz.option.architecture" useByScannerDiscovery="false" value="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.arch.armv7-a" valueType="enumerated"/>
 							<option id="com.renesas.cdt.managedbuild.gcc.rz.deviceName.1812101406" name="Device name" superClass="com.renesas.cdt.managedbuild.gcc.rz.deviceName" useByScannerDiscovery="false" value="R7S721001" valueType="string"/>
 							<option id="com.renesas.cdt.managedbuild.gcc.rz.option.floatunit.1711386121" name="FPU Type" superClass="com.renesas.cdt.managedbuild.gcc.rz.option.floatunit" useByScannerDiscovery="true" value="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.fpu.unit.vfpv3d16" valueType="enumerated"/>
 							<option id="com.renesas.cdt.managedbuild.gcc.rz.option.floatabi.1282967698" name="Float ABI" superClass="com.renesas.cdt.managedbuild.gcc.rz.option.floatabi" useByScannerDiscovery="true" value="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.fpu.abi.hard" valueType="enumerated"/>
 							<option id="com.renesas.cdt.managedbuild.gcc.rz.option.thumb.2038921124" name="Thumb interwork (-mthumb-interwork)" superClass="com.renesas.cdt.managedbuild.gcc.rz.option.thumb" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 							<option id="com.renesas.cdt.managedbuild.gcc.rz.option.endian.1422907300" name="Endianness" superClass="com.renesas.cdt.managedbuild.gcc.rz.option.endian" useByScannerDiscovery="true" value="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.endianness.little" valueType="enumerated"/>
-							<option id="com.renesas.cdt.managedbuild.gcc.rz.option.warnStack.2042180021" name="Warn if stack size exceeds the limit (-Wstack-usage) (H')" superClass="com.renesas.cdt.managedbuild.gcc.rz.option.warnStack" useByScannerDiscovery="false" value="100" valueType="string"/>
+							<option id="com.renesas.cdt.managedbuild.gcc.rz.option.warnStack.2042180021" name="Warn if stack size exceeds the limit, in bytes (-Wstack-usage)" superClass="com.renesas.cdt.managedbuild.gcc.rz.option.warnStack" useByScannerDiscovery="false" value="100" valueType="string"/>
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="ilg.gnuarmeclipse.managedbuild.cross.targetPlatform.2137186489" isAbstract="false" osList="all" superClass="ilg.gnuarmeclipse.managedbuild.cross.targetPlatform"/>
 							<builder buildPath="${workspace_loc:/mbedtls}/Debug" id="com.renesas.cdt.managedbuild.gcc.rz.builder.735943571" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="GCC for Renesas Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="com.renesas.cdt.managedbuild.gcc.rz.builder"/>
 							<tool id="com.renesas.cdt.managedbuild.gcc.rz.tool.assembler.1102236940" name="Cross ARM GNU Assembler" superClass="com.renesas.cdt.managedbuild.gcc.rz.tool.assembler">
@@ -67,6 +68,7 @@
 							<tool id="com.renesas.cdt.managedbuild.gcc.rz.tool.compiler.c.621099313" name="Cross ARM C Compiler" superClass="com.renesas.cdt.managedbuild.gcc.rz.tool.compiler.c">
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.renesas.cdt.managedbuild.gcc.rz.option.compiler.include.1355498511" name="Include paths (-I)" superClass="com.renesas.cdt.managedbuild.gcc.rz.option.compiler.include" useByScannerDiscovery="true" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/musl-1.1.18/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/zlib-1.2.11/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.nostdinc.424827640" name="Do not search system directories (-nostdinc)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.nostdinc" useByScannerDiscovery="true" value="true" valueType="boolean"/>
@@ -166,7 +168,7 @@
 							<option id="com.renesas.cdt.managedbuild.gcc.rz.option.floatabi.1472017156" name="Float ABI" superClass="com.renesas.cdt.managedbuild.gcc.rz.option.floatabi" useByScannerDiscovery="true" value="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.fpu.abi.hard" valueType="enumerated"/>
 							<option id="com.renesas.cdt.managedbuild.gcc.rz.option.thumb.23003793" name="Thumb interwork (-mthumb-interwork)" superClass="com.renesas.cdt.managedbuild.gcc.rz.option.thumb" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 							<option id="com.renesas.cdt.managedbuild.gcc.rz.option.endian.1095342137" name="Endianness" superClass="com.renesas.cdt.managedbuild.gcc.rz.option.endian" useByScannerDiscovery="true" value="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.endianness.little" valueType="enumerated"/>
-							<option id="com.renesas.cdt.managedbuild.gcc.rz.option.warnStack.1252479550" name="Warn if stack size exceeds the limit (-Wstack-usage) (H')" superClass="com.renesas.cdt.managedbuild.gcc.rz.option.warnStack" useByScannerDiscovery="false" value="100" valueType="string"/>
+							<option id="com.renesas.cdt.managedbuild.gcc.rz.option.warnStack.1252479550" name="Warn if stack size exceeds the limit, in bytes (-Wstack-usage)" superClass="com.renesas.cdt.managedbuild.gcc.rz.option.warnStack" useByScannerDiscovery="false" value="100" valueType="string"/>
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="ilg.gnuarmeclipse.managedbuild.cross.targetPlatform.1135931903" isAbstract="false" osList="all" superClass="ilg.gnuarmeclipse.managedbuild.cross.targetPlatform"/>
 							<builder buildPath="${workspace_loc:/mbedtls}/Release" id="com.renesas.cdt.managedbuild.gcc.rz.builder.1578932689" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="GCC for Renesas Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="com.renesas.cdt.managedbuild.gcc.rz.builder"/>
 							<tool id="com.renesas.cdt.managedbuild.gcc.rz.tool.assembler.1162325395" name="Cross ARM GNU Assembler" superClass="com.renesas.cdt.managedbuild.gcc.rz.tool.assembler">

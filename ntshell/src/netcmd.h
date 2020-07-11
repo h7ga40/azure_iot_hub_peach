@@ -34,8 +34,8 @@
  * 
  *  @(#) $Id$
  */
-#ifndef NETCMD_H
-#define NETCMD_H
+#ifndef _NETCMD_H_
+#define _NETCMD_H_
 
 int str_ipv4addr(char *text, int size, T_IN4_ADDR *addr, int width);
 int str_ipv6addr(char *text, int size, const T_IN6_ADDR *addr, int width);
@@ -46,4 +46,4 @@ int usrcmd_dhcp4c(int argc, char **argv);
 int usrcmd_dnsc(int argc, char **argv);
 int usrcmd_ntpc(int argc, char **argv);
 
-#endif /* NETCMD_H */
+#endif /* _NETCMD_H_ */
