@@ -14767,6 +14767,7 @@ void GENERATED_TMP_mrb_mruby_onig_regexp_gem_init(mrb_state*);
 void GENERATED_TMP_mrb_mruby_http_gem_init(mrb_state*);
 void GENERATED_TMP_mrb_mruby_curl_gem_init(mrb_state*);
 void GENERATED_TMP_mrb_mruby_iijson_gem_init(mrb_state *);
+void GENERATED_TMP_mrb_mruby_azure_iot_gem_init(mrb_state *);
 void GENERATED_TMP_mrb_mruby_others_gem_init(mrb_state*);
 void sym_validate_len(mrb_state *mrb, size_t len);
 
@@ -14841,6 +14842,7 @@ mrb_state* mrb_init(mrb_allocf f, void *ud)
 	GENERATED_TMP_mrb_mruby_http_gem_init(mrb);
 	GENERATED_TMP_mrb_mruby_curl_gem_init(mrb);
 	GENERATED_TMP_mrb_mruby_iijson_gem_init(mrb);
+	GENERATED_TMP_mrb_mruby_azure_iot_gem_init(mrb);
 	GENERATED_TMP_mrb_mruby_others_gem_init(mrb);
 	mrb_state_atexit(mrb, mrb_final_mrbgems);
 	mrb_gc_arena_restore(mrb, 0);

@@ -264,6 +264,9 @@ MRuby::CrossBuild.new('arm-none-eabi') do |conf|
     g.cc.include_paths  << "../curl-7.57.0/include"
   end
   conf.gem "#{root}/../mrbgems/mruby-iijson"
+  conf.gem "#{root}/../mrbgems/mruby-azure-iot"  do |g|
+    g.cc.include_paths  << ["../azure_iothub/certs", "../azure_iothub/c-utility/inc", "../azure_iothub/c-utility/pal/toppers", "../azure_iothub/iothub_client/inc", "../azure_iothub/provisioning_client/inc", "../azure_iothub/deps/parson", "../azure_iothub/deps/azure-macro-utils-c/inc", "../azure_iothub/deps/umock-c/inc", "../azure_iothub/serializer/inc"]
+  end
   conf.gem "#{root}/../mrbgems/mruby-others"
 
   conf.bins = []

@@ -1,93 +1,143 @@
 {
-  "@id": "urn:_2i6fe8ayqrk:PinKit_z2:1",
-  "@type": "Interface",
-  "displayName": {
-    "en": "インターフェイス"
-  },
-  "contents": [
+  "@id": "urn:WeatherStation:WeatherStation:1",
+  "@type": "CapabilityModel",
+  "implements": [
     {
-      "@id": "urn:_2i6fe8ayqrk:PinKit_z2:temperature:1",
-      "@type": [
-        "Telemetry",
-        "SemanticType/Temperature"
-      ],
+      "@id": "urn:WeatherStation:WeatherStation:xrajsnbbl:1",
+      "@type": "InterfaceInstance",
       "displayName": {
-        "en": "温度"
+        "en": "インターフェイス"
       },
-      "name": "temperature",
-      "schema": "double",
-      "unit": "Units/Temperature/celsius"
-    },
-    {
-      "@id": "urn:_2i6fe8ayqrk:PinKit_z2:temperatureAlert:1",
-      "@type": [
-        "Telemetry",
-        "SemanticType/State"
-      ],
-      "displayName": {
-        "en": "温度アラート"
-      },
-      "name": "temperatureAlert",
+      "name": "ContosoAnemometer",
       "schema": {
-        "@id": "urn:_2i6fe8ayqrk:PinKit_z2:temperatureAlert:5crbedlxq:1",
-        "@type": "Enum",
-        "valueSchema": "integer",
-        "enumValues": [
+        "@id": "urn:WeatherStation:ContosoAnemometer:1",
+        "@type": "Interface",
+        "displayName": {
+          "en": "インターフェイス"
+        },
+        "contents": [
           {
-            "@id": "urn:_2i6fe8ayqrk:PinKit_z2:temperatureAlert:5crbedlxq:true:1",
-            "@type": "EnumValue",
+            "@id": "urn:WeatherStation:ContosoAnemometer:quit:1",
+            "@type": "Command",
+            "commandType": "synchronous",
+            "durable": false,
             "displayName": {
-              "en": "異常"
+              "en": "quit"
             },
-            "enumValue": 1,
-            "name": "true"
+            "name": "quit"
           },
           {
-            "@id": "urn:_2i6fe8ayqrk:PinKit_z2:temperatureAlert:5crbedlxq:false:1",
-            "@type": "EnumValue",
+            "@id": "urn:WeatherStation:ContosoAnemometer:windSpeed:1",
+            "@type": [
+              "Telemetry",
+              "SemanticType/Velocity"
+            ],
             "displayName": {
-              "en": "通常"
+              "en": "windSpeed"
             },
-            "enumValue": 0,
-            "name": "false"
+            "name": "windSpeed",
+            "schema": "vector",
+            "unit": "Units/Velocity/metersPerSecond"
+          },
+          {
+            "@id": "urn:WeatherStation:ContosoAnemometer:temperature:1",
+            "@type": [
+              "Telemetry",
+              "SemanticType/Temperature"
+            ],
+            "displayName": {
+              "en": "Temperature"
+            },
+            "name": "temperature",
+            "schema": "double",
+            "unit": "Units/Temperature/celsius"
+          },
+          {
+            "@id": "urn:WeatherStation:ContosoAnemometer:humidity:1",
+            "@type": [
+              "Telemetry",
+              "SemanticType/Humidity"
+            ],
+            "displayName": {
+              "en": "humidity"
+            },
+            "name": "humidity",
+            "schema": "double",
+            "unit": "Units/Humidity/percent"
+          },
+          {
+            "@id": "urn:WeatherStation:ContosoAnemometer:temperatureAlert:1",
+            "@type": [
+              "Telemetry",
+              "SemanticType/State"
+            ],
+            "displayName": {
+              "en": "Temperature alert"
+            },
+            "name": "temperatureAlert",
+            "schema": {
+              "@id": "urn:WeatherStation:ContosoAnemometer:temperatureAlert:5crbedlxq:1",
+              "@type": "Enum",
+              "valueSchema": "integer",
+              "enumValues": [
+                {
+                  "@id": "urn:WeatherStation:ContosoAnemometer:temperatureAlert:5crbedlxq:true:1",
+                  "@type": "EnumValue",
+                  "displayName": {
+                    "en": "異常"
+                  },
+                  "enumValue": 1,
+                  "name": "true"
+                },
+                {
+                  "@id": "urn:WeatherStation:ContosoAnemometer:temperatureAlert:5crbedlxq:false:1",
+                  "@type": "EnumValue",
+                  "displayName": {
+                    "en": "通常"
+                  },
+                  "enumValue": 0,
+                  "name": "false"
+                }
+              ]
+            }
+          },
+          {
+            "@id": "urn:WeatherStation:ContosoAnemometer:turnFanOn:1",
+            "@type": "Command",
+            "commandType": "synchronous",
+            "durable": false,
+            "displayName": {
+              "en": "FAN ON"
+            },
+            "name": "turnFanOn"
+          },
+          {
+            "@id": "urn:WeatherStation:ContosoAnemometer:turnFanOff:1",
+            "@type": "Command",
+            "commandType": "synchronous",
+            "durable": false,
+            "displayName": {
+              "en": "FAN OFF"
+            },
+            "name": "turnFanOff"
+          },
+          {
+            "@id": "urn:WeatherStation:ContosoAnemometer:fanSpeed:1",
+            "@type": "Property",
+            "displayName": {
+              "en": "FAN SPEED"
+            },
+            "name": "fanSpeed",
+            "writable": true,
+            "schema": "double"
           }
         ]
       }
-    },
-    {
-      "@id": "urn:_2i6fe8ayqrk:PinKit_z2:turnLedOn:1",
-      "@type": "Command",
-      "commandType": "synchronous",
-      "durable": false,
-      "displayName": {
-        "en": "LED ON"
-      },
-      "name": "turnLedOn"
-    },
-    {
-      "@id": "urn:_2i6fe8ayqrk:PinKit_z2:turnLedOff:1",
-      "@type": "Command",
-      "commandType": "synchronous",
-      "durable": false,
-      "displayName": {
-        "en": "LED OFF"
-      },
-      "name": "turnLedOff"
-    },
-    {
-      "@id": "urn:_2i6fe8ayqrk:PinKit_z2:threshold:1",
-      "@type": [
-        "Property",
-        "SemanticType/Temperature"
-      ],
-      "displayName": {
-        "en": "温度閾値"
-      },
-      "name": "threshold",
-      "writable": true,
-      "schema": "double"
     }
   ],
+  "displayName": {
+    "en": "WeatherStation"
+  },
   "@context": [
     "http://azureiot.com/v1/contexts/IoTModel.json"
   ]
